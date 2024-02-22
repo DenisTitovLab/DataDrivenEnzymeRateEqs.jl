@@ -118,109 +118,113 @@ end
 
 macro derive_mwc_rate_eq(metabs_and_regulators_kwargs...)
     expected_kwargs = [:substrates, :products, :reg1, :reg2, :reg3, :Keq]
-    enz = NamedTuple()
+    processed_input = NamedTuple()
     for expr in metabs_and_regulators_kwargs
         expr.args[1] ∈ expected_kwargs || error("invalid keyword: ", expr.args[1])
-        enz = merge(enz, (; expr.args[1] => eval(expr)))
+        processed_input = merge(processed_input, (; expr.args[1] => eval(expr)))
     end
-    enz1 = NamedTuple()
-    for field in propertynames(enz)
+    @assert 0<length(processed_input.substrates)<=2 "At least 1 and no more that 2 substrates are supported"
+    @assert length(processed_input.products)<=2 "At least 1 and no more that 2 products are supported"
+    @assert length(processed_input.reg1)<=3 "No more that 3 regulators for site 1 are supported"
+    @assert length(processed_input.reg2)<=3 "No more that 3 regulators for site 2 are supported"
+    # @assert length(processed_input.reg3)<=3 "No more that 3 regulators for site 3 are supported"
+
+    enz = NamedTuple()
+    for field in propertynames(processed_input)
         if field == :substrates
-            for (i, metab_name) in enumerate(enz[field])
-                enz1 = merge(enz1, (; Symbol(:S, i) => enz[field][i]))
+            for (i, metab_name) in enumerate(processed_input[field])
+                enz = merge(enz, (; Symbol(:S, i) => processed_input[field][i]))
             end
         elseif field == :products
-            for (i, metab_name) in enumerate(enz[field])
-                enz1 = merge(enz1, (; Symbol(:P, i) => enz[field][i]))
+            for (i, metab_name) in enumerate(processed_input[field])
+                enz = merge(enz, (; Symbol(:P, i) => processed_input[field][i]))
             end
         elseif field == :reg1
-            for (i, metab_name) in enumerate(enz[field])
-                enz1 = merge(enz1, (; Symbol(:R, i, "_", field) => enz[field][i]))
+            for (i, metab_name) in enumerate(processed_input[field])
+                enz = merge(enz, (; Symbol(:R, i, "_", field) => processed_input[field][i]))
             end
         elseif field == :reg2
-            for (i, metab_name) in enumerate(enz[field])
-                enz1 = merge(enz1, (; Symbol(:R, i, "_", field) => enz[field][i]))
+            for (i, metab_name) in enumerate(processed_input[field])
+                enz = merge(enz, (; Symbol(:R, i, "_", field) => processed_input[field][i]))
             end
         elseif field == :reg3
-            for (i, metab_name) in enumerate(enz[field])
-                enz1 = merge(enz1, (; Symbol(:R, i, "_", field) => enz[field][i]))
+            for (i, metab_name) in enumerate(processed_input[field])
+                enz = merge(enz, (; Symbol(:R, i, "_", field) => processed_input[field][i]))
             end
         end
     end
-    enz_nt_keys = [:S1, :S2, :P1, :P2, :R1_reg1, :R2_reg1, :R3_reg1, :R1_reg2,
+    mwc_rate_eq_args = [:S1, :S2, :P1, :P2, :R1_reg1, :R2_reg1, :R3_reg1, :R1_reg2,
         :R2_reg2, :R3_reg2, :R1_reg3, :R2_reg3, :R3_reg3]
-    enz2 = NamedTuple()
-    for key in enz_nt_keys
-        if haskey(enz1, key)
-            enz2 = merge(enz2, (; key => enz1[key]))
-        else
-            enz2 = merge(enz2, (; key => nothing))
-        end
+    println(keys(enz))
+    missing_keys = filter(x -> !haskey(enz, x), mwc_rate_eq_args)
+    println(missing_keys)
+    for key in missing_keys
+        enz = merge(enz, (; key => nothing))
     end
-    println(enz2)
+    println(enz)
     qualified_name = esc(GlobalRef(Main, :rate_equation))
     return :(function $(qualified_name)(metabs, params, Keq)
         general_mwc_rate_equation(
-            $(enz2.S1 isa Symbol) ? metabs.$(enz2.S1) : 1.0,
-            $(enz2.S2 isa Symbol) ? metabs.$(enz2.S2) : 1.0,
-            $(enz2.P1 isa Symbol) ? metabs.$(enz2.P1) : 1.0,
-            $(enz2.P2 isa Symbol) ? metabs.$(enz2.P2) : 1.0,
-            $(enz2.R1_reg1 isa Symbol) ? metabs.$(enz2.R1_reg1) : 0.0,
-            $(enz2.R2_reg1 isa Symbol) ? metabs.$(enz2.R2_reg1) : 0.0,
-            $(enz2.R3_reg1 isa Symbol) ? metabs.$(enz2.R3_reg1) : 0.0,
-            $(enz2.R1_reg2 isa Symbol) ? metabs.$(enz2.R1_reg2) : 0.0,
-            $(enz2.R2_reg2 isa Symbol) ? metabs.$(enz2.R2_reg2) : 0.0,
-            $(enz2.R3_reg2 isa Symbol) ? metabs.$(enz2.R3_reg2) : 0.0,
-            $(enz2.R1_reg3 isa Symbol) ? metabs.$(enz2.R1_reg3) : 0.0,
-            $(enz2.R2_reg3 isa Symbol) ? metabs.$(enz2.R2_reg3) : 0.0,
-            $(enz2.R3_reg3 isa Symbol) ? metabs.$(enz2.R3_reg3) : 0.0,
+            $(enz.S1 isa Symbol) ? metabs.$(enz.S1) : 1.0,
+            $(enz.S2 isa Symbol) ? metabs.$(enz.S2) : 1.0,
+            $(enz.P1 isa Symbol) ? metabs.$(enz.P1) : 1.0,
+            $(enz.P2 isa Symbol) ? metabs.$(enz.P2) : 1.0,
+            $(enz.R1_reg1 isa Symbol) ? metabs.$(enz.R1_reg1) : 0.0,
+            $(enz.R2_reg1 isa Symbol) ? metabs.$(enz.R2_reg1) : 0.0,
+            $(enz.R3_reg1 isa Symbol) ? metabs.$(enz.R3_reg1) : 0.0,
+            $(enz.R1_reg2 isa Symbol) ? metabs.$(enz.R1_reg2) : 0.0,
+            $(enz.R2_reg2 isa Symbol) ? metabs.$(enz.R2_reg2) : 0.0,
+            $(enz.R3_reg2 isa Symbol) ? metabs.$(enz.R3_reg2) : 0.0,
+            $(enz.R1_reg3 isa Symbol) ? metabs.$(enz.R1_reg3) : 0.0,
+            $(enz.R2_reg3 isa Symbol) ? metabs.$(enz.R2_reg3) : 0.0,
+            $(enz.R3_reg3 isa Symbol) ? metabs.$(enz.R3_reg3) : 0.0,
             params.L,
             params.Vmax_a,
             params.Vmax_i,
-            $(enz2.S1 isa Symbol) ? params.$(Symbol("K_a_", enz2.S1, "_cat")) : 1.0,
-            $(enz2.S1 isa Symbol) ? params.$(Symbol("K_i_", enz2.S1, "_cat")) : 1.0,
-            $(enz2.S2 isa Symbol) ? params.$(Symbol("K_a_", enz2.S2, "_cat")) : 1.0,
-            $(enz2.S2 isa Symbol) ? params.$(Symbol("K_i_", enz2.S2, "_cat")) : 1.0,
-            $(enz2.P1 isa Symbol) ? params.$(Symbol("K_a_", enz2.P1, "_cat")) : 1.0,
-            $(enz2.P1 isa Symbol) ? params.$(Symbol("K_i_", enz2.P1, "_cat")) : 1.0,
-            $(enz2.P2 isa Symbol) ? params.$(Symbol("K_a_", enz2.P2, "_cat")) : 1.0,
-            $(enz2.P2 isa Symbol) ? params.$(Symbol("K_i_", enz2.P2, "_cat")) : 1.0,
-            $(enz2.R1_reg1 isa Symbol) ?
-            params.$(Symbol("K_a_", enz2.R1_reg1, "_reg1")) : Inf,
-            $(enz2.R1_reg1 isa Symbol) ?
-            params.$(Symbol("K_i_", enz2.R1_reg1, "_reg1")) : Inf,
-            $(enz2.R2_reg1 isa Symbol) ?
-            params.$(Symbol("K_a_", enz2.R2_reg1, "_reg1")) : Inf,
-            $(enz2.R2_reg1 isa Symbol) ?
-            params.$(Symbol("K_i_", enz2.R2_reg1, "_reg1")) : Inf,
-            $(enz2.R3_reg1 isa Symbol) ?
-            params.$(Symbol("K_a_", enz2.R3_reg1, "_reg1")) : Inf,
-            $(enz2.R3_reg1 isa Symbol) ?
-            params.$(Symbol("K_i_", enz2.R3_reg1, "_reg1")) : Inf,
-            $(enz2.R1_reg2 isa Symbol) ?
-            params.$(Symbol("K_a_", enz2.R1_reg2, "_reg2")) : Inf,
-            $(enz2.R1_reg2 isa Symbol) ?
-            params.$(Symbol("K_i_", enz2.R1_reg2, "_reg2")) : Inf,
-            $(enz2.R2_reg2 isa Symbol) ?
-            params.$(Symbol("K_a_", enz2.R2_reg2, "_reg2")) : Inf,
-            $(enz2.R2_reg2 isa Symbol) ?
-            params.$(Symbol("K_i_", enz2.R2_reg2, "_reg2")) : Inf,
-            $(enz2.R3_reg2 isa Symbol) ?
-            params.$(Symbol("K_a_", enz2.R3_reg2, "_reg2")) : Inf,
-            $(enz2.R3_reg2 isa Symbol) ?
-            params.$(Symbol("K_i_", enz2.R3_reg2, "_reg2")) : Inf,
-            $(enz2.R1_reg3 isa Symbol) ?
-            params.$(Symbol("K_a_", enz2.R1_reg3, "_reg3")) : Inf,
-            $(enz2.R1_reg3 isa Symbol) ?
-            params.$(Symbol("K_i_", enz2.R1_reg3, "_reg3")) : Inf,
-            $(enz2.R2_reg3 isa Symbol) ?
-            params.$(Symbol("K_a_", enz2.R2_reg3, "_reg3")) : Inf,
-            $(enz2.R2_reg3 isa Symbol) ?
-            params.$(Symbol("K_i_", enz2.R2_reg3, "_reg3")) : Inf,
-            $(enz2.R3_reg3 isa Symbol) ?
-            params.$(Symbol("K_a_", enz2.R3_reg3, "_reg3")) : Inf,
-            $(enz2.R3_reg3 isa Symbol) ?
-            params.$(Symbol("K_i_", enz2.R3_reg3, "_reg3")) : Inf,
+            $(enz.S1 isa Symbol) ? params.$(Symbol("K_a_", enz.S1, "_cat")) : 1.0,
+            $(enz.S1 isa Symbol) ? params.$(Symbol("K_i_", enz.S1, "_cat")) : 1.0,
+            $(enz.S2 isa Symbol) ? params.$(Symbol("K_a_", enz.S2, "_cat")) : 1.0,
+            $(enz.S2 isa Symbol) ? params.$(Symbol("K_i_", enz.S2, "_cat")) : 1.0,
+            $(enz.P1 isa Symbol) ? params.$(Symbol("K_a_", enz.P1, "_cat")) : 1.0,
+            $(enz.P1 isa Symbol) ? params.$(Symbol("K_i_", enz.P1, "_cat")) : 1.0,
+            $(enz.P2 isa Symbol) ? params.$(Symbol("K_a_", enz.P2, "_cat")) : 1.0,
+            $(enz.P2 isa Symbol) ? params.$(Symbol("K_i_", enz.P2, "_cat")) : 1.0,
+            $(enz.R1_reg1 isa Symbol) ?
+            params.$(Symbol("K_a_", enz.R1_reg1, "_reg1")) : Inf,
+            $(enz.R1_reg1 isa Symbol) ?
+            params.$(Symbol("K_i_", enz.R1_reg1, "_reg1")) : Inf,
+            $(enz.R2_reg1 isa Symbol) ?
+            params.$(Symbol("K_a_", enz.R2_reg1, "_reg1")) : Inf,
+            $(enz.R2_reg1 isa Symbol) ?
+            params.$(Symbol("K_i_", enz.R2_reg1, "_reg1")) : Inf,
+            $(enz.R3_reg1 isa Symbol) ?
+            params.$(Symbol("K_a_", enz.R3_reg1, "_reg1")) : Inf,
+            $(enz.R3_reg1 isa Symbol) ?
+            params.$(Symbol("K_i_", enz.R3_reg1, "_reg1")) : Inf,
+            $(enz.R1_reg2 isa Symbol) ?
+            params.$(Symbol("K_a_", enz.R1_reg2, "_reg2")) : Inf,
+            $(enz.R1_reg2 isa Symbol) ?
+            params.$(Symbol("K_i_", enz.R1_reg2, "_reg2")) : Inf,
+            $(enz.R2_reg2 isa Symbol) ?
+            params.$(Symbol("K_a_", enz.R2_reg2, "_reg2")) : Inf,
+            $(enz.R2_reg2 isa Symbol) ?
+            params.$(Symbol("K_i_", enz.R2_reg2, "_reg2")) : Inf,
+            $(enz.R3_reg2 isa Symbol) ?
+            params.$(Symbol("K_a_", enz.R3_reg2, "_reg2")) : Inf,
+            $(enz.R3_reg2 isa Symbol) ?
+            params.$(Symbol("K_i_", enz.R3_reg2, "_reg2")) : Inf,
+            $(enz.R1_reg3 isa Symbol) ?
+            params.$(Symbol("K_a_", enz.R1_reg3, "_reg3")) : Inf,
+            $(enz.R1_reg3 isa Symbol) ?
+            params.$(Symbol("K_i_", enz.R1_reg3, "_reg3")) : Inf,
+            $(enz.R2_reg3 isa Symbol) ?
+            params.$(Symbol("K_a_", enz.R2_reg3, "_reg3")) : Inf,
+            $(enz.R2_reg3 isa Symbol) ?
+            params.$(Symbol("K_i_", enz.R2_reg3, "_reg3")) : Inf,
+            $(enz.R3_reg3 isa Symbol) ?
+            params.$(Symbol("K_a_", enz.R3_reg3, "_reg3")) : Inf,
+            $(enz.R3_reg3 isa Symbol) ?
+            params.$(Symbol("K_i_", enz.R3_reg3, "_reg3")) : Inf,
             params.alpha_PEP_ATP,
             params.alpha_ADP_Pyruvate,
             Keq
@@ -229,9 +233,8 @@ macro derive_mwc_rate_eq(metabs_and_regulators_kwargs...)
     )
 end
 
-
-# metabs_nt =
-#     (PEP = 1.0e-3, ADP = 1.0e-3, Pyruvate = 1.0e-3, ATP = 1.0e-3, F16BP = 1.0e-3, Phenylalanine = 1.0e-3)
+# metabs_nt = (PEP = 1.0e-3, ADP = 1.0e-3, Pyruvate = 1.0e-3,
+#     ATP = 1.0e-3, F16BP = 1.0e-3, Phenylalanine = 1.0e-3)
 
 # params_nt = (
 #     L = 1.0,
@@ -250,9 +253,9 @@ end
 #     K_a_Phenylalanine_reg2 = 100e-3,
 #     K_i_Phenylalanine_reg2 = 1e-3,
 #     alpha_PEP_ATP = 1.0,
-#     alpha_ADP_Pyruvate = 1.0,
+#     alpha_ADP_Pyruvate = 1.0
 # )
-# @derive_rate_eq(substrates=[:PEP, :ADP],
+# @derive_mwc_rate_eq(substrates=[:PEP, :ADP],
 #     products=[:Pyruvate, :ATP], reg1=[:F16BP], reg2=[:Phenylalanine],Keq=20_000.0)
 # @code_warntype rate_equation(metabs_nt, params_nt, 20000.0)
 # using BenchmarkTools
