@@ -123,6 +123,7 @@ macro derive_mwc_rate_eq(metabs_and_regulators_kwargs...)
         expr.args[1] ∈ expected_input_kwargs || error("invalid keyword: ", expr.args[1])
         processed_input = merge(processed_input, (; expr.args[1] => eval(expr)))
     end
+    # TODO: assert only after checking if the field exists
     @assert 0<length(processed_input.substrates)<=2 "At least 1 and no more that 2 substrates are supported"
     @assert length(processed_input.products)<=2 "At least 1 and no more that 2 products are supported"
     @assert length(processed_input.reg1)<=3 "No more that 3 regulators for site 1 are supported"
