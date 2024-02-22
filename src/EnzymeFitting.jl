@@ -1,5 +1,7 @@
 module EnzymeFitting
+include("rate_equation_derivation_macros.jl")
 
-# Write your package code here.
+export MonodWymanChangeuxEnzyme
+export derive_rate_eq
 
 end
