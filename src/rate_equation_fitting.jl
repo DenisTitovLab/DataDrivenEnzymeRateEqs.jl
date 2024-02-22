@@ -52,10 +52,11 @@ function train_rate_equation(
             minimize(
                 x -> loss_rate_equation(
                     x,
+                    rate_equation,
                     rate_data_nt,
                     param_names,
                     fig_point_indexes;
-                    nt_param_choice = nt_param_choice                    # rate_equation::Function = rate_equation,
+                    nt_param_choice = nt_param_choice
                 ),
                 x0,
                 0.01,
@@ -121,14 +122,15 @@ function loss_rate_equation(
         nt_param_choice = nothing
 )
     kinetic_params = param_rescaling(params, param_names)
-    if nt_param_choice != nothing
+    if !isnothing(nt_param_choice)
         kinetic_params .= param_subset_select(kinetic_params, nt_param_choice)
     end
 
     #precalculate log_pred_vs_data_ratios for all points as it is expensive and reuse it for weights and loss
     #convert kinetic_params to NamedTuple with field names from param_names for better type stability
     kinetic_params_nt = NamedTuple{param_names}(kinetic_params)
-    log_pred_vs_data_ratios = log_ratio_predict_vs_data(rate_data_nt, kinetic_params_nt)#; rate_equation::Function = rate_equation)
+    log_pred_vs_data_ratios = log_ratio_predict_vs_data(
+        rate_equation, rate_data_nt, kinetic_params_nt)
 
     #calculate figures weights and loss on per figure basis
     loss = zero(eltype(kinetic_params))
