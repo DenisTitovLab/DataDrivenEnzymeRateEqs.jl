@@ -117,6 +117,7 @@ end
 # Base.method_argnames(methods(general_mwc_rate_equation)[1])[2:end]
 
 macro derive_mwc_rate_eq(metabs_and_regulators_kwargs...)
+    # TODO: rename reg1 to regulators_site1 or something like that
     expected_input_kwargs = [:substrates, :products, :reg1, :reg2, :reg3, :Keq]
     processed_input = NamedTuple()
     for expr in metabs_and_regulators_kwargs
