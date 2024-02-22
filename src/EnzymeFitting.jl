@@ -2,6 +2,6 @@ module EnzymeFitting
 include("rate_equation_derivation_macros.jl")
 
 export MonodWymanChangeuxEnzyme
-export @derive_rate_eq
+export @derive_mwc_rate_eq
 
 end

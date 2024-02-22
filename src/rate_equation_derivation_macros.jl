@@ -116,7 +116,7 @@ end
 # propertynames(lowered_code)
 # Base.method_argnames(methods(general_mwc_rate_equation)[1])[2:end]
 
-macro derive_rate_eq(metabs_and_regulators_kwargs...)
+macro derive_mwc_rate_eq(metabs_and_regulators_kwargs...)
     expected_kwargs = [:substrates, :products, :reg1, :reg2, :reg3, :Keq]
     enz = NamedTuple()
     for expr in metabs_and_regulators_kwargs
