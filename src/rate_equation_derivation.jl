@@ -117,10 +117,10 @@ end
 # Base.method_argnames(methods(general_mwc_rate_equation)[1])[2:end]
 
 macro derive_mwc_rate_eq(metabs_and_regulators_kwargs...)
-    expected_kwargs = [:substrates, :products, :reg1, :reg2, :reg3, :Keq]
+    expected_input_kwargs = [:substrates, :products, :reg1, :reg2, :reg3, :Keq]
     processed_input = NamedTuple()
     for expr in metabs_and_regulators_kwargs
-        expr.args[1] ∈ expected_kwargs || error("invalid keyword: ", expr.args[1])
+        expr.args[1] ∈ expected_input_kwargs || error("invalid keyword: ", expr.args[1])
         processed_input = merge(processed_input, (; expr.args[1] => eval(expr)))
     end
     @assert 0<length(processed_input.substrates)<=2 "At least 1 and no more that 2 substrates are supported"
@@ -233,32 +233,32 @@ macro derive_mwc_rate_eq(metabs_and_regulators_kwargs...)
     )
 end
 
-# metabs_nt = (PEP = 1.0e-3, ADP = 1.0e-3, Pyruvate = 1.0e-3,
-#     ATP = 1.0e-3, F16BP = 1.0e-3, Phenylalanine = 1.0e-3)
+metabs_nt = (PEP = 1.0e-3, ADP = 1.0e-3, Pyruvate = 1.0e-3,
+    ATP = 1.0e-3, F16BP = 1.0e-3, Phenylalanine = 1.0e-3)
 
-# params_nt = (
-#     L = 1.0,
-#     Vmax_a = 1.0,
-#     Vmax_i = 1.0,
-#     K_a_PEP_cat = 1e-3,
-#     K_i_PEP_cat = 100e-3,
-#     K_a_ADP_cat = 1e-3,
-#     K_i_ADP_cat = 1e-3,
-#     K_a_Pyruvate_cat = 1e-3,
-#     K_i_Pyruvate_cat = 1e-3,
-#     K_a_ATP_cat = 1e-3,
-#     K_i_ATP_cat = 1e-3,
-#     K_a_F16BP_reg1 = 1e-3,
-#     K_i_F16BP_reg1 = 100e-3,
-#     K_a_Phenylalanine_reg2 = 100e-3,
-#     K_i_Phenylalanine_reg2 = 1e-3,
-#     alpha_PEP_ATP = 1.0,
-#     alpha_ADP_Pyruvate = 1.0
-# )
-# @derive_mwc_rate_eq(substrates=[:PEP, :ADP],
-#     products=[:Pyruvate, :ATP], reg1=[:F16BP], reg2=[:Phenylalanine],Keq=20_000.0)
-# @code_warntype rate_equation(metabs_nt, params_nt, 20000.0)
-# using BenchmarkTools
-# @benchmark rate_equation(metabs_nt, params_nt, 20000.0)
-# @benchmark rate_equation($(metabs_nt), $(params_nt), 20000.0)
-# rate_equation(metabs_nt, params_nt, 20000.0)
+params_nt = (
+    L = 1.0,
+    Vmax_a = 1.0,
+    Vmax_i = 1.0,
+    K_a_PEP_cat = 1e-3,
+    K_i_PEP_cat = 100e-3,
+    K_a_ADP_cat = 1e-3,
+    K_i_ADP_cat = 1e-3,
+    K_a_Pyruvate_cat = 1e-3,
+    K_i_Pyruvate_cat = 1e-3,
+    K_a_ATP_cat = 1e-3,
+    K_i_ATP_cat = 1e-3,
+    K_a_F16BP_reg1 = 1e-3,
+    K_i_F16BP_reg1 = 100e-3,
+    K_a_Phenylalanine_reg2 = 100e-3,
+    K_i_Phenylalanine_reg2 = 1e-3,
+    alpha_PEP_ATP = 1.0,
+    alpha_ADP_Pyruvate = 1.0
+)
+@derive_mwc_rate_eq(substrates=[:PEP, :ADP],
+    products=[:Pyruvate, :ATP], reg1=[:F16BP], reg2=[:Phenylalanine],Keq=20_000.0)
+@code_warntype rate_equation(metabs_nt, params_nt, 20000.0)
+using BenchmarkTools
+@benchmark rate_equation(metabs_nt, params_nt, 20000.0)
+@benchmark rate_equation($(metabs_nt), $(params_nt), 20000.0)
+rate_equation(metabs_nt, params_nt, 20000.0)
