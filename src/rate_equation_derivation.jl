@@ -113,11 +113,16 @@ function general_mwc_rate_equation(
     return Rate
 end
 
-# propertynames(lowered_code)
-# Base.method_argnames(methods(general_mwc_rate_equation)[1])[2:end]
-
+#=
+TODO: ask users for substrates, products, inhibitors and regulators and then ask users to put
+each into a site like cat1,2,3 and reg1,2,3. Add several catalytic sites (e.g., "cat1", "cat2")
+for enzyme like PDH and PC that have clearly distinct catalytic sites but also to allow users
+to highlight that some substrates likely bind to same site in mutually exclusive way. For
+example for PKM2 ATP/ADP and PEP/Pyruvate behave like they bind to different sites.
+Somehow include alpha terms only for cat1 / cat2 pair that user highlights that are part of
+the same cat site like for PKM2.
+=#
 macro derive_mwc_rate_eq(metabs_and_regulators_kwargs...)
-    # TODO: rename reg1 to regulators_site1 or something like that
     expected_input_kwargs = [:substrates, :products, :reg1, :reg2, :reg3, :Keq]
     processed_input = NamedTuple()
     for expr in metabs_and_regulators_kwargs
@@ -155,6 +160,7 @@ macro derive_mwc_rate_eq(metabs_and_regulators_kwargs...)
             end
         end
     end
+    #TODO: use Base.method_argnames(methods(general_mwc_rate_equation)[1])[2:end] to get args
     mwc_rate_eq_args = [:S1, :S2, :P1, :P2, :R1_reg1, :R2_reg1, :R3_reg1, :R1_reg2,
         :R2_reg2, :R3_reg2, :R1_reg3, :R2_reg3, :R3_reg3]
     println(keys(enz))
