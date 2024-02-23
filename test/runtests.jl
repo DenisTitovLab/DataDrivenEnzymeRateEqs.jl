@@ -1,6 +1,9 @@
 using EnzymeFitting
 using Test
+using SafeTestsets
 
-@testset "EnzymeFitting.jl" begin
-    # Write your tests here.
+@time begin
+    @time @safetestset "MWC Rate Eq Derivation" begin
+        include("tests_for_rate_eq_derivation.jl")
+    end
 end
