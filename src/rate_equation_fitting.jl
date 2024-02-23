@@ -3,8 +3,16 @@ CODE FOR RATE EQUATION FITTING
 =#
 using CMAEvolutionStrategy, DataFrames, Statistics
 
-#TODO: wrap train_rate_equation() in another function that outputs NamedTuple of rescaled parameters and loss
+#TODO add optimization_kwargs to control the optimization process
 """
+    fit_rate_equation(
+        rate_equation::Function,
+        data::DataFrame,
+        metab_names::Tuple,
+        param_names::Tuple;
+        n_iter = 20
+)
+
 Fit `rate_equation` to `data` and report the loss and best fit parameters.
 """
 function fit_rate_equation(
@@ -12,7 +20,7 @@ function fit_rate_equation(
         data::DataFrame,
         metab_names::Tuple,
         param_names::Tuple;
-        n_iter = 20        # optimization_kwargs = optimization_kwargs
+        n_iter = 20
 )
     train_results = train_rate_equation(
         rate_equation::Function,
@@ -20,7 +28,7 @@ function fit_rate_equation(
         metab_names::Tuple,
         param_names::Tuple;
         n_iter = n_iter,
-        nt_param_choice = nothing        # optimization_kwargs = optimization_kwargs
+        nt_param_choice = nothing
     )
     rescaled_params = param_rescaling(train_results[2], param_names)
     return (loss = train_results[1], params = NamedTuple{param_names}(rescaled_params))
