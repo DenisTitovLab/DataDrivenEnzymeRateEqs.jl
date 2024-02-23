@@ -52,5 +52,5 @@ benchmark_result = @benchmark EnzymeFitting.loss_rate_equation(kinetic_params, r
 benchmark_result = @benchmark EnzymeFitting.loss_rate_equation($(kinetic_params), rate_equation, $(rate_data_nt), $(param_names), $(fig_point_indexes))
 @test mean(benchmark_result.times) <= 100_000 #ns
 
-fit_result = @time "fit_rate_function() on PKM2 data" fit_rate_equation(rate_equation, data, metab_names, param_names; n_iter=20)
+fit_result = @time fit_rate_equation(rate_equation, data, metab_names, param_names; n_iter=20)
 @test isapprox(fit_result.loss, 0.08946088323758938, rtol=1e-3)
