@@ -60,7 +60,6 @@ function general_mwc_rate_equation(
         Vmax_i * K_i_P2_cat * K_i_P1_cat / (Keq * K_i_S1_cat * K_i_S2_cat),
         0.0
     )
-
     Z_a_cat = (
         1 +
         (S1 / K_a_S1_cat) +
@@ -93,7 +92,6 @@ function general_mwc_rate_equation(
         (1 + R1_reg2 / K_i_R1_reg2 + R2_reg2 / K_i_R2_reg2 + R3_reg2 / K_i_R3_reg2) *
         (1 + R1_reg3 / K_i_R1_reg3 + R2_reg3 / K_i_R2_reg3 + R3_reg3 / K_i_R3_reg3)
     )
-
     Rate = (
         (
             Vmax_a * (S1 / K_a_S1_cat) * (S2 / K_a_S2_cat) -
@@ -163,15 +161,13 @@ macro derive_mwc_rate_eq(metabs_and_regulators_kwargs...)
     #TODO: use Base.method_argnames(methods(general_mwc_rate_equation)[1])[2:end] to get args
     mwc_rate_eq_args = [:S1, :S2, :P1, :P2, :R1_reg1, :R2_reg1, :R3_reg1, :R1_reg2,
         :R2_reg2, :R3_reg2, :R1_reg3, :R2_reg3, :R3_reg3]
-    println(keys(enz))
     missing_keys = filter(x -> !haskey(enz, x), mwc_rate_eq_args)
-    println(missing_keys)
     for key in missing_keys
         enz = merge(enz, (; key => nothing))
     end
-    println(enz)
-    qualified_name = esc(GlobalRef(Main, :rate_equation))
-    return :(function $(qualified_name)(metabs, params, Keq)
+    # qualified_name = esc(GlobalRef(Main, :rate_equation))
+    function_name = esc(:rate_equation)
+    return :(function $(function_name)(metabs, params, Keq)
         general_mwc_rate_equation(
             $(enz.S1 isa Symbol) ? metabs.$(enz.S1) : 1.0,
             $(enz.S2 isa Symbol) ? metabs.$(enz.S2) : 1.0,
@@ -263,10 +259,10 @@ params_nt = (
     alpha_PEP_ATP = 1.0,
     alpha_ADP_Pyruvate = 1.0
 )
-@derive_mwc_rate_eq(substrates=[:PEP, :ADP],
-    products=[:Pyruvate, :ATP], reg1=[:F16BP], reg2=[:Phenylalanine],Keq=20_000.0)
-@code_warntype rate_equation(metabs_nt, params_nt, 20000.0)
-using BenchmarkTools
-@benchmark rate_equation(metabs_nt, params_nt, 20000.0)
-@benchmark rate_equation($(metabs_nt), $(params_nt), 20000.0)
-rate_equation(metabs_nt, params_nt, 20000.0)
+# @derive_mwc_rate_eq(substrates=[:PEP, :ADP],
+#     products=[:Pyruvate, :ATP], reg1=[:F16BP], reg2=[:Phenylalanine],Keq=20_000.0)
+# @code_warntype rate_equation(metabs_nt, params_nt, 20000.0)
+# using BenchmarkTools
+# @benchmark rate_equation(metabs_nt, params_nt, 20000.0)
+# @benchmark rate_equation($(metabs_nt), $(params_nt), 20000.0)
+# rate_equation(metabs_nt, params_nt, 20000.0)

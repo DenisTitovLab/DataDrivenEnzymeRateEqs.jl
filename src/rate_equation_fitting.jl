@@ -1,18 +1,18 @@
 #=
 CODE FOR RATE EQUATION FITTING
 =#
-
+using CMAEvolutionStrategy, DataFrames
 """
 Fit `rate_equation` to `data` and report the loss and best fit parameters.
 """
 function train_rate_equation(
         rate_equation::Function,
         data::DataFrame,
-        metabs_names::Vector{Symbol},
-        params_names::Vector{Symbol};
+        metab_names::Vector{Symbol},
+        param_names::Vector{Symbol};
         n_iter = 20,
         nt_param_choice = nothing,
-        optimization_kwargs = optimization_kwargs...
+        # optimization_kwargs = optimization_kwargs
 )
     # Add a new column to data to assign an integer to each source/figure from publication
     data.fig_num = vcat(
@@ -76,8 +76,10 @@ function train_rate_equation(
         end
         push!(solns, sol)
     end
-    filter!(!isinf, solns)
-    filter!(!isnan, solns)
+    filter!(sol -> sol != Inf ? !isinf(fbest(sol)) : !isnan(fbest(sol)), solns)
+    filter!(sol -> sol != NaN ? !isinf(fbest(sol)) : !isnan(fbest(sol)), solns)
+    # filter!(!isinf, solns)
+    # filter!(!isnan, solns)
     if isempty(solns)
         println("All of the iterations of fits for this param combo return NaN or Inf")
         return Inf, fill(NaN, length(param_names))
@@ -111,6 +113,9 @@ function train_rate_equation(
     end
     return fbest(best_sol), xbest(best_sol)
 end
+
+# Base.isnan(sol::CMAEvolutionStrategy.Optimizer) = isnan(fbest(sol))
+# Base.isinf(sol::CMAEvolutionStrategy.Optimizer) = isinf(fbest(sol))
 
 "Loss function used for fitting that calculate log of ratio of rate equation predicting of rate and rate data"
 function loss_rate_equation(
@@ -154,4 +159,25 @@ function log_ratio_predict_vs_data(
         log_pred_vs_data_ratios[i] = log(rate_equation(row, kinetic_params_nt) / row.Rate)
     end
     return log_pred_vs_data_ratios
+end
+
+# TODO: need to add an option to set different ranges for L, Vmax, K and alpha
+"Rescaling of fitting parameters from [0, 10] scale that optimizer uses to actual values"
+function param_rescaling(p, param_names)
+    @assert length(p) == length(param_names)
+    new_p = similar(p)
+    for i in eachindex(p)
+        if param_names[i] == :L
+            new_p[i] = 10^(-5) * 10^(10 * p[i] / 10)
+        elseif startswith(string(param_names[i]), "Vmax_")
+            new_p[i] = 10^(-3) * 10^(3 * p[i] / 10)
+        elseif startswith(string(param_names[i]), "K_")
+            new_p[i] = 10^(-10) * 10^(13 * p[i] / 10)
+        elseif startswith(string(param_names[i]), "alpha_")
+            p[i] >= 5.0 ? new_p[i] = 1.0 : new_p[i] = 0.0
+        else
+            error("Cannot rescale unknown parameter name $(string(param_names[i])) using `param_rescaling()`")
+        end
+    end
+    return new_p
 end
