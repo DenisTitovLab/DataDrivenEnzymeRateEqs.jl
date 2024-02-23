@@ -26,9 +26,14 @@ params_nt = (
 metabs_nt =
     (PEP=1.0e-3, ADP=1.0e-3, Pyruvate=1.0e-3, ATP=1.0e-3, F16BP=1.0e-3, Phenylalanine=1.0e-3)
 
-#test rate_equation takes < 100ns
-@test @btime rate_equation($(metabs_nt), $(params_nt), $(20000.0)) <= 0.1
-@test @btime rate_equation(metabs_nt, params_nt, 20000.0) <= 0.1
+#test rate_equation for speed and allocations
+benchmark_result = @benchmark rate_equation($(metabs_nt), $(params_nt), $(20000.0))
+@test mean(benchmark_result.times) <= 100 #ns
+@test benchmark_result.allocs == 0
+
+benchmark_result = @benchmark rate_equation(metabs_nt, params_nt, 20000.0)
+@test mean(benchmark_result.times) <= 200 #ns
+@test benchmark_result.allocs <= 1
 
 #test Rate < 0 when [Substrates] = 0
 metabs_nt =

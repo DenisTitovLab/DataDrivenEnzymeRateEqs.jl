@@ -1,18 +1,40 @@
 #=
 CODE FOR RATE EQUATION FITTING
 =#
-using CMAEvolutionStrategy, DataFrames
+using CMAEvolutionStrategy, DataFrames, Statistics
+
+#TODO: wrap train_rate_equation() in another function that outputs NamedTuple of rescaled parameters and loss
 """
 Fit `rate_equation` to `data` and report the loss and best fit parameters.
 """
+function fit_rate_equation(
+        rate_equation::Function,
+        data::DataFrame,
+        metab_names::Tuple,
+        param_names::Tuple;
+        n_iter = 20
+        # optimization_kwargs = optimization_kwargs
+)
+    train_res = train_rate_equation(
+        rate_equation::Function,
+        data::DataFrame,
+        metab_names::Tuple,
+        param_names::Tuple;
+        n_iter = n_iter,
+        nt_param_choice = nothing
+        # optimization_kwargs = optimization_kwargs
+    )
+    rescaled_params = param_rescaling(train_res[2], param_names)
+    return (loss=train_res[1], params = NamedTuple{param_names}(rescaled_params))
+end
+
 function train_rate_equation(
         rate_equation::Function,
         data::DataFrame,
-        metab_names::Vector{Symbol},
-        param_names::Vector{Symbol};
+        metab_names::Tuple,
+        param_names::Tuple;
         n_iter = 20,
-        nt_param_choice = nothing,
-        # optimization_kwargs = optimization_kwargs
+        nt_param_choice = nothing        # optimization_kwargs = optimization_kwargs
 )
     # Add a new column to data to assign an integer to each source/figure from publication
     data.fig_num = vcat(
@@ -136,7 +158,6 @@ function loss_rate_equation(
     kinetic_params_nt = NamedTuple{param_names}(kinetic_params)
     log_pred_vs_data_ratios = log_ratio_predict_vs_data(
         rate_equation, rate_data_nt, kinetic_params_nt)
-
     #calculate figures weights and loss on per figure basis
     loss = zero(eltype(kinetic_params))
     for i in 1:maximum(rate_data_nt.fig_num)
