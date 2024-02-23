@@ -12,21 +12,20 @@ function fit_rate_equation(
         data::DataFrame,
         metab_names::Tuple,
         param_names::Tuple;
-        n_iter = 20
-        # optimization_kwargs = optimization_kwargs
+        n_iter = 20        # optimization_kwargs = optimization_kwargs
 )
-    train_res = train_rate_equation(
+    train_results = train_rate_equation(
         rate_equation::Function,
         data::DataFrame,
         metab_names::Tuple,
         param_names::Tuple;
         n_iter = n_iter,
-        nt_param_choice = nothing
-        # optimization_kwargs = optimization_kwargs
+        nt_param_choice = nothing        # optimization_kwargs = optimization_kwargs
     )
-    rescaled_params = param_rescaling(train_res[2], param_names)
-    return (loss=train_res[1], params = NamedTuple{param_names}(rescaled_params))
+    rescaled_params = param_rescaling(train_results[2], param_names)
+    return (loss = train_results[1], params = NamedTuple{param_names}(rescaled_params))
 end
+
 
 function train_rate_equation(
         rate_equation::Function,
