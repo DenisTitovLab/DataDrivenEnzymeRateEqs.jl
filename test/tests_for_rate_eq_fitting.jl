@@ -1,5 +1,5 @@
-# using TestEnv
-# TestEnv.activate()
+using TestEnv
+TestEnv.activate()
 
 using EnzymeFitting, Test
 using BenchmarkTools, CMAEvolutionStrategy, DataFrames, CSV, Statistics
@@ -10,7 +10,7 @@ rate_equation(metabs, p) = rate_equation(metabs, p, 20000.0)
 #Load and process data
 PKM2_data_for_fit = CSV.read(joinpath(@__DIR__, "Data_for_tests/PKM2_data.csv"), DataFrame)
 #Add source column that uniquely identifies a figure from publication
-PKM2_data_for_fit.source .= PKM2_data_for_fit.Article .* "_" .* PKM2_data_for_fit.Fig
+PKM2_data_for_fit.source = PKM2_data_for_fit.Article .* "_" .* PKM2_data_for_fit.Fig
 
 # "Names of parameters. Make sure it matches exactly allocation of p in rate_equation()"
 param_names = (
