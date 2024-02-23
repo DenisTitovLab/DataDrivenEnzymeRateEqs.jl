@@ -1,5 +1,5 @@
-using TestEnv
-TestEnv.activate()
+# using TestEnv
+# TestEnv.activate()
 
 using EnzymeFitting, Test
 using BenchmarkTools, CMAEvolutionStrategy, DataFrames, CSV, Statistics
