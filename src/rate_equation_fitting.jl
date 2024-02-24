@@ -3,7 +3,7 @@ CODE FOR RATE EQUATION FITTING
 =#
 using CMAEvolutionStrategy, DataFrames, Statistics
 
-#TODO add optimization_kwargs to control the optimization process
+#TODO add optimization_kwargs and use Optimization.jl
 """
     fit_rate_equation(
         rate_equation::Function,
@@ -53,8 +53,9 @@ function fit_rate_equation(
         n_iter = n_iter,
         nt_param_choice = nothing
     )
-    rescaled_params = param_rescaling(train_results[2], param_names)
-    return (loss = train_results[1], params = NamedTuple{param_names}(rescaled_params))
+    # rescaled_params = param_rescaling(train_results[2], param_names)
+    # return (loss = train_results[1], params = NamedTuple{param_names}(rescaled_params))
+    return (loss = train_results.loss, params = train_results.params)
 end
 
 function train_rate_equation(
@@ -63,7 +64,7 @@ function train_rate_equation(
         metab_names::Tuple,
         param_names::Tuple;
         n_iter = 20,
-        nt_param_choice = nothing        # optimization_kwargs = optimization_kwargs
+        nt_param_choice = nothing
 )
     # Add a new column to data to assign an integer to each source/figure from publication
     data.fig_num = vcat(
@@ -89,6 +90,7 @@ function train_rate_equation(
         rate_data_nt,
         param_names,
         fig_point_indexes;
+        rescale_params_from_0_10_scale = true,
         nt_param_choice = nt_param_choice
     ),
     )
@@ -107,6 +109,7 @@ function train_rate_equation(
                     rate_data_nt,
                     param_names,
                     fig_point_indexes;
+                    rescale_params_from_0_10_scale = true,
                     nt_param_choice = nt_param_choice
                 ),
                 x0,
@@ -127,10 +130,9 @@ function train_rate_equation(
         end
         push!(solns, sol)
     end
-    filter!(sol -> sol != Inf ? !isinf(fbest(sol)) : !isnan(fbest(sol)), solns)
-    filter!(sol -> sol != NaN ? !isinf(fbest(sol)) : !isnan(fbest(sol)), solns)
-    # filter!(!isinf, solns)
-    # filter!(!isnan, solns)
+    filter!(sol -> sol != Inf ? !isinf(fbest(sol)) : !isinf(fbest(sol)), solns)
+    filter!(sol -> sol != NaN ? !isnan(fbest(sol)) : !isnan(fbest(sol)), solns)
+
     if isempty(solns)
         println("All of the iterations of fits for this param combo return NaN or Inf")
         return Inf, fill(NaN, length(param_names))
@@ -144,6 +146,7 @@ function train_rate_equation(
                 rate_data_nt,
                 param_names,
                 fig_point_indexes;
+                rescale_params_from_0_10_scale = true,
                 nt_param_choice = nt_param_choice
             ),
             xbest(solns[index_best_sol]),
@@ -162,11 +165,12 @@ function train_rate_equation(
             best_sol = solns[index_best_sol]
         end
     end
-    return fbest(best_sol), xbest(best_sol)
+    rescaled_params = param_rescaling(xbest(best_sol), param_names)
+    if !isnothing(nt_param_choice)
+        rescaled_params = param_subset_select(rescaled_params, nt_param_choice)
+    end
+    return (loss=fbest(best_sol), params=NamedTuple{param_names}(rescaled_params))
 end
-
-# Base.isnan(sol::CMAEvolutionStrategy.Optimizer) = isnan(fbest(sol))
-# Base.isinf(sol::CMAEvolutionStrategy.Optimizer) = isinf(fbest(sol))
 
 "Loss function used for fitting that calculate log of ratio of rate equation predicting of rate and rate data"
 function loss_rate_equation(
@@ -175,9 +179,12 @@ function loss_rate_equation(
         rate_data_nt::NamedTuple,
         param_names,
         fig_point_indexes::Vector{Vector{Int}};
+        rescale_params_from_0_10_scale = true,
         nt_param_choice = nothing
 )
-    kinetic_params = param_rescaling(params, param_names)
+    if rescale_params_from_0_10_scale
+        kinetic_params = param_rescaling(params, param_names)
+    end
     if !isnothing(nt_param_choice)
         kinetic_params .= param_subset_select(kinetic_params, nt_param_choice)
     end
