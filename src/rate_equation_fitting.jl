@@ -4,17 +4,17 @@ CODE FOR RATE EQUATION FITTING
 using CMAEvolutionStrategy, DataFrames, Statistics
 
 #TODO add optimization_kwargs to control the optimization process
-# """
-#     fit_rate_equation(
-#         rate_equation::Function,
-#         data::DataFrame,
-#         metab_names::Tuple,
-#         param_names::Tuple;
-#         n_iter = 20
-# )
+"""
+    fit_rate_equation(
+        rate_equation::Function,
+        data::DataFrame,
+        metab_names::Tuple,
+        param_names::Tuple;
+        n_iter = 20
+)
 
-# Fit `rate_equation` to `data` and report the loss and best fit parameters.
-# """
+Fit `rate_equation` to `data` and report the loss and best fit parameters.
+"""
 function fit_rate_equation(
         rate_equation::Function,
         data::DataFrame,

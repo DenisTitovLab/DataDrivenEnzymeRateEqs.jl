@@ -4,7 +4,7 @@ CurrentModule = EnzymeFitting
 
 # EnzymeFitting
 
-Documentation for [EnzymeFitting](https://github.com/Denis-Titov/EnzymeFitting.jl).
+Documentation for [EnzymeFitting](https://github.com/DenisTitovLab/EnzymeFitting.jl).
 
 ```@index
 ```
