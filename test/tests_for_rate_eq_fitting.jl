@@ -52,5 +52,7 @@ benchmark_result = @benchmark EnzymeFitting.loss_rate_equation(kinetic_params, r
 benchmark_result = @benchmark EnzymeFitting.loss_rate_equation($(kinetic_params), rate_equation, $(rate_data_nt), $(param_names), $(fig_point_indexes))
 @test mean(benchmark_result.times) <= 100_000 #ns
 
-fit_result = @time fit_rate_equation(rate_equation, data, metab_names, param_names; n_iter=20)
+#TODO: make fake data with noise and known params and ensure known params are recovered
+fit_result = fit_rate_equation(rate_equation, data, metab_names, param_names; n_iter=20)
 @test isapprox(fit_result.loss, 0.08946088323758938, rtol=1e-3)
+@test fit_result.params isa NamedTuple{param_names}{NTuple{length(param_names), Float64}}
