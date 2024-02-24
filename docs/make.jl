@@ -8,7 +8,7 @@ makedocs(;
     authors="Denis Titov titov@berkeley.edu and contributors",
     sitename="EnzymeFitting.jl",
     format=Documenter.HTML(;
-        canonical="https://Denis-Titov.github.io/EnzymeFitting.jl",
+        canonical="https://DenisTitovLab.github.io/EnzymeFitting.jl",
         edit_link="main",
         assets=String[],
     ),
