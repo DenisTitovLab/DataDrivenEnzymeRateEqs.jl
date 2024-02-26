@@ -7,9 +7,9 @@ using SafeTestsets
         include("tests_for_rate_eq_derivation.jl")
     end
     @safetestset "MWC Rate Eq Fitting" begin
-        include("tests_for_rate_eq_fitting.jl")
+        include("tests_for_general_rate_eq_fitting.jl")
     end
     @safetestset "MWC Rate Eq Subset Selection" begin
-        include("tests_for_rate_eq_subset_selection.jl")
+        include("tests_for_optimal_rate_eq_selection.jl")
     end
 end

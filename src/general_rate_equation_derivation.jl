@@ -120,7 +120,7 @@ example for PKM2 ATP/ADP and PEP/Pyruvate behave like they bind to different sit
 Somehow include alpha terms only for cat1 / cat2 pair that user highlights that are part of
 the same cat site like for PKM2.
 =#
-macro derive_mwc_rate_eq(metabs_and_regulators_kwargs...)
+macro derive_general_mwc_rate_eq(metabs_and_regulators_kwargs...)
     expected_input_kwargs = [:substrates, :products, :reg1, :reg2, :reg3, :Keq]
     processed_input = NamedTuple()
     for expr in metabs_and_regulators_kwargs
@@ -259,10 +259,3 @@ params_nt = (
     alpha_PEP_ATP = 1.0,
     alpha_ADP_Pyruvate = 1.0
 )
-# @derive_mwc_rate_eq(substrates=[:PEP, :ADP],
-#     products=[:Pyruvate, :ATP], reg1=[:F16BP], reg2=[:Phenylalanine],Keq=20_000.0)
-# @code_warntype rate_equation(metabs_nt, params_nt, 20000.0)
-# using BenchmarkTools
-# @benchmark rate_equation(metabs_nt, params_nt, 20000.0)
-# @benchmark rate_equation($(metabs_nt), $(params_nt), 20000.0)
-# rate_equation(metabs_nt, params_nt, 20000.0)

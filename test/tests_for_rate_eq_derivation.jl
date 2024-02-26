@@ -1,6 +1,6 @@
 using EnzymeFitting, Test, BenchmarkTools
 
-@derive_mwc_rate_eq(substrates = [:PEP, :ADP],
+@derive_general_mwc_rate_eq(substrates = [:PEP, :ADP],
     products = [:Pyruvate, :ATP], reg1 = [:F16BP], reg2 = [:Phenylalanine], Keq = 20_000.0)
 #test `@derive_mwc_rate_eq` generated `rate_equation::Function`
 @test rate_equation isa Function

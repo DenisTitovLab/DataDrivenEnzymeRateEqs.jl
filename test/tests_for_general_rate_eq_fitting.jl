@@ -4,7 +4,7 @@
 using EnzymeFitting, Test
 using BenchmarkTools, CMAEvolutionStrategy, DataFrames, CSV, Statistics
 
-@derive_mwc_rate_eq(substrates = [:PEP, :ADP],
+@derive_general_mwc_rate_eq(substrates = [:PEP, :ADP],
     products = [:Pyruvate, :ATP], reg1 = [:F16BP], reg2 = [:Phenylalanine], Keq = 20_000.0)
 rate_equation(metabs, p) = rate_equation(metabs, p, 20000.0)
 #Load and process data
