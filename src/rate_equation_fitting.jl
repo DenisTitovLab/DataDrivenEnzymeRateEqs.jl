@@ -167,7 +167,7 @@ function train_rate_equation(
     end
     rescaled_params = param_rescaling(xbest(best_sol), param_names)
     if !isnothing(nt_param_choice)
-        rescaled_params = param_subset_select(rescaled_params, nt_param_choice)
+        rescaled_params = param_subset_select(rescaled_params, param_names, nt_param_choice)
     end
     return (loss=fbest(best_sol), params=NamedTuple{param_names}(rescaled_params))
 end
@@ -186,7 +186,7 @@ function loss_rate_equation(
         kinetic_params = param_rescaling(params, param_names)
     end
     if !isnothing(nt_param_choice)
-        kinetic_params .= param_subset_select(kinetic_params, nt_param_choice)
+        kinetic_params .= param_subset_select(kinetic_params, param_names, nt_param_choice)
     end
 
     #precalculate log_pred_vs_data_ratios for all points as it is expensive and reuse it for weights and loss
