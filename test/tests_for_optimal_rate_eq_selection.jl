@@ -39,7 +39,7 @@ funct_output_param_subset_codes = EnzymeFitting.forward_selection_next_param_rem
     funct_output_param_subset_code in funct_output_param_subset_codes
 )
 #ensure that non-zero elements from previous_param_removal_codes are present in > 1 of the funct_output_param_subset_code but less than the max_matches
-count_matches = Bool[]
+count_matches = []
 non_zero_code_combos_per_param = ()
 for param_name in param_names
     if param_name == :L
@@ -54,18 +54,17 @@ for param_name in param_names
 end
 for funct_output_param_subset_code in funct_output_param_subset_codes
     count = 0
-    max_matches = 0
+    max_matches_vect = Int[]
     for previous_param_removal_code in previous_param_removal_codes
         count +=
             funct_output_param_subset_code[1:end-n_alphas] .* [previous_param_removal_code[1:end-n_alphas]...] ==
             [previous_param_removal_code[1:end-n_alphas]...] .^ 2
-        max_matches = sum((previous_param_removal_code[1:end-n_alphas] .== 0) .* non_zero_code_combos_per_param[1:end-n_alphas])
+        push!(max_matches_vect, sum((previous_param_removal_code[1:end-n_alphas] .== 0) .* non_zero_code_combos_per_param[1:end-n_alphas]))
     end
+    max_matches = maximum(max_matches_vect)
     push!(count_matches, max_matches >= count > 0)
 end
 @test all(count_matches)
-
-
 
 #test reverse_selection_next_param_removal_codes
 num_metabolites = rand(4:8)
@@ -121,10 +120,8 @@ for funct_output_param_subset_code in funct_output_param_subset_codes
     for previous_param_removal_code in previous_param_removal_codes
         count +=
             funct_output_param_subset_code[1:end-n_alphas] == previous_param_removal_code[1:end-n_alphas] .* (funct_output_param_subset_code[1:end-n_alphas] .!= 0)
-
     end
     max_matches = sum((funct_output_param_subset_code[1:end-n_alphas] .== 0) .* non_zero_code_combos_per_param[1:end-n_alphas])
     push!(count_matches, max_matches >= count > 0)
-
 end
 @test all(count_matches)
