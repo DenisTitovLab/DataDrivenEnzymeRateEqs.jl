@@ -1,4 +1,4 @@
-name = "EnzymeFitting"
+name = "DataDrivenEnzymeRateEquations"
 uuid = "bf31c7e1-2152-4d3a-bc7a-576095d562b2"
 authors = ["Denis Titov titov@berkeley.edu and contributors"]
 version = "1.0.0-DEV"
