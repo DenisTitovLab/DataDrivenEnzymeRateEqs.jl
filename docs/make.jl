@@ -1,14 +1,14 @@
-using EnzymeFitting
+using DataDrivenEnzymeRateEquations
 using Documenter
 
-DocMeta.setdocmeta!(EnzymeFitting, :DocTestSetup, :(using EnzymeFitting); recursive=true)
+DocMeta.setdocmeta!(DataDrivenEnzymeRateEquations, :DocTestSetup, :(using DataDrivenEnzymeRateEquations); recursive=true)
 
 makedocs(;
-    modules=[EnzymeFitting],
+    modules=[DataDrivenEnzymeRateEquations],
     authors="Denis Titov titov@berkeley.edu and contributors",
-    sitename="EnzymeFitting.jl",
+    sitename="DataDrivenEnzymeRateEquations.jl",
     format=Documenter.HTML(;
-        canonical="https://DenisTitovLab.github.io/EnzymeFitting.jl",
+        canonical="https://DenisTitovLab.github.io/DataDrivenEnzymeRateEquations.jl",
         edit_link="main",
         assets=String[],
     ),
@@ -18,6 +18,6 @@ makedocs(;
 )
 
 deploydocs(;
-    repo="github.com/DenisTitovLab/EnzymeFitting.jl.git",
+    repo="github.com/DenisTitovLab/DataDrivenEnzymeRateEquations.jl.git",
     # devbranch="main",
 )

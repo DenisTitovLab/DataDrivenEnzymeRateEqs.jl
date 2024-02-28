@@ -1,14 +1,14 @@
 ```@meta
-CurrentModule = EnzymeFitting
+CurrentModule = DataDrivenEnzymeRateEquations
 ```
 
-# EnzymeFitting
+# DataDrivenEnzymeRateEquations
 
-Documentation for [EnzymeFitting](https://github.com/DenisTitovLab/EnzymeFitting.jl).
+Documentation for [DataDrivenEnzymeRateEquations](https://github.com/DenisTitovLab/DataDrivenEnzymeRateEquations.jl).
 
 ```@index
 ```
 
 ```@autodocs
-Modules = [EnzymeFitting]
+Modules = [DataDrivenEnzymeRateEquations]
 ```
