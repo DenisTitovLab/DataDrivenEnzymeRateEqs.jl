@@ -65,6 +65,7 @@ randomly generated parameters and data around K values.
 Add an option to fit real Vmax values instead of fixing Vmax=1.0.
 =#
 test_rate_equation(metabs, params) = params.Vmax * (metabs.S / params.K_S) / (1 + metabs.S / params.K_S)
+
 param_names = (:Vmax, :K_S)
 metab_names = (:S,)
 params = (Vmax=10.0, K_S=1.0)
