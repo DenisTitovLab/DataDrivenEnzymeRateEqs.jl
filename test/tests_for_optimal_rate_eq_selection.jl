@@ -146,7 +146,7 @@ end
 
 
 # #
-# #test the ability of `optimal_rate_equation_selection` to recover the rate_equation and params used to generated data for an arbitrary enzyme
+# #test the ability of `data_driven_rate_equation_selection` to recover the rate_equation and params used to generated data for an arbitrary enzyme
 # data_gen_rate_equation(metabs, params) = params.Vmax * (metabs.S / params.K_S) / (1 + metabs.S / params.K_S)
 # param_names = (:Vmax, :K_S)
 # metab_names = (:S,)

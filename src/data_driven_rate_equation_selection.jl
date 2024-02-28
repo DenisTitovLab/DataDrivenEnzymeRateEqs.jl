@@ -1,6 +1,6 @@
 using Dates, CSV, DataFrames
 
-function optimal_rate_equation_selection(
+function data_driven_rate_equation_selection(
     general_rate_equation::Function,
     data::DataFrame,
     metab_names::Tuple{Symbol,Vararg{Symbol}},
