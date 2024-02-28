@@ -3,7 +3,9 @@ CODE FOR RATE EQUATION FITTING
 =#
 using CMAEvolutionStrategy, DataFrames, Statistics
 
-#TODO add optimization_kwargs and use Optimization.jl
+#TODO; add optimization_kwargs and use Optimization.jl
+#TODO: add an option to set different ranges for L, Vmax, K and alpha
+#TODO: add an option to fit real Vmax values instead of fixing Vmax=1.0
 """
     fit_rate_equation(
         rate_equation::Function,
@@ -51,7 +53,7 @@ function fit_rate_equation(
         metab_names::Tuple,
         param_names::Tuple;
         n_iter = n_iter,
-        nt_param_choice = nothing
+        nt_param_removal_code = nothing
     )
     # rescaled_params = param_rescaling(train_results[2], param_names)
     # return (loss = train_results[1], params = NamedTuple{param_names}(rescaled_params))
@@ -64,7 +66,7 @@ function train_rate_equation(
         metab_names::Tuple,
         param_names::Tuple;
         n_iter = 20,
-        nt_param_choice = nothing
+        nt_param_removal_code = nothing
 )
     # Add a new column to data to assign an integer to each source/figure from publication
     data.fig_num = vcat(
@@ -81,8 +83,8 @@ function train_rate_equation(
     # Make a vector containing indexes of points corresponding to each figure
     fig_point_indexes = [findall(data.fig_num .== i) for i in unique(data.fig_num)]
 
-    # Check if nt_param_choice makes loss returns NaN and abort early if it does. The latter
-    # could happens due to nt_param_choice making params=Inf
+    # Check if nt_param_removal_code makes loss returns NaN and abort early if it does. The latter
+    # could happens due to nt_param_removal_code making params=Inf
     if isnan(
         loss_rate_equation(
         5 .* ones(length(param_names)),
@@ -91,7 +93,7 @@ function train_rate_equation(
         param_names,
         fig_point_indexes;
         rescale_params_from_0_10_scale = true,
-        nt_param_choice = nt_param_choice
+        nt_param_removal_code = nt_param_removal_code
     ),
     )
         println("Loss returns NaN for this param combo")
@@ -110,7 +112,7 @@ function train_rate_equation(
                     param_names,
                     fig_point_indexes;
                     rescale_params_from_0_10_scale = true,
-                    nt_param_choice = nt_param_choice
+                    nt_param_removal_code = nt_param_removal_code
                 ),
                 x0,
                 0.01,
@@ -147,7 +149,7 @@ function train_rate_equation(
                 param_names,
                 fig_point_indexes;
                 rescale_params_from_0_10_scale = true,
-                nt_param_choice = nt_param_choice
+                nt_param_removal_code = nt_param_removal_code
             ),
             xbest(solns[index_best_sol]),
             0.001,
@@ -166,8 +168,8 @@ function train_rate_equation(
         end
     end
     rescaled_params = param_rescaling(xbest(best_sol), param_names)
-    if !isnothing(nt_param_choice)
-        rescaled_params = param_subset_select(rescaled_params, param_names, nt_param_choice)
+    if !isnothing(nt_param_removal_code)
+        rescaled_params = param_subset_select(rescaled_params, param_names, nt_param_removal_code)
     end
     return (loss=fbest(best_sol), params=NamedTuple{param_names}(rescaled_params))
 end
@@ -180,13 +182,13 @@ function loss_rate_equation(
         param_names,
         fig_point_indexes::Vector{Vector{Int}};
         rescale_params_from_0_10_scale = true,
-        nt_param_choice = nothing
+        nt_param_removal_code = nothing
 )
     if rescale_params_from_0_10_scale
         kinetic_params = param_rescaling(params, param_names)
     end
-    if !isnothing(nt_param_choice)
-        kinetic_params .= param_subset_select(kinetic_params, param_names, nt_param_choice)
+    if !isnothing(nt_param_removal_code)
+        kinetic_params .= param_subset_select(kinetic_params, param_names, nt_param_removal_code)
     end
 
     #precalculate log_pred_vs_data_ratios for all points as it is expensive and reuse it for weights and loss
@@ -226,7 +228,7 @@ function param_rescaling(p, param_names)
     for i in eachindex(p)
         if param_names[i] == :L
             new_p[i] = 10^(-5) * 10^(10 * p[i] / 10)
-        elseif startswith(string(param_names[i]), "Vmax_")
+        elseif startswith(string(param_names[i]), "Vmax")
             new_p[i] = 10^(-3) * 10^(3 * p[i] / 10)
         elseif startswith(string(param_names[i]), "K_")
             new_p[i] = 10^(-10) * 10^(13 * p[i] / 10)

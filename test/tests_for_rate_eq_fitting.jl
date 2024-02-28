@@ -1,9 +1,10 @@
 # using TestEnv
 # TestEnv.activate()
 
-##
+#test `@derive_general_mwc_rate_eq`, `loss_rate_equation` and `fit_rate_equation` on real PKM2 data
 using EnzymeFitting, Test
-using BenchmarkTools, CMAEvolutionStrategy, DataFrames, CSV, Statistics
+using CMAEvolutionStrategy, DataFrames, CSV, Statistics
+using BenchmarkTools
 
 @derive_general_mwc_rate_eq(substrates = [:PEP, :ADP],
     products = [:Pyruvate, :ATP], reg1 = [:F16BP], reg2 = [:Phenylalanine], Keq = 20_000.0)
@@ -13,7 +14,6 @@ PKM2_data_for_fit = CSV.read(joinpath(@__DIR__, "Data_for_tests/PKM2_data.csv"),
 #Add source column that uniquely identifies a figure from publication
 PKM2_data_for_fit.source = PKM2_data_for_fit.Article .* "_" .* PKM2_data_for_fit.Fig
 
-# "Names of parameters. Make sure it matches exactly allocation of p in rate_equation()"
 param_names = (
     :L,
     :Vmax_a,
@@ -33,7 +33,6 @@ param_names = (
     :alpha_PEP_ATP,
     :alpha_ADP_Pyruvate,
 )
-# "Names of PKM substrate, products and regulators. Ensure that columns in data.csv file have the same exact spelling for metabolites"
 metab_names = (:PEP, :ADP, :Pyruvate, :ATP, :F16BP, :Phenylalanine)
 
 data = PKM2_data_for_fit
@@ -57,3 +56,17 @@ benchmark_result = @benchmark EnzymeFitting.loss_rate_equation($(kinetic_params)
 fit_result = fit_rate_equation(rate_equation, data, metab_names, param_names; n_iter=20)
 @test isapprox(fit_result.loss, 0.08946088323758938, rtol=1e-3)
 @test fit_result.params isa NamedTuple{param_names}{NTuple{length(param_names), Float64}}
+
+##
+#test the ability of `fit_rate_equation` to recover parameters used to generated data for an arbitrary enzyme
+#TODO: use more complex test_rate_equation and add an option to fit real Vmax values instead of fixing Vmax=1.0
+test_rate_equation(metabs, params) = params.Vmax * (metabs.S / params.K_S) / (1 + metabs.S / params.K_S)
+param_names = (:Vmax, :K_S)
+metab_names = (:S,)
+params = (Vmax = 10.0, K_S = 1.0)
+data = DataFrame(S = [0.1, 0.5, 1.0, 2.0, 5.0, 10.0, 20.0, 50.0, 100.0])
+noise_sd = 0.2
+data.Rate = [test_rate_equation(row, params) * (1 + noise_sd * randn()) for row in eachrow(data)]
+data.source = ["Figure1" for i in 1:nrow(data)]
+fit_result = fit_rate_equation(test_rate_equation, data, metab_names, param_names; n_iter=20)
+@test isapprox(fit_result.params.K_S, params.K_S, rtol=3*noise_sd)
