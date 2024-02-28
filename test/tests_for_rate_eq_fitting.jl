@@ -2,7 +2,7 @@
 # TestEnv.activate()
 
 #test `@derive_general_mwc_rate_eq`, `loss_rate_equation` and `fit_rate_equation` on real PKM2 data
-using EnzymeFitting, Test
+using DataDrivenEnzymeRateEquations, Test
 using CMAEvolutionStrategy, DataFrames, CSV, Statistics
 using BenchmarkTools
 
@@ -47,9 +47,9 @@ rate_data_nt = Tables.columntable(data[.!isnan.(data.Rate), [:Rate, metab_names.
 # Make a vector containing indexes of points corresponding to each figure
 fig_point_indexes = [findall(data.fig_num .== i) for i in unique(data.fig_num)]
 kinetic_params = [rand() for i = 1:length(param_names)]
-benchmark_result = @benchmark EnzymeFitting.loss_rate_equation(kinetic_params, rate_equation, rate_data_nt, param_names, fig_point_indexes)
+benchmark_result = @benchmark DataDrivenEnzymeRateEquations.loss_rate_equation(kinetic_params, rate_equation, rate_data_nt, param_names, fig_point_indexes)
 @test mean(benchmark_result.times) <= 100_000 #ns
-benchmark_result = @benchmark EnzymeFitting.loss_rate_equation($(kinetic_params), rate_equation, $(rate_data_nt), $(param_names), $(fig_point_indexes))
+benchmark_result = @benchmark DataDrivenEnzymeRateEquations.loss_rate_equation($(kinetic_params), rate_equation, $(rate_data_nt), $(param_names), $(fig_point_indexes))
 @test mean(benchmark_result.times) <= 100_000 #ns
 
 #TODO: make fake data with noise and known params and ensure known params are recovered

@@ -1,4 +1,4 @@
-module EnzymeFitting
+module DataDrivenEnzymeRateEquations
 include("general_rate_equation_derivation.jl")
 include("rate_equation_fitting.jl")
 include("optimal_rate_equation_selection.jl")

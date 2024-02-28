@@ -2,7 +2,7 @@
 # TestEnv.activate()
 
 ##
-using EnzymeFitting, Test
+using DataDrivenEnzymeRateEquations, Test
 using CMAEvolutionStrategy, DataFrames, CSV, Statistics
 using BenchmarkTools
 
@@ -25,7 +25,7 @@ param_removal_code_names = (
         param_name in param_names if !contains(string(param_name), "_i")
     ]...,
 )
-all_param_removal_codes = EnzymeFitting.calculate_all_parameter_removal_codes(param_names)
+all_param_removal_codes = DataDrivenEnzymeRateEquations.calculate_all_parameter_removal_codes(param_names)
 param_subset_codes_with_num_params = [
     x for x in all_param_removal_codes if
     length(param_names) - sum(values(x[1:(end-n_alphas)]) .> 0) - n_alphas ==
@@ -33,7 +33,7 @@ param_subset_codes_with_num_params = [
 ]
 previous_param_removal_codes =
     [rand(param_subset_codes_with_num_params) for i = 1:rand(1:20)]
-nt_funct_output_param_subset_codes = EnzymeFitting.forward_selection_next_param_removal_codes(
+nt_funct_output_param_subset_codes = DataDrivenEnzymeRateEquations.forward_selection_next_param_removal_codes(
     all_param_removal_codes,
     previous_param_removal_codes,
     num_params,
@@ -95,7 +95,7 @@ param_removal_code_names = (
         param_name in param_names if !contains(string(param_name), "_i")
     ]...,
 )
-all_param_removal_codes = EnzymeFitting.calculate_all_parameter_removal_codes(param_names)
+all_param_removal_codes = DataDrivenEnzymeRateEquations.calculate_all_parameter_removal_codes(param_names)
 param_subset_codes_with_num_params = [
     x for x in all_param_removal_codes if
     length(param_names) - sum(values(x[1:(end-n_alphas)]) .> 0) - n_alphas ==
@@ -104,7 +104,7 @@ param_subset_codes_with_num_params = [
 previous_param_removal_codes =
     [rand(param_subset_codes_with_num_params) for i = 1:rand(1:20)]
 
-nt_funct_output_param_subset_codes = EnzymeFitting.reverse_selection_next_param_removal_codes(
+nt_funct_output_param_subset_codes = DataDrivenEnzymeRateEquations.reverse_selection_next_param_removal_codes(
     all_param_removal_codes,
     previous_param_removal_codes,
     num_params,
