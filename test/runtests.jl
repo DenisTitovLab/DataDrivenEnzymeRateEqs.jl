@@ -1,4 +1,4 @@
-using DataDrivenEnzymeRateEquations
+using DataDrivenEnzymeRateEqs
 using Test
 using SafeTestsets
 

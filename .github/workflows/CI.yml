@@ -65,6 +65,6 @@ jobs:
         shell: julia --project=docs --color=yes {0}
         run: |
           using Documenter: DocMeta, doctest
-          using DataDrivenEnzymeRateEquations
-          DocMeta.setdocmeta!(DataDrivenEnzymeRateEquations, :DocTestSetup, :(using DataDrivenEnzymeRateEquations); recursive=true)
-          doctest(DataDrivenEnzymeRateEquations)
+          using DataDrivenEnzymeRateEqs
+          DocMeta.setdocmeta!(DataDrivenEnzymeRateEqs, :DocTestSetup, :(using DataDrivenEnzymeRateEqs); recursive=true)
+          doctest(DataDrivenEnzymeRateEqs)

@@ -1,14 +1,14 @@
 ```@meta
-CurrentModule = DataDrivenEnzymeRateEquations
+CurrentModule = DataDrivenEnzymeRateEqs
 ```
 
-# DataDrivenEnzymeRateEquations
+# DataDrivenEnzymeRateEqs
 
-Documentation for [DataDrivenEnzymeRateEquations](https://github.com/DenisTitovLab/DataDrivenEnzymeRateEquations.jl).
+Documentation for [DataDrivenEnzymeRateEqs](https://github.com/DenisTitovLab/DataDrivenEnzymeRateEqs.jl).
 
 ```@index
 ```
 
 ```@autodocs
-Modules = [DataDrivenEnzymeRateEquations]
+Modules = [DataDrivenEnzymeRateEqs]
 ```
