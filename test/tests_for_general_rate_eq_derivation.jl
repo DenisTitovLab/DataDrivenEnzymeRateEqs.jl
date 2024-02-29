@@ -1,3 +1,7 @@
+# using TestEnv
+# TestEnv.activate()
+
+##
 using DataDrivenEnzymeRateEqs, Test, BenchmarkTools
 
 @derive_general_mwc_rate_eq(
@@ -7,7 +11,8 @@ using DataDrivenEnzymeRateEqs, Test, BenchmarkTools
     cat2 = [:PEP, :Pyruvate],
     reg1 = [:F16BP],
     reg2 = [:Phenylalanine],
-    Keq = 20_000.0
+    Keq = 20_000.0,
+    oligomeric_state = 4,
 )
 #test `@derive_mwc_rate_eq` generated `rate_equation::Function`
 @test rate_equation isa Function
@@ -32,6 +37,7 @@ params_nt = (
 )
 metabs_nt =
     (PEP=1.0e-3, ADP=1.0e-3, Pyruvate=1.0e-3, ATP=1.0e-3, F16BP=1.0e-3, Phenylalanine=1.0e-3)
+# @code_warntype rate_equation(metabs_nt, params_nt, 20000.0)
 
 #test rate_equation for speed and allocations
 benchmark_result = @benchmark rate_equation($(metabs_nt), $(params_nt), $(20000.0))
@@ -39,7 +45,7 @@ benchmark_result = @benchmark rate_equation($(metabs_nt), $(params_nt), $(20000.
 @test benchmark_result.allocs == 0
 
 benchmark_result = @benchmark rate_equation(metabs_nt, params_nt, 20000.0)
-@test mean(benchmark_result.times) <= 200 #ns
+@test mean(benchmark_result.times) <= 150 #ns
 @test benchmark_result.allocs <= 1
 
 #test Rate < 0 when [Substrates] = 0

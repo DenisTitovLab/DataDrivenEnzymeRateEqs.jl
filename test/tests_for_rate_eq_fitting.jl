@@ -6,8 +6,18 @@ using DataDrivenEnzymeRateEqs, Test
 using CMAEvolutionStrategy, DataFrames, CSV, Statistics
 using BenchmarkTools
 
-@derive_general_mwc_rate_eq(substrates = [:PEP, :ADP],
-    products = [:Pyruvate, :ATP], reg1 = [:F16BP], reg2 = [:Phenylalanine], Keq = 20_000.0)
+@derive_general_mwc_rate_eq(
+    substrates = [:PEP, :ADP],
+    products = [:Pyruvate, :ATP],
+    cat1 = [:ATP, :ADP],
+    cat2 = [:PEP, :Pyruvate],
+    reg1 = [:F16BP],
+    reg2 = [:Phenylalanine],
+    Keq = 20_000.0,
+    oligomeric_state = 4
+)
+
+
 rate_equation(metabs, p) = rate_equation(metabs, p, 20000.0)
 #Load and process data
 PKM2_data_for_fit = CSV.read(joinpath(@__DIR__, "Data_for_tests/PKM2_data.csv"), DataFrame)
@@ -18,14 +28,14 @@ param_names = (
     :L,
     :Vmax_a,
     :Vmax_i,
-    :K_a_PEP_cat,
-    :K_i_PEP_cat,
-    :K_a_ADP_cat,
-    :K_i_ADP_cat,
-    :K_a_Pyruvate_cat,
-    :K_i_Pyruvate_cat,
-    :K_a_ATP_cat,
-    :K_i_ATP_cat,
+    :K_a_PEP_cat2,
+    :K_i_PEP_cat2,
+    :K_a_ADP_cat1,
+    :K_i_ADP_cat1,
+    :K_a_Pyruvate_cat2,
+    :K_i_Pyruvate_cat2,
+    :K_a_ATP_cat1,
+    :K_i_ATP_cat1,
     :K_a_F16BP_reg1,
     :K_i_F16BP_reg1,
     :K_a_Phenylalanine_reg2,

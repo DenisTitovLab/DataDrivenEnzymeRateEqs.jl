@@ -2,24 +2,15 @@
 CODE FOR RATE EQUATION DERIVATION
 =#
 
-#TODO: maybe divide general_mwc_equation into several functions for Z_a_cat, Z_i_cat, Z_a_reg,
-# Z_i_reg. Then call these functions as args of general_mwc_rate_equation
-function general_mwc_rate_equation(
+
+#TODO: add cat4
+@inline function general_mwc_rate_equation(
     S1_cat1::T,
     S2_cat2::T,
     S3_cat3::T,
     P1_cat1::T,
     P2_cat2::T,
     P3_cat3::T,
-    R1_reg1::T,
-    R2_reg1::T,
-    R3_reg1::T,
-    R1_reg2::T,
-    R2_reg2::T,
-    R3_reg2::T,
-    R1_reg3::T,
-    R2_reg3::T,
-    R3_reg3::T,
     L::T,
     Vmax_a::T,
     Vmax_i::T,
@@ -35,31 +26,12 @@ function general_mwc_rate_equation(
     K_i_P2_cat2::T,
     K_a_P3_cat3::T,
     K_i_P3_cat3::T,
-    K_a_R1_reg1::T,
-    K_i_R1_reg1::T,
-    K_a_R2_reg1::T,
-    K_i_R2_reg1::T,
-    K_a_R3_reg1::T,
-    K_i_R3_reg1::T,
-    K_a_R1_reg2::T,
-    K_i_R1_reg2::T,
-    K_a_R2_reg2::T,
-    K_i_R2_reg2::T,
-    K_a_R3_reg2::T,
-    K_i_R3_reg2::T,
-    K_a_R1_reg3::T,
-    K_i_R1_reg3::T,
-    K_a_R2_reg3::T,
-    K_i_R2_reg3::T,
-    K_a_R3_reg3::T,
-    K_i_R3_reg3::T,
-    alpha_S1_P2::T,
-    alpha_S1_P3::T,
-    alpha_S2_P1::T,
-    alpha_S2_P3::T,
-    alpha_S3_P1::T,
-    alpha_S3_P2::T,
+    Z_a_cat::T,
+    Z_i_cat::T,
+    Z_a_reg::T,
+    Z_i_reg::T,
     Keq::T,
+    n::Int,
 ) where {T<:Float64}
     Vmax_a = 1.0
     Vmax_a_rev = ifelse(
@@ -74,62 +46,6 @@ function general_mwc_rate_equation(
         (Keq * K_i_S1_cat1 * K_i_S2_cat2 * K_i_S3_cat3),
         0.0,
     )
-    Z_a_cat = (
-        1 +
-        (S1_cat1 / K_a_S1_cat1) +
-        (S2_cat2 / K_a_S2_cat2) +
-        (S3_cat3 / K_a_S3_cat3) +
-        (P1_cat1 / K_a_P1_cat1) +
-        (P2_cat2 / K_a_P2_cat2) +
-        (P3_cat3 / K_a_P3_cat3) +
-        (S1_cat1 / K_a_S1_cat1) * (S2_cat2 / K_a_S2_cat2) +
-        (S1_cat1 / K_a_S1_cat1) * (S3_cat3 / K_a_S3_cat3) +
-        (S2_cat2 / K_a_S2_cat2) * (S3_cat3 / K_a_S3_cat3) +
-        (S1_cat1 / K_a_S1_cat1) * (S2_cat2 / K_a_S2_cat2) * (S3_cat3 / K_a_S3_cat3) +
-        (P1_cat1 / K_a_P1_cat1) * (P2_cat2 / K_a_P2_cat2) +
-        (P1_cat1 / K_a_P1_cat1) * (P3_cat3 / K_a_P3_cat3) +
-        (P2_cat2 / K_a_P2_cat2) * (P3_cat3 / K_a_P3_cat3) +
-        (P1_cat1 / K_a_P1_cat1) * (P2_cat2 / K_a_P2_cat2) * (P3_cat3 / K_a_P3_cat3) +
-        alpha_S1_P2 * (S1_cat1 / K_a_S1_cat1) * (P2_cat2 / K_a_P2_cat2) +
-        alpha_S1_P3 * (S1_cat1 / K_a_S1_cat1) * (P3_cat3 / K_a_P3_cat3) +
-        alpha_S2_P1 * (S2_cat2 / K_a_S2_cat2) * (P1_cat1 / K_a_P1_cat1) +
-        alpha_S2_P3 * (S2_cat2 / K_a_S2_cat2) * (P3_cat3 / K_a_P3_cat3) +
-        alpha_S3_P1 * (S3_cat3 / K_a_S3_cat3) * (P1_cat1 / K_a_P1_cat1) +
-        alpha_S3_P2 * (S3_cat3 / K_a_S3_cat3) * (P2_cat2 / K_a_P2_cat2)
-    )
-    Z_i_cat = (
-        1 +
-        (S1_cat1 / K_i_S1_cat1) +
-        (S2_cat2 / K_i_S2_cat2) +
-        (S3_cat3 / K_i_S3_cat3) +
-        (P1_cat1 / K_i_P1_cat1) +
-        (P2_cat2 / K_i_P2_cat2) +
-        (P3_cat3 / K_i_P3_cat3) +
-        (S1_cat1 / K_i_S1_cat1) * (S2_cat2 / K_i_S2_cat2) +
-        (S1_cat1 / K_i_S1_cat1) * (S3_cat3 / K_i_S3_cat3) +
-        (S2_cat2 / K_i_S2_cat2) * (S3_cat3 / K_i_S3_cat3) +
-        (S1_cat1 / K_i_S1_cat1) * (S2_cat2 / K_i_S2_cat2) * (S3_cat3 / K_i_S3_cat3) +
-        (P1_cat1 / K_i_P1_cat1) * (P2_cat2 / K_i_P2_cat2) +
-        (P1_cat1 / K_i_P1_cat1) * (P3_cat3 / K_i_P3_cat3) +
-        (P2_cat2 / K_i_P2_cat2) * (P3_cat3 / K_i_P3_cat3) +
-        (P1_cat1 / K_i_P1_cat1) * (P2_cat2 / K_i_P2_cat2) * (P3_cat3 / K_i_P3_cat3) +
-        alpha_S1_P2 * (S1_cat1 / K_i_S1_cat1) * (P2_cat2 / K_i_P2_cat2) +
-        alpha_S1_P3 * (S1_cat1 / K_i_S1_cat1) * (P3_cat3 / K_i_P3_cat3) +
-        alpha_S2_P1 * (S2_cat2 / K_i_S2_cat2) * (P1_cat1 / K_i_P1_cat1) +
-        alpha_S2_P3 * (S2_cat2 / K_i_S2_cat2) * (P3_cat3 / K_i_P3_cat3) +
-        alpha_S3_P1 * (S3_cat3 / K_i_S3_cat3) * (P1_cat1 / K_i_P1_cat1) +
-        alpha_S3_P2 * (S3_cat3 / K_i_S3_cat3) * (P2_cat2 / K_i_P2_cat2)
-    )
-    Z_a_reg = (
-        (1 + R1_reg1 / K_a_R1_reg1 + R2_reg1 / K_a_R2_reg1 + R3_reg1 / K_a_R3_reg1) *
-        (1 + R1_reg2 / K_a_R1_reg2 + R2_reg2 / K_a_R2_reg2 + R3_reg2 / K_a_R3_reg2) *
-        (1 + R1_reg3 / K_a_R1_reg3 + R2_reg3 / K_a_R2_reg3 + R3_reg3 / K_a_R3_reg3)
-    )
-    Z_i_reg = (
-        (1 + R1_reg1 / K_i_R1_reg1 + R2_reg1 / K_i_R2_reg1 + R3_reg1 / K_i_R3_reg1) *
-        (1 + R1_reg2 / K_i_R1_reg2 + R2_reg2 / K_i_R2_reg2 + R3_reg2 / K_i_R3_reg2) *
-        (1 + R1_reg3 / K_i_R1_reg3 + R2_reg3 / K_i_R2_reg3 + R3_reg3 / K_i_R3_reg3)
-    )
     Rate =
         (
             (
@@ -142,8 +58,8 @@ function general_mwc_rate_equation(
                 (P2_cat2 / K_a_P2_cat2) *
                 (P3_cat3 / K_a_P3_cat3)
             ) *
-            (Z_a_cat^3) *
-            (Z_a_reg^4) +
+            (Z_a_cat^(n - 1)) *
+            (Z_a_reg^n) +
             L *
             (
                 Vmax_i *
@@ -155,123 +71,86 @@ function general_mwc_rate_equation(
                 (P2_cat2 / K_i_P2_cat2) *
                 (P3_cat3 / K_i_P3_cat3)
             ) *
-            (Z_i_cat^3) *
-            (Z_i_reg^4)
-        ) / ((Z_a_cat^4) * (Z_a_reg^4) + L * (Z_i_cat^4) * (Z_i_reg^4))
+            (Z_i_cat^(n - 1)) *
+            (Z_i_reg^n)
+        ) / ((Z_a_cat^n) * (Z_a_reg^n) + L * (Z_i_cat^n) * (Z_i_reg^n))
 
     return Rate
 end
 
-# function general_mwc_rate_equation(
-#         S1::T,
-#         S2::T,
-#         S3::T,
-#         P1::T,
-#         P2::T,
-#         P3::T,
-#         R1_reg1::T,
-#         R2_reg1::T,
-#         R3_reg1::T,
-#         R1_reg2::T,
-#         R2_reg2::T,
-#         R3_reg2::T,
-#         R1_reg3::T,
-#         R2_reg3::T,
-#         R3_reg3::T,
-#         L::T,
-#         Vmax_a::T,
-#         Vmax_i::T,
-#         K_a_S1_cat::T,
-#         K_i_S1_cat::T,
-#         K_a_S2_cat::T,
-#         K_i_S2_cat::T,
-#         K_a_P1_cat::T,
-#         K_i_P1_cat::T,
-#         K_a_P2_cat::T,
-#         K_i_P2_cat::T,
-#         K_a_R1_reg1::T,
-#         K_i_R1_reg1::T,
-#         K_a_R2_reg1::T,
-#         K_i_R2_reg1::T,
-#         K_a_R3_reg1::T,
-#         K_i_R3_reg1::T,
-#         K_a_R1_reg2::T,
-#         K_i_R1_reg2::T,
-#         K_a_R2_reg2::T,
-#         K_i_R2_reg2::T,
-#         K_a_R3_reg2::T,
-#         K_i_R3_reg2::T,
-#         K_a_R1_reg3::T,
-#         K_i_R1_reg3::T,
-#         K_a_R2_reg3::T,
-#         K_i_R2_reg3::T,
-#         K_a_R3_reg3::T,
-#         K_i_R3_reg3::T,
-#         alpha_S1_P2::T,
-#         alpha_S2_P1::T,
-#         Keq::T
-# ) where {T <: Float64}
-#     Vmax_a = 1.0
-#     Vmax_a_rev = ifelse(
-#         (K_a_P2_cat * K_a_P1_cat) != Inf,
-#         Vmax_a * K_a_P2_cat * K_a_P1_cat / (Keq * K_a_S1_cat * K_a_S2_cat),
-#         0.0
-#     )
-#     Vmax_i_rev = ifelse(
-#         (K_i_P2_cat * K_i_P1_cat) != Inf,
-#         Vmax_i * K_i_P2_cat * K_i_P1_cat / (Keq * K_i_S1_cat * K_i_S2_cat),
-#         0.0
-#     )
-#     Z_a_cat = (
-#         1 +
-#         (S1 / K_a_S1_cat) +
-#         (S2 / K_a_S2_cat) +
-#         (P1 / K_a_P1_cat) +
-#         (P2 / K_a_P2_cat) +
-#         (S1 / K_a_S1_cat) * (S2 / K_a_S2_cat) +
-#         (P1 / K_a_P1_cat) * (P2 / K_a_P2_cat) +
-#         alpha_S1_P2 * (S1 / K_a_S1_cat) * (P2 / K_a_P2_cat) +
-#         alpha_S2_P1 * (P1 / K_a_P1_cat) * (S2 / K_a_S2_cat)
-#     )
-#     Z_i_cat = (
-#         1 +
-#         (S1 / K_i_S1_cat) +
-#         (S2 / K_i_S2_cat) +
-#         (P1 / K_i_P1_cat) +
-#         (P2 / K_i_P2_cat) +
-#         (S1 / K_i_S1_cat) * (S2 / K_i_S2_cat) +
-#         (P1 / K_i_P1_cat) * (P2 / K_i_P2_cat) +
-#         alpha_S1_P2 * (S1 / K_i_S1_cat) * (P2 / K_i_P2_cat) +
-#         alpha_S2_P1 * (P1 / K_i_P1_cat) * (S2 / K_i_S2_cat)
-#     )
-#     Z_a_reg = (
-#         (1 + R1_reg1 / K_a_R1_reg1 + R2_reg1 / K_a_R2_reg1 + R3_reg1 / K_a_R3_reg1) *
-#         (1 + R1_reg2 / K_a_R1_reg2 + R2_reg2 / K_a_R2_reg2 + R3_reg2 / K_a_R3_reg2) *
-#         (1 + R1_reg3 / K_a_R1_reg3 + R2_reg3 / K_a_R2_reg3 + R3_reg3 / K_a_R3_reg3)
-#     )
-#     Z_i_reg = (
-#         (1 + R1_reg1 / K_i_R1_reg1 + R2_reg1 / K_i_R2_reg1 + R3_reg1 / K_i_R3_reg1) *
-#         (1 + R1_reg2 / K_i_R1_reg2 + R2_reg2 / K_i_R2_reg2 + R3_reg2 / K_i_R3_reg2) *
-#         (1 + R1_reg3 / K_i_R1_reg3 + R2_reg3 / K_i_R2_reg3 + R3_reg3 / K_i_R3_reg3)
-#     )
-#     Rate = (
-#         (
-#             Vmax_a * (S1 / K_a_S1_cat) * (S2 / K_a_S2_cat) -
-#             Vmax_a_rev * (P1 / K_a_P1_cat) * (P2 / K_a_P2_cat)
-#         ) *
-#         (Z_a_cat^3) *
-#         (Z_a_reg^4) +
-#         L *
-#         (
-#             Vmax_i * (S1 / K_i_S1_cat) * (S2 / K_i_S2_cat) -
-#             Vmax_i_rev * (P1 / K_i_P1_cat) * (P2 / K_i_P2_cat)
-#         ) *
-#         (Z_i_cat^3) *
-#         (Z_i_reg^4)
-#     ) / ((Z_a_cat^4) * (Z_a_reg^4) + L * (Z_i_cat^4) * (Z_i_reg^4))
+@inline function calculate_z_reg(
+    R1_reg1,
+    R2_reg1,
+    R3_reg1,
+    R1_reg2,
+    R2_reg2,
+    R3_reg2,
+    R1_reg3,
+    R2_reg3,
+    R3_reg3,
+    K_R1_reg1,
+    K_R2_reg1,
+    K_R3_reg1,
+    K_R1_reg2,
+    K_R2_reg2,
+    K_R3_reg2,
+    K_R1_reg3,
+    K_R2_reg3,
+    K_R3_reg3,
+)
+    Z_reg = (
+        (1 + R1_reg1 / K_R1_reg1 + R2_reg1 / K_R2_reg1 + R3_reg1 / K_R3_reg1) *
+        (1 + R1_reg2 / K_R1_reg2 + R2_reg2 / K_R2_reg2 + R3_reg2 / K_R3_reg2) *
+        (1 + R1_reg3 / K_R1_reg3 + R2_reg3 / K_R2_reg3 + R3_reg3 / K_R3_reg3)
+    )
+    return Z_reg
+end
 
-#     return Rate
-# end
+@inline function calculate_z_cat(
+    S1_cat1,
+    S2_cat2,
+    S3_cat3,
+    P1_cat1,
+    P2_cat2,
+    P3_cat3,
+    K_S1_cat1,
+    K_S2_cat2,
+    K_S3_cat3,
+    K_P1_cat1,
+    K_P2_cat2,
+    K_P3_cat3,
+    alpha_S1_P2,
+    alpha_S1_P3,
+    alpha_S2_P1,
+    alpha_S2_P3,
+    alpha_S3_P1,
+    alpha_S3_P2,
+)
+    Z_cat = (
+        1 +
+        (S1_cat1 / K_S1_cat1) +
+        (S2_cat2 / K_S2_cat2) +
+        (S3_cat3 / K_S3_cat3) +
+        (P1_cat1 / K_P1_cat1) +
+        (P2_cat2 / K_P2_cat2) +
+        (P3_cat3 / K_P3_cat3) +
+        (S1_cat1 / K_S1_cat1) * (S2_cat2 / K_S2_cat2) +
+        (S1_cat1 / K_S1_cat1) * (S3_cat3 / K_S3_cat3) +
+        (S2_cat2 / K_S2_cat2) * (S3_cat3 / K_S3_cat3) +
+        (S1_cat1 / K_S1_cat1) * (S2_cat2 / K_S2_cat2) * (S3_cat3 / K_S3_cat3) +
+        (P1_cat1 / K_P1_cat1) * (P2_cat2 / K_P2_cat2) +
+        (P1_cat1 / K_P1_cat1) * (P3_cat3 / K_P3_cat3) +
+        (P2_cat2 / K_P2_cat2) * (P3_cat3 / K_P3_cat3) +
+        (P1_cat1 / K_P1_cat1) * (P2_cat2 / K_P2_cat2) * (P3_cat3 / K_P3_cat3) +
+        alpha_S1_P2 * (S1_cat1 / K_S1_cat1) * (P2_cat2 / K_P2_cat2) +
+        alpha_S1_P3 * (S1_cat1 / K_S1_cat1) * (P3_cat3 / K_P3_cat3) +
+        alpha_S2_P1 * (S2_cat2 / K_S2_cat2) * (P1_cat1 / K_P1_cat1) +
+        alpha_S2_P3 * (S2_cat2 / K_S2_cat2) * (P3_cat3 / K_P3_cat3) +
+        alpha_S3_P1 * (S3_cat3 / K_S3_cat3) * (P1_cat1 / K_P1_cat1) +
+        alpha_S3_P2 * (S3_cat3 / K_S3_cat3) * (P2_cat2 / K_P2_cat2)
+    )
+    return Z_cat
+end
 
 #=
 TODO: ask users for substrates, products, inhibitors and regulators and then ask users to put
@@ -285,7 +164,7 @@ the same cat site like for PKM2.
 
 macro derive_general_mwc_rate_eq(metabs_and_regulators_kwargs...)
     expected_input_kwargs =
-        [:substrates, :products, :cat1, :cat2, :cat3, :reg1, :reg2, :reg3, :Keq]
+        [:substrates, :products, :cat1, :cat2, :cat3, :reg1, :reg2, :reg3, :Keq, :oligomeric_state]
     processed_input = NamedTuple()
     for expr in metabs_and_regulators_kwargs
         expr.args[1] ∈ expected_input_kwargs || error(
@@ -304,7 +183,7 @@ macro derive_general_mwc_rate_eq(metabs_and_regulators_kwargs...)
             push!(cat_site_metabs, processed_input[field]...)
         end
     end
-    println(cat_site_metabs)
+    # println(cat_site_metabs)
     for metab_name in [processed_input.substrates..., processed_input.products...]
         @assert metab_name ∈ cat_site_metabs "Each substrate and product has to be assigned to one of the catalytic sites"
     end
@@ -321,25 +200,25 @@ macro derive_general_mwc_rate_eq(metabs_and_regulators_kwargs...)
         if field == :cat1
             for metab_name in processed_input[field]
                 if metab_name ∈ processed_input.substrates
-                    enz = merge(enz, (; Symbol(:S, 1) => metab_name))
+                    enz = merge(enz, (; Symbol(:S, 1, "_", field) => metab_name))
                 elseif metab_name ∈ processed_input.products
-                    enz = merge(enz, (; Symbol(:P, 1) => metab_name))
+                    enz = merge(enz, (; Symbol(:P, 1, "_", field) => metab_name))
                 end
             end
         elseif hasproperty(processed_input, :cat2) && field == :cat2
             for metab_name in processed_input[field]
                 if metab_name ∈ processed_input.substrates
-                    enz = merge(enz, (; Symbol(:S, 2) => metab_name))
+                    enz = merge(enz, (; Symbol(:S, 2, "_", field) => metab_name))
                 elseif metab_name ∈ processed_input.products
-                    enz = merge(enz, (; Symbol(:P, 2) => metab_name))
+                    enz = merge(enz, (; Symbol(:P, 2, "_", field) => metab_name))
                 end
             end
         elseif hasproperty(processed_input, :cat3) && field == :cat3
             for metab_name in processed_input[field]
                 if metab_name ∈ processed_input.substrates
-                    enz = merge(enz, (; Symbol(:S, 3) => metab_name))
+                    enz = merge(enz, (; Symbol(:S, 3, field) => metab_name))
                 elseif metab_name ∈ processed_input.products
-                    enz = merge(enz, (; Symbol(:P, 3) => metab_name))
+                    enz = merge(enz, (; Symbol(:P, 3, field) => metab_name))
                 end
             end
         elseif hasproperty(processed_input, :reg1) && field == :reg1
@@ -356,15 +235,15 @@ macro derive_general_mwc_rate_eq(metabs_and_regulators_kwargs...)
             end
         end
     end
-    println(enz)
+    # println(enz)
     #TODO: use Base.method_argnames(methods(general_mwc_rate_equation)[1])[2:end] to get args
     mwc_rate_eq_args = [
-        :S1,
-        :S2,
-        :S3,
-        :P1,
-        :P2,
-        :P3,
+        :S1_cat1,
+        :S2_cat2,
+        :S3_cat3,
+        :P1_cat1,
+        :P2_cat2,
+        :P3_cat3,
         :R1_reg1,
         :R2_reg1,
         :R3_reg1,
@@ -382,117 +261,140 @@ macro derive_general_mwc_rate_eq(metabs_and_regulators_kwargs...)
     # qualified_name = esc(GlobalRef(Main, :rate_equation))
     function_name = esc(:rate_equation)
     return :(
-        function $(function_name)(metabs, params, Keq)
+        @inline function $(function_name)(metabs, params, Keq)
             general_mwc_rate_equation(
-                $(enz.S1 isa Symbol) ? metabs.$(enz.S1) : 1.0,
-                $(enz.S2 isa Symbol) ? metabs.$(enz.S2) : 1.0,
-                $(enz.S3 isa Symbol) ? metabs.$(enz.S3) : 1.0,
-                $(enz.P1 isa Symbol) ? metabs.$(enz.P1) : 1.0,
-                $(enz.P2 isa Symbol) ? metabs.$(enz.P2) : 1.0,
-                $(enz.P3 isa Symbol) ? metabs.$(enz.P3) : 1.0,
-                $(enz.R1_reg1 isa Symbol) ? metabs.$(enz.R1_reg1) : 0.0,
-                $(enz.R2_reg1 isa Symbol) ? metabs.$(enz.R2_reg1) : 0.0,
-                $(enz.R3_reg1 isa Symbol) ? metabs.$(enz.R3_reg1) : 0.0,
-                $(enz.R1_reg2 isa Symbol) ? metabs.$(enz.R1_reg2) : 0.0,
-                $(enz.R2_reg2 isa Symbol) ? metabs.$(enz.R2_reg2) : 0.0,
-                $(enz.R3_reg2 isa Symbol) ? metabs.$(enz.R3_reg2) : 0.0,
-                $(enz.R1_reg3 isa Symbol) ? metabs.$(enz.R1_reg3) : 0.0,
-                $(enz.R2_reg3 isa Symbol) ? metabs.$(enz.R2_reg3) : 0.0,
-                $(enz.R3_reg3 isa Symbol) ? metabs.$(enz.R3_reg3) : 0.0,
+                $(enz.S1_cat1 isa Symbol) ? metabs.$(enz.S1_cat1) : 1.0,
+                $(enz.S2_cat2 isa Symbol) ? metabs.$(enz.S2_cat2) : 1.0,
+                $(enz.S3_cat3 isa Symbol) ? metabs.$(enz.S3_cat3) : 1.0,
+                $(enz.P1_cat1 isa Symbol) ? metabs.$(enz.P1_cat1) : 1.0,
+                $(enz.P2_cat2 isa Symbol) ? metabs.$(enz.P2_cat2) : 1.0,
+                $(enz.P3_cat3 isa Symbol) ? metabs.$(enz.P3_cat3) : 1.0,
                 params.L,
                 params.Vmax_a,
                 params.Vmax_i,
-                $(enz.S1 isa Symbol) ? params.$(Symbol("K_a_", enz.S1, "_cat1")) : 1.0,
-                $(enz.S1 isa Symbol) ? params.$(Symbol("K_i_", enz.S1, "_cat1")) : 1.0,
-                $(enz.S2 isa Symbol) ? params.$(Symbol("K_a_", enz.S2, "_cat2")) : 1.0,
-                $(enz.S2 isa Symbol) ? params.$(Symbol("K_i_", enz.S2, "_cat2")) : 1.0,
-                $(enz.S3 isa Symbol) ? params.$(Symbol("K_a_", enz.S3, "_cat3")) : 1.0,
-                $(enz.S3 isa Symbol) ? params.$(Symbol("K_i_", enz.S3, "_cat3")) : 1.0,
-                $(enz.P1 isa Symbol) ? params.$(Symbol("K_a_", enz.P1, "_cat1")) : 1.0,
-                $(enz.P1 isa Symbol) ? params.$(Symbol("K_i_", enz.P1, "_cat1")) : 1.0,
-                $(enz.P2 isa Symbol) ? params.$(Symbol("K_a_", enz.P2, "_cat2")) : 1.0,
-                $(enz.P2 isa Symbol) ? params.$(Symbol("K_i_", enz.P2, "_cat2")) : 1.0,
-                $(enz.P3 isa Symbol) ? params.$(Symbol("K_a_", enz.P3, "_cat3")) : 1.0,
-                $(enz.P3 isa Symbol) ? params.$(Symbol("K_i_", enz.P3, "_cat3")) : 1.0,
-                $(enz.R1_reg1 isa Symbol) ? params.$(Symbol("K_a_", enz.R1_reg1, "_reg1")) :
-                Inf,
-                $(enz.R1_reg1 isa Symbol) ? params.$(Symbol("K_i_", enz.R1_reg1, "_reg1")) :
-                Inf,
-                $(enz.R2_reg1 isa Symbol) ? params.$(Symbol("K_a_", enz.R2_reg1, "_reg1")) :
-                Inf,
-                $(enz.R2_reg1 isa Symbol) ? params.$(Symbol("K_i_", enz.R2_reg1, "_reg1")) :
-                Inf,
-                $(enz.R3_reg1 isa Symbol) ? params.$(Symbol("K_a_", enz.R3_reg1, "_reg1")) :
-                Inf,
-                $(enz.R3_reg1 isa Symbol) ? params.$(Symbol("K_i_", enz.R3_reg1, "_reg1")) :
-                Inf,
-                $(enz.R1_reg2 isa Symbol) ? params.$(Symbol("K_a_", enz.R1_reg2, "_reg2")) :
-                Inf,
-                $(enz.R1_reg2 isa Symbol) ? params.$(Symbol("K_i_", enz.R1_reg2, "_reg2")) :
-                Inf,
-                $(enz.R2_reg2 isa Symbol) ? params.$(Symbol("K_a_", enz.R2_reg2, "_reg2")) :
-                Inf,
-                $(enz.R2_reg2 isa Symbol) ? params.$(Symbol("K_i_", enz.R2_reg2, "_reg2")) :
-                Inf,
-                $(enz.R3_reg2 isa Symbol) ? params.$(Symbol("K_a_", enz.R3_reg2, "_reg2")) :
-                Inf,
-                $(enz.R3_reg2 isa Symbol) ? params.$(Symbol("K_i_", enz.R3_reg2, "_reg2")) :
-                Inf,
-                $(enz.R1_reg3 isa Symbol) ? params.$(Symbol("K_a_", enz.R1_reg3, "_reg3")) :
-                Inf,
-                $(enz.R1_reg3 isa Symbol) ? params.$(Symbol("K_i_", enz.R1_reg3, "_reg3")) :
-                Inf,
-                $(enz.R2_reg3 isa Symbol) ? params.$(Symbol("K_a_", enz.R2_reg3, "_reg3")) :
-                Inf,
-                $(enz.R2_reg3 isa Symbol) ? params.$(Symbol("K_i_", enz.R2_reg3, "_reg3")) :
-                Inf,
-                $(enz.R3_reg3 isa Symbol) ? params.$(Symbol("K_a_", enz.R3_reg3, "_reg3")) :
-                Inf,
-                $(enz.R3_reg3 isa Symbol) ? params.$(Symbol("K_i_", enz.R3_reg3, "_reg3")) :
-                Inf,
-                $(enz.S1 isa Symbol && enz.P2 isa Symbol) ?
-                params.$(Symbol("alpha_", enz.S1, "_", enz.P2)) : 0.0,
-                $(enz.S1 isa Symbol && enz.P3 isa Symbol) ?
-                params.$(Symbol("alpha_", enz.S1, "_", enz.P3)) : 0.0,
-                $(enz.S2 isa Symbol && enz.P1 isa Symbol) ?
-                params.$(Symbol("alpha_", enz.S2, "_", enz.P1)) : 0.0,
-                $(enz.S2 isa Symbol && enz.P3 isa Symbol) ?
-                params.$(Symbol("alpha_", enz.S2, "_", enz.P3)) : 0.0,
-                $(enz.S3 isa Symbol && enz.P1 isa Symbol) ?
-                params.$(Symbol("alpha_", enz.S3, "_", enz.P1)) : 0.0,
-                $(enz.S3 isa Symbol && enz.P2 isa Symbol) ?
-                params.$(Symbol("alpha_", enz.S3, "_", enz.P2)) : 0.0,
+                $(enz.S1_cat1 isa Symbol) ? params.$(Symbol("K_a_", enz.S1_cat1, "_cat1")) : 1.0,
+                $(enz.S1_cat1 isa Symbol) ? params.$(Symbol("K_i_", enz.S1_cat1, "_cat1")) : 1.0,
+                $(enz.S2_cat2 isa Symbol) ? params.$(Symbol("K_a_", enz.S2_cat2, "_cat2")) : 1.0,
+                $(enz.S2_cat2 isa Symbol) ? params.$(Symbol("K_i_", enz.S2_cat2, "_cat2")) : 1.0,
+                $(enz.S3_cat3 isa Symbol) ? params.$(Symbol("K_a_", enz.S3_cat3, "_cat3")) : 1.0,
+                $(enz.S3_cat3 isa Symbol) ? params.$(Symbol("K_i_", enz.S3_cat3, "_cat3")) : 1.0,
+                $(enz.P1_cat1 isa Symbol) ? params.$(Symbol("K_a_", enz.P1_cat1, "_cat1")) : 1.0,
+                $(enz.P1_cat1 isa Symbol) ? params.$(Symbol("K_i_", enz.P1_cat1, "_cat1")) : 1.0,
+                $(enz.P2_cat2 isa Symbol) ? params.$(Symbol("K_a_", enz.P2_cat2, "_cat2")) : 1.0,
+                $(enz.P2_cat2 isa Symbol) ? params.$(Symbol("K_i_", enz.P2_cat2, "_cat2")) : 1.0,
+                $(enz.P3_cat3 isa Symbol) ? params.$(Symbol("K_a_", enz.P3_cat3, "_cat3")) : 1.0,
+                $(enz.P3_cat3 isa Symbol) ? params.$(Symbol("K_i_", enz.P3_cat3, "_cat3")) : 1.0,
+                #Z_a_cat
+                calculate_z_cat(
+                    $(enz.S1_cat1 isa Symbol) ? metabs.$(enz.S1_cat1) : 0.0,
+                    $(enz.S2_cat2 isa Symbol) ? metabs.$(enz.S2_cat2) : 0.0,
+                    $(enz.S3_cat3 isa Symbol) ? metabs.$(enz.S3_cat3) : 0.0,
+                    $(enz.P1_cat1 isa Symbol) ? metabs.$(enz.P1_cat1) : 0.0,
+                    $(enz.P2_cat2 isa Symbol) ? metabs.$(enz.P2_cat2) : 0.0,
+                    $(enz.P3_cat3 isa Symbol) ? metabs.$(enz.P3_cat3) : 0.0,
+                    $(enz.S1_cat1 isa Symbol) ?
+                    params.$(Symbol("K_a_", enz.S1_cat1, "_cat1")) : Inf,
+                    $(enz.S2_cat2 isa Symbol) ?
+                    params.$(Symbol("K_a_", enz.S2_cat2, "_cat2")) : Inf,
+                    $(enz.S3_cat3 isa Symbol) ?
+                    params.$(Symbol("K_a_", enz.S3_cat3, "_cat3")) : Inf,
+                    $(enz.P1_cat1 isa Symbol) ?
+                    params.$(Symbol("K_a_", enz.P1_cat1, "_cat1")) : Inf,
+                    $(enz.P2_cat2 isa Symbol) ?
+                    params.$(Symbol("K_a_", enz.P2_cat2, "_cat2")) : Inf,
+                    $(enz.P3_cat3 isa Symbol) ?
+                    params.$(Symbol("K_a_", enz.P3_cat3, "_cat3")) : Inf,
+                    $(enz.S1_cat1 isa Symbol && enz.P2_cat2 isa Symbol) ?
+                    params.$(Symbol("alpha_", enz.S1_cat1, "_", enz.P2_cat2)) : 0.0,
+                    $(enz.S1_cat1 isa Symbol && enz.P3_cat3 isa Symbol) ?
+                    params.$(Symbol("alpha_", enz.S1_cat1, "_", enz.P3_cat3)) : 0.0,
+                    $(enz.S2_cat2 isa Symbol && enz.P1_cat1 isa Symbol) ?
+                    params.$(Symbol("alpha_", enz.S2_cat2, "_", enz.P1_cat1)) : 0.0,
+                    $(enz.S2_cat2 isa Symbol && enz.P3_cat3 isa Symbol) ?
+                    params.$(Symbol("alpha_", enz.S2_cat2, "_", enz.P3_cat3)) : 0.0,
+                    $(enz.S3_cat3 isa Symbol && enz.P1_cat1 isa Symbol) ?
+                    params.$(Symbol("alpha_", enz.S3_cat3, "_", enz.P1_cat1)) : 0.0,
+                    $(enz.S3_cat3 isa Symbol && enz.P2_cat2 isa Symbol) ?
+                    params.$(Symbol("alpha_", enz.S3_cat3, "_", enz.P2_cat2)) : 0.0,
+                ),
+                #Z_i_cat
+                calculate_z_cat(
+                    $(enz.S1_cat1 isa Symbol) ? metabs.$(enz.S1_cat1) : 0.0,
+                    $(enz.S2_cat2 isa Symbol) ? metabs.$(enz.S2_cat2) : 0.0,
+                    $(enz.S3_cat3 isa Symbol) ? metabs.$(enz.S3_cat3) : 0.0,
+                    $(enz.P1_cat1 isa Symbol) ? metabs.$(enz.P1_cat1) : 0.0,
+                    $(enz.P2_cat2 isa Symbol) ? metabs.$(enz.P2_cat2) : 0.0,
+                    $(enz.P3_cat3 isa Symbol) ? metabs.$(enz.P3_cat3) : 0.0,
+                    $(enz.S1_cat1 isa Symbol) ?
+                    params.$(Symbol("K_i_", enz.S1_cat1, "_cat1")) : Inf,
+                    $(enz.S2_cat2 isa Symbol) ?
+                    params.$(Symbol("K_i_", enz.S2_cat2, "_cat2")) : Inf,
+                    $(enz.S3_cat3 isa Symbol) ?
+                    params.$(Symbol("K_i_", enz.S3_cat3, "_cat3")) : Inf,
+                    $(enz.P1_cat1 isa Symbol) ?
+                    params.$(Symbol("K_i_", enz.P1_cat1, "_cat1")) : Inf,
+                    $(enz.P2_cat2 isa Symbol) ?
+                    params.$(Symbol("K_i_", enz.P2_cat2, "_cat2")) : Inf,
+                    $(enz.P3_cat3 isa Symbol) ?
+                    params.$(Symbol("K_i_", enz.P3_cat3, "_cat3")) : Inf,
+                    $(enz.S1_cat1 isa Symbol && enz.P2_cat2 isa Symbol) ?
+                    params.$(Symbol("alpha_", enz.S1_cat1, "_", enz.P2_cat2)) : 0.0,
+                    $(enz.S1_cat1 isa Symbol && enz.P3_cat3 isa Symbol) ?
+                    params.$(Symbol("alpha_", enz.S1_cat1, "_", enz.P3_cat3)) : 0.0,
+                    $(enz.S2_cat2 isa Symbol && enz.P1_cat1 isa Symbol) ?
+                    params.$(Symbol("alpha_", enz.S2_cat2, "_", enz.P1_cat1)) : 0.0,
+                    $(enz.S2_cat2 isa Symbol && enz.P3_cat3 isa Symbol) ?
+                    params.$(Symbol("alpha_", enz.S2_cat2, "_", enz.P3_cat3)) : 0.0,
+                    $(enz.S3_cat3 isa Symbol && enz.P1_cat1 isa Symbol) ?
+                    params.$(Symbol("alpha_", enz.S3_cat3, "_", enz.P1_cat1)) : 0.0,
+                    $(enz.S3_cat3 isa Symbol && enz.P2_cat2 isa Symbol) ?
+                    params.$(Symbol("alpha_", enz.S3_cat3, "_", enz.P2_cat2)) : 0.0,
+                ),
+                #Z_a_reg
+                calculate_z_reg(
+                    $(enz.R1_reg1 isa Symbol) ? metabs.$(enz.R1_reg1) : 0.0,
+                    $(enz.R2_reg1 isa Symbol) ? metabs.$(enz.R2_reg1) : 0.0,
+                    $(enz.R3_reg1 isa Symbol) ? metabs.$(enz.R3_reg1) : 0.0,
+                    $(enz.R1_reg2 isa Symbol) ? metabs.$(enz.R1_reg2) : 0.0,
+                    $(enz.R2_reg2 isa Symbol) ? metabs.$(enz.R2_reg2) : 0.0,
+                    $(enz.R3_reg2 isa Symbol) ? metabs.$(enz.R3_reg2) : 0.0,
+                    $(enz.R1_reg3 isa Symbol) ? metabs.$(enz.R1_reg3) : 0.0,
+                    $(enz.R2_reg3 isa Symbol) ? metabs.$(enz.R2_reg3) : 0.0,
+                    $(enz.R3_reg3 isa Symbol) ? metabs.$(enz.R3_reg3) : 0.0,
+                    $(enz.R1_reg1 isa Symbol) ? params.$(Symbol("K_a_", enz.R1_reg1, "_reg1")) : Inf,
+                    $(enz.R2_reg1 isa Symbol) ? params.$(Symbol("K_a_", enz.R2_reg1, "_reg1")) : Inf,
+                    $(enz.R3_reg1 isa Symbol) ? params.$(Symbol("K_a_", enz.R3_reg1, "_reg1")) : Inf,
+                    $(enz.R1_reg2 isa Symbol) ? params.$(Symbol("K_a_", enz.R1_reg2, "_reg2")) : Inf,
+                    $(enz.R2_reg2 isa Symbol) ? params.$(Symbol("K_a_", enz.R2_reg2, "_reg2")) : Inf,
+                    $(enz.R3_reg2 isa Symbol) ? params.$(Symbol("K_a_", enz.R3_reg2, "_reg2")) : Inf,
+                    $(enz.R1_reg3 isa Symbol) ? params.$(Symbol("K_a_", enz.R1_reg3, "_reg3")) : Inf,
+                    $(enz.R2_reg3 isa Symbol) ? params.$(Symbol("K_a_", enz.R2_reg3, "_reg3")) : Inf,
+                    $(enz.R3_reg3 isa Symbol) ? params.$(Symbol("K_a_", enz.R3_reg3, "_reg3")) : Inf,
+                ),
+                #Z_i_reg
+                calculate_z_reg(
+                    $(enz.R1_reg1 isa Symbol) ? metabs.$(enz.R1_reg1) : 0.0,
+                    $(enz.R2_reg1 isa Symbol) ? metabs.$(enz.R2_reg1) : 0.0,
+                    $(enz.R3_reg1 isa Symbol) ? metabs.$(enz.R3_reg1) : 0.0,
+                    $(enz.R1_reg2 isa Symbol) ? metabs.$(enz.R1_reg2) : 0.0,
+                    $(enz.R2_reg2 isa Symbol) ? metabs.$(enz.R2_reg2) : 0.0,
+                    $(enz.R3_reg2 isa Symbol) ? metabs.$(enz.R3_reg2) : 0.0,
+                    $(enz.R1_reg3 isa Symbol) ? metabs.$(enz.R1_reg3) : 0.0,
+                    $(enz.R2_reg3 isa Symbol) ? metabs.$(enz.R2_reg3) : 0.0,
+                    $(enz.R3_reg3 isa Symbol) ? metabs.$(enz.R3_reg3) : 0.0,
+                    $(enz.R1_reg1 isa Symbol) ? params.$(Symbol("K_i_", enz.R1_reg1, "_reg1")) : Inf,
+                    $(enz.R2_reg1 isa Symbol) ? params.$(Symbol("K_i_", enz.R2_reg1, "_reg1")) : Inf,
+                    $(enz.R3_reg1 isa Symbol) ? params.$(Symbol("K_i_", enz.R3_reg1, "_reg1")) : Inf,
+                    $(enz.R1_reg2 isa Symbol) ? params.$(Symbol("K_i_", enz.R1_reg2, "_reg2")) : Inf,
+                    $(enz.R2_reg2 isa Symbol) ? params.$(Symbol("K_i_", enz.R2_reg2, "_reg2")) : Inf,
+                    $(enz.R3_reg2 isa Symbol) ? params.$(Symbol("K_i_", enz.R3_reg2, "_reg2")) : Inf,
+                    $(enz.R1_reg3 isa Symbol) ? params.$(Symbol("K_i_", enz.R1_reg3, "_reg3")) : Inf,
+                    $(enz.R2_reg3 isa Symbol) ? params.$(Symbol("K_i_", enz.R2_reg3, "_reg3")) : Inf,
+                    $(enz.R3_reg3 isa Symbol) ? params.$(Symbol("K_i_", enz.R3_reg3, "_reg3")) : Inf,
+                ),
                 Keq,
+                oligomeric_state,
             )
         end
     )
 end
-
-metabs_nt = (
-    PEP = 1.0e-3,
-    ADP = 1.0e-3,
-    Pyruvate = 1.0e-3,
-    ATP = 1.0e-3,
-    F16BP = 1.0e-3,
-    Phenylalanine = 1.0e-3,
-)
-
-params_nt = (
-    L = 1.0,
-    Vmax_a = 1.0,
-    Vmax_i = 1.0,
-    K_a_PEP_cat = 1e-3,
-    K_i_PEP_cat = 100e-3,
-    K_a_ADP_cat = 1e-3,
-    K_i_ADP_cat = 1e-3,
-    K_a_Pyruvate_cat = 1e-3,
-    K_i_Pyruvate_cat = 1e-3,
-    K_a_ATP_cat = 1e-3,
-    K_i_ATP_cat = 1e-3,
-    K_a_F16BP_reg1 = 1e-3,
-    K_i_F16BP_reg1 = 100e-3,
-    K_a_Phenylalanine_reg2 = 100e-3,
-    K_i_Phenylalanine_reg2 = 1e-3,
-    alpha_PEP_ATP = 1.0,
-    alpha_ADP_Pyruvate = 1.0,
-)
