@@ -152,15 +152,7 @@ end
     return Z_cat
 end
 
-#=
-TODO: ask users for substrates, products, inhibitors and regulators and then ask users to put
-each into a site like cat1,2,3 and reg1,2,3. Add several catalytic sites (e.g., "cat1", "cat2")
-for enzyme like PDH and PC that have clearly distinct catalytic sites but also to allow users
-to highlight that some substrates likely bind to same site in mutually exclusive way. For
-example for PKM2 ATP/ADP and PEP/Pyruvate behave like they bind to different sites.
-Somehow include alpha terms only for cat1 / cat2 pair that user highlights that are part of
-the same cat site like for PKM2.
-=#
+
 
 macro derive_general_mwc_rate_eq(metabs_and_regulators_kwargs...)
     expected_input_kwargs =
