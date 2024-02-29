@@ -2,13 +2,15 @@
 CODE FOR RATE EQUATION DERIVATION
 =#
 
+#TODO: maybe divide general_mwc_equation into several functions for Z_a_cat, Z_i_cat, Z_a_reg,
+# Z_i_reg. Then call these functions as args of general_mwc_rate_equation
 function general_mwc_rate_equation(
     S1_cat1::T,
     S2_cat2::T,
     S3_cat3::T,
     P1_cat1::T,
     P2_cat2::T,
-    P3::T,
+    P3_cat3::T,
     R1_reg1::T,
     R2_reg1::T,
     R3_reg1::T,
@@ -62,13 +64,13 @@ function general_mwc_rate_equation(
     Vmax_a = 1.0
     Vmax_a_rev = ifelse(
         (K_a_P1_cat1 * K_a_P2_cat2 * K_a_P3_cat3) != Inf,
-        Vmax_a * K_a_P2_cat2 * K_a_P1_cat1 * K_a_P3_cat3 /
+        Vmax_a * K_a_P1_cat1 * K_a_P2_cat2 * K_a_P3_cat3 /
         (Keq * K_a_S1_cat1 * K_a_S2_cat2 * K_a_S3_cat3),
         0.0,
     )
     Vmax_i_rev = ifelse(
         (K_i_P1_cat1 * K_i_P2_cat2 * K_i_P3_cat3) != Inf,
-        Vmax_i * K_i_P2_cat2 * K_i_P1_cat1 * K_i_P3_cat3 /
+        Vmax_i * K_i_P1_cat1 * K_i_P2_cat2 * K_i_P3_cat3 /
         (Keq * K_i_S1_cat1 * K_i_S2_cat2 * K_i_S3_cat3),
         0.0,
     )
@@ -89,11 +91,11 @@ function general_mwc_rate_equation(
         (P2_cat2 / K_a_P2_cat2) * (P3_cat3 / K_a_P3_cat3) +
         (P1_cat1 / K_a_P1_cat1) * (P2_cat2 / K_a_P2_cat2) * (P3_cat3 / K_a_P3_cat3) +
         alpha_S1_P2 * (S1_cat1 / K_a_S1_cat1) * (P2_cat2 / K_a_P2_cat2) +
-        alpha_S1_P3 * (S1_cat1 / K_a_S1_cat1) * (P3_cat2 / K_a_P3_cat2) +
+        alpha_S1_P3 * (S1_cat1 / K_a_S1_cat1) * (P3_cat3 / K_a_P3_cat3) +
         alpha_S2_P1 * (S2_cat2 / K_a_S2_cat2) * (P1_cat1 / K_a_P1_cat1) +
-        alpha_S2_P3 * (S2_cat2 / K_a_S2_cat2) * (P3_cat1 / K_a_P3_cat1) +
-        alpha_S3_P1 * (S3_cat3 / K_a_S3_cat3) * (P1_cat2 / K_a_P1_cat2) +
-        alpha_S3_P2 * (S3_cat3 / K_a_S3_cat3) * (P2_cat1 / K_a_P2_cat1)
+        alpha_S2_P3 * (S2_cat2 / K_a_S2_cat2) * (P3_cat3 / K_a_P3_cat3) +
+        alpha_S3_P1 * (S3_cat3 / K_a_S3_cat3) * (P1_cat1 / K_a_P1_cat1) +
+        alpha_S3_P2 * (S3_cat3 / K_a_S3_cat3) * (P2_cat2 / K_a_P2_cat2)
     )
     Z_i_cat = (
         1 +
@@ -112,11 +114,11 @@ function general_mwc_rate_equation(
         (P2_cat2 / K_i_P2_cat2) * (P3_cat3 / K_i_P3_cat3) +
         (P1_cat1 / K_i_P1_cat1) * (P2_cat2 / K_i_P2_cat2) * (P3_cat3 / K_i_P3_cat3) +
         alpha_S1_P2 * (S1_cat1 / K_i_S1_cat1) * (P2_cat2 / K_i_P2_cat2) +
-        alpha_S1_P3 * (S1_cat1 / K_i_S1_cat1) * (P3_cat2 / K_i_P3_cat2) +
+        alpha_S1_P3 * (S1_cat1 / K_i_S1_cat1) * (P3_cat3 / K_i_P3_cat3) +
         alpha_S2_P1 * (S2_cat2 / K_i_S2_cat2) * (P1_cat1 / K_i_P1_cat1) +
-        alpha_S2_P3 * (S2_cat2 / K_i_S2_cat2) * (P3_cat1 / K_i_P3_cat1) +
-        alpha_S3_P1 * (S3_cat3 / K_i_S3_cat3) * (P1_cat2 / K_i_P1_cat2) +
-        alpha_S3_P2 * (S3_cat3 / K_i_S3_cat3) * (P2_cat1 / K_i_P2_cat1)
+        alpha_S2_P3 * (S2_cat2 / K_i_S2_cat2) * (P3_cat3 / K_i_P3_cat3) +
+        alpha_S3_P1 * (S3_cat3 / K_i_S3_cat3) * (P1_cat1 / K_i_P1_cat1) +
+        alpha_S3_P2 * (S3_cat3 / K_i_S3_cat3) * (P2_cat2 / K_i_P2_cat2)
     )
     Z_a_reg = (
         (1 + R1_reg1 / K_a_R1_reg1 + R2_reg1 / K_a_R2_reg1 + R3_reg1 / K_a_R3_reg1) *
@@ -280,51 +282,89 @@ example for PKM2 ATP/ADP and PEP/Pyruvate behave like they bind to different sit
 Somehow include alpha terms only for cat1 / cat2 pair that user highlights that are part of
 the same cat site like for PKM2.
 =#
+
 macro derive_general_mwc_rate_eq(metabs_and_regulators_kwargs...)
     expected_input_kwargs =
         [:substrates, :products, :cat1, :cat2, :cat3, :reg1, :reg2, :reg3, :Keq]
     processed_input = NamedTuple()
     for expr in metabs_and_regulators_kwargs
-        expr.args[1] ∈ expected_input_kwargs || error("invalid keyword: ", expr.args[1])
+        expr.args[1] ∈ expected_input_kwargs || error(
+            "invalid keyword: ",
+            expr.args[1],
+            ". The only supported keywords are: ",
+            expected_input_kwargs,
+        )
         processed_input = merge(processed_input, (; expr.args[1] => eval(expr)))
     end
-    # TODO: assert only after checking if the field exists
-    @assert 0 < length(processed_input.substrates) <= 2 "At least 1 and no more that 2 substrates are supported"
-    @assert length(processed_input.products) <= 2 "At least 1 and no more that 2 products are supported"
-    @assert length(processed_input.reg1) <= 3 "No more that 3 regulators for site 1 are supported"
-    @assert length(processed_input.reg2) <= 3 "No more that 3 regulators for site 2 are supported"
-    # @assert length(processed_input.reg3)<=3 "No more that 3 regulators for site 3 are supported"
-
+    @assert 0 < length(processed_input.substrates) <= 3 "At least 1 and no more that 3 substrates are supported"
+    @assert 0 < length(processed_input.products) <= 3 "At least 1 and no more that 3 products are supported"
+    cat_site_metabs = [processed_input.cat1...]
+    for field in [:cat2, :cat3]
+        if hasproperty(processed_input, field)
+            push!(cat_site_metabs, processed_input[field]...)
+        end
+    end
+    println(cat_site_metabs)
+    for metab_name in [processed_input.substrates..., processed_input.products...]
+        @assert metab_name ∈ cat_site_metabs "Each substrate and product has to be assigned to one of the catalytic sites"
+    end
+    for field in [:cat1, :cat2, :cat3]
+        hasproperty(processed_input, field) &&
+            @assert length(processed_input[field]) <= 2 "No more that 2 metabolites can bind to one catalytic site. One substrate and one product"
+    end
+    for field in [:reg1, :reg2, :reg3]
+        hasproperty(processed_input, field) &&
+            @assert length(processed_input[field]) <= 3 "No more that 3 catalytic sites are supported"
+    end
     enz = NamedTuple()
     for field in propertynames(processed_input)
-        if field == :substrates
-            for (i, metab_name) in enumerate(processed_input[field])
-                enz = merge(enz, (; Symbol(:S, i) => processed_input[field][i]))
+        if field == :cat1
+            for metab_name in processed_input[field]
+                if metab_name ∈ processed_input.substrates
+                    enz = merge(enz, (; Symbol(:S, 1) => metab_name))
+                elseif metab_name ∈ processed_input.products
+                    enz = merge(enz, (; Symbol(:P, 1) => metab_name))
+                end
             end
-        elseif field == :products
-            for (i, metab_name) in enumerate(processed_input[field])
-                enz = merge(enz, (; Symbol(:P, i) => processed_input[field][i]))
+        elseif hasproperty(processed_input, :cat2) && field == :cat2
+            for metab_name in processed_input[field]
+                if metab_name ∈ processed_input.substrates
+                    enz = merge(enz, (; Symbol(:S, 2) => metab_name))
+                elseif metab_name ∈ processed_input.products
+                    enz = merge(enz, (; Symbol(:P, 2) => metab_name))
+                end
             end
-        elseif field == :reg1
-            for (i, metab_name) in enumerate(processed_input[field])
-                enz = merge(enz, (; Symbol(:R, i, "_", field) => processed_input[field][i]))
+        elseif hasproperty(processed_input, :cat3) && field == :cat3
+            for metab_name in processed_input[field]
+                if metab_name ∈ processed_input.substrates
+                    enz = merge(enz, (; Symbol(:S, 3) => metab_name))
+                elseif metab_name ∈ processed_input.products
+                    enz = merge(enz, (; Symbol(:P, 3) => metab_name))
+                end
             end
-        elseif field == :reg2
+        elseif hasproperty(processed_input, :reg1) && field == :reg1
             for (i, metab_name) in enumerate(processed_input[field])
-                enz = merge(enz, (; Symbol(:R, i, "_", field) => processed_input[field][i]))
+                enz = merge(enz, (; Symbol(:R, i, "_", field) => metab_name))
             end
-        elseif field == :reg3
+        elseif hasproperty(processed_input, :reg2) && field == :reg2
             for (i, metab_name) in enumerate(processed_input[field])
-                enz = merge(enz, (; Symbol(:R, i, "_", field) => processed_input[field][i]))
+                enz = merge(enz, (; Symbol(:R, i, "_", field) => metab_name))
+            end
+        elseif hasproperty(processed_input, :reg3) && field == :reg3
+            for (i, metab_name) in enumerate(processed_input[field])
+                enz = merge(enz, (; Symbol(:R, i, "_", field) => metab_name))
             end
         end
     end
+    println(enz)
     #TODO: use Base.method_argnames(methods(general_mwc_rate_equation)[1])[2:end] to get args
     mwc_rate_eq_args = [
         :S1,
         :S2,
+        :S3,
         :P1,
         :P2,
+        :P3,
         :R1_reg1,
         :R2_reg1,
         :R3_reg1,
@@ -411,17 +451,17 @@ macro derive_general_mwc_rate_eq(metabs_and_regulators_kwargs...)
                 $(enz.R3_reg3 isa Symbol) ? params.$(Symbol("K_i_", enz.R3_reg3, "_reg3")) :
                 Inf,
                 $(enz.S1 isa Symbol && enz.P2 isa Symbol) ?
-                params.$(Symbol("alpha", enz.S1, "_", enz.P2)) : 0.0,
+                params.$(Symbol("alpha_", enz.S1, "_", enz.P2)) : 0.0,
                 $(enz.S1 isa Symbol && enz.P3 isa Symbol) ?
-                params.$(Symbol("alpha", enz.S1, "_", enz.P3)) : 0.0,
+                params.$(Symbol("alpha_", enz.S1, "_", enz.P3)) : 0.0,
                 $(enz.S2 isa Symbol && enz.P1 isa Symbol) ?
-                params.$(Symbol("alpha", enz.S2, "_", enz.P1)) : 0.0,
+                params.$(Symbol("alpha_", enz.S2, "_", enz.P1)) : 0.0,
                 $(enz.S2 isa Symbol && enz.P3 isa Symbol) ?
-                params.$(Symbol("alpha", enz.S2, "_", enz.P3)) : 0.0,
+                params.$(Symbol("alpha_", enz.S2, "_", enz.P3)) : 0.0,
                 $(enz.S3 isa Symbol && enz.P1 isa Symbol) ?
-                params.$(Symbol("alpha", enz.S3, "_", enz.P1)) : 0.0,
+                params.$(Symbol("alpha_", enz.S3, "_", enz.P1)) : 0.0,
                 $(enz.S3 isa Symbol && enz.P2 isa Symbol) ?
-                params.$(Symbol("alpha", enz.S3, "_", enz.P2)) : 0.0,
+                params.$(Symbol("alpha_", enz.S3, "_", enz.P2)) : 0.0,
                 Keq,
             )
         end
