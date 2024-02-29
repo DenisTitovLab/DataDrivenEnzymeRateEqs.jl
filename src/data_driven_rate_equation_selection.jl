@@ -1,5 +1,28 @@
 using Dates, CSV, DataFrames
 
+"""
+ data_driven_rate_equation_selection(
+    general_rate_equation::Function,
+    data::DataFrame,
+    metab_names::Tuple{Symbol,Vararg{Symbol}},
+    param_names::Tuple{Symbol,Vararg{Symbol}},
+    range_number_params::Tuple{Int,Int},
+    forward_model_selection::Bool,
+)
+
+This function is used to perform data-driven rate equation selection using a general rate equation and data. The function will select the best rate equation by iteratively removing parameters from the general rate equation and finding an equation that yield best test scores on data not used for fitting.
+
+# Arguments
+- `general_rate_equation::Function`: Function that takes a NamedTuple of metabolite concentrations (with `metab_names` keys) and parameters (with `param_names` keys) and returns an enzyme rate.
+- `data::DataFrame`: DataFrame containing the data with column `Rate` and columns for each `metab_names` where each row is one measurement. It also needs to have a column `source` that contains a string that identifies the source of the data. This is used to calculate the weights for each figure in the publication.
+- `metab_names::Tuple`: Tuple of metabolite names that correspond to the metabolites of `rate_equation` and column names in `data`.
+- `param_names::Tuple`: Tuple of parameter names that correspond to the parameters of `rate_equation`.
+- `range_number_params::Tuple{Int,Int}`: A tuple of integers representing the range of the number of parameters of general_rate_equation to search over.
+- `forward_model_selection::Bool`: A boolean indicating whether to use forward model selection (true) or reverse model selection (false).
+
+# Returns nothing, but saves a csv file for each `num_params` with the results of the training for each combination of parameters tested and a csv file with test results for top 10% of the best results with each number of parameters tested.
+
+"""
 function data_driven_rate_equation_selection(
     general_rate_equation::Function,
     data::DataFrame,
