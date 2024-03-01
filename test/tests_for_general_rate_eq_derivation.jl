@@ -4,7 +4,7 @@
 ##
 using DataDrivenEnzymeRateEqs, Test, BenchmarkTools
 
-@derive_general_mwc_rate_eq(
+metab_names, param_names = @derive_general_mwc_rate_eq(
     substrates = [:PEP, :ADP],
     products = [:Pyruvate, :ATP],
     cat1 = [:ATP, :ADP],
@@ -13,7 +13,12 @@ using DataDrivenEnzymeRateEqs, Test, BenchmarkTools
     reg2 = [:Phenylalanine],
     Keq = 20_000.0,
     oligomeric_state = 4,
+    rate_equation_name = :rate_equation,
 )
+
+#TODO: test random inputs into @derive_general_mwc_rate_eq and make sure the resulting rate equation, param_names and metab_names always work together
+
+
 #test `@derive_mwc_rate_eq` generated `rate_equation::Function`
 @test rate_equation isa Function
 params_nt = (

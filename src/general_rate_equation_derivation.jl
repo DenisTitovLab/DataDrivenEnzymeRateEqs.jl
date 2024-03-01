@@ -2,6 +2,40 @@
 CODE FOR RATE EQUATION DERIVATION
 =#
 
+@doc raw"""
+    derive_general_mwc_rate_eq(metabs_and_regulators_kwargs...)
+
+Derive a function that calculates the rate of a reaction using the general MWC rate equation given the list of substrates, products, and regulators that bind to specific cat or reg sites.
+
+The general MWC rate equation is given by:
+
+```math
+Rate = \frac{{V_{max}^a \prod_{i=1}^{n} \left(\frac{S_i}{K_{a, i}}\right) - V_{max}^a_{rev} \prod_{i=1}^{n} \left(\frac{P_i}{K_{a, i}}\right) \cdot Z_{a, cat}^{n-1} \cdot Z_{a, reg}^n + L \left(V_{max}^i \prod_{i=1}^{n} \left(\frac{S_i}{K_{i, i}}\right) - V_{max}^i_{rev} \prod_{i=1}^{n} \left(\frac{P_i}{K_{i, i}}\right)\right) \cdot Z_{i, cat}^{n-1} \cdot Z_{i, reg}^n}}{Z_{a, cat}^n \cdot Z_{a, reg}^n + L \cdot Z_{i, cat}^n \cdot Z_{i, reg}^n}
+```
+
+where:
+- ``V_{max}^a`` is the maximum rate of the forward reaction
+- ``V_{max}^a_{rev}`` is the maximum rate of the reverse reaction
+- ``V_{max}^i`` is the maximum rate of the forward reaction
+- ``V_{max}^i_{rev}`` is the maximum rate of the reverse reaction
+- ``S_i`` is the concentration of the ``i^{th}`` substrate
+- ``P_i`` is the concentration of the ``i^{th}`` product
+- ``K_{a, i}`` is the Michaelis constant for the ``i^{th}`` substrate
+- ``K_{i, i}`` is the Michaelis constant for the ``i^{th}`` product
+- ``Z_{a, cat}`` is the allosteric factor for the catalytic site
+- ``Z_{i, cat}`` is the allosteric factor for the catalytic site
+- ``Z_{a, reg}`` is the allosteric factor for the regulatory site
+- ``Z_{i, reg}`` is the allosteric factor for the regulatory site
+- ``L`` is the concentration of the ligand
+- ``n`` is the oligomeric state of the enzyme
+
+# Arguments
+- `metabs_and_regulators_kwargs...`: keyword arguments that specify the substrates, products, catalytic sites, regulatory sites, and other parameters of the reaction.
+
+# Returns
+- A function that calculates the rate of the reaction using the general MWC rate equation
+- A tuple of the names of the metabolites and parameters used in the rate equation
+"""
 macro derive_general_mwc_rate_eq(metabs_and_regulators_kwargs...)
     expected_input_kwargs = [
         :substrates,
@@ -15,6 +49,7 @@ macro derive_general_mwc_rate_eq(metabs_and_regulators_kwargs...)
         :reg3,
         :Keq,
         :oligomeric_state,
+        :rate_equation_name
     ]
     processed_input = NamedTuple()
     for expr in metabs_and_regulators_kwargs
@@ -46,6 +81,9 @@ macro derive_general_mwc_rate_eq(metabs_and_regulators_kwargs...)
         hasproperty(processed_input, field) &&
             @assert length(processed_input[field]) <= 3 "No more that 3 catalytic sites are supported"
     end
+    metab_names = generate_metab_names(processed_input)
+    param_names = generate_param_names(processed_input)
+
     enz = NamedTuple()
     for field in propertynames(processed_input)
         if field == :cat1
@@ -94,7 +132,7 @@ macro derive_general_mwc_rate_eq(metabs_and_regulators_kwargs...)
             end
         end
     end
-    # println(enz)
+
     #TODO: use Base.method_argnames(methods(general_mwc_rate_equation)[1])[2:end] to get args
     mwc_rate_eq_args = [
         :S1_cat1,
@@ -120,218 +158,225 @@ macro derive_general_mwc_rate_eq(metabs_and_regulators_kwargs...)
         enz = merge(enz, (; key => nothing))
     end
     # qualified_name = esc(GlobalRef(Main, :rate_equation))
-    function_name = esc(:rate_equation)
-    return :(@inline function $(function_name)(metabs, params, Keq)
-        general_mwc_rate_equation(
-            $(enz.S1_cat1 isa Symbol) ? metabs.$(enz.S1_cat1) : 1.0,
-            $(enz.S2_cat2 isa Symbol) ? metabs.$(enz.S2_cat2) : 1.0,
-            $(enz.S3_cat3 isa Symbol) ? metabs.$(enz.S3_cat3) : 1.0,
-            $(enz.S4_cat4 isa Symbol) ? metabs.$(enz.S4_cat4) : 1.0,
-            $(enz.P1_cat1 isa Symbol) ? metabs.$(enz.P1_cat1) : 1.0,
-            $(enz.P2_cat2 isa Symbol) ? metabs.$(enz.P2_cat2) : 1.0,
-            $(enz.P3_cat3 isa Symbol) ? metabs.$(enz.P3_cat3) : 1.0,
-            $(enz.P4_cat4 isa Symbol) ? metabs.$(enz.P4_cat4) : 1.0,
-            params.L,
-            params.Vmax_a,
-            params.Vmax_i,
-            $(enz.S1_cat1 isa Symbol) ? params.$(Symbol("K_a_", enz.S1_cat1, "_cat1")) :
-            1.0,
-            $(enz.S1_cat1 isa Symbol) ? params.$(Symbol("K_i_", enz.S1_cat1, "_cat1")) :
-            1.0,
-            $(enz.S2_cat2 isa Symbol) ? params.$(Symbol("K_a_", enz.S2_cat2, "_cat2")) :
-            1.0,
-            $(enz.S2_cat2 isa Symbol) ? params.$(Symbol("K_i_", enz.S2_cat2, "_cat2")) :
-            1.0,
-            $(enz.S3_cat3 isa Symbol) ? params.$(Symbol("K_a_", enz.S3_cat3, "_cat3")) :
-            1.0,
-            $(enz.S3_cat3 isa Symbol) ? params.$(Symbol("K_i_", enz.S3_cat3, "_cat3")) :
-            1.0,
-            $(enz.S4_cat4 isa Symbol) ? params.$(Symbol("K_a_", enz.S4_cat4, "_cat4")) :
-            1.0,
-            $(enz.S4_cat4 isa Symbol) ? params.$(Symbol("K_i_", enz.S4_cat4, "_cat4")) :
-            1.0,
-            $(enz.P1_cat1 isa Symbol) ? params.$(Symbol("K_a_", enz.P1_cat1, "_cat1")) :
-            1.0,
-            $(enz.P1_cat1 isa Symbol) ? params.$(Symbol("K_i_", enz.P1_cat1, "_cat1")) :
-            1.0,
-            $(enz.P2_cat2 isa Symbol) ? params.$(Symbol("K_a_", enz.P2_cat2, "_cat2")) :
-            1.0,
-            $(enz.P2_cat2 isa Symbol) ? params.$(Symbol("K_i_", enz.P2_cat2, "_cat2")) :
-            1.0,
-            $(enz.P3_cat3 isa Symbol) ? params.$(Symbol("K_a_", enz.P3_cat3, "_cat3")) :
-            1.0,
-            $(enz.P3_cat3 isa Symbol) ? params.$(Symbol("K_i_", enz.P3_cat3, "_cat3")) :
-            1.0,
-            $(enz.P4_cat4 isa Symbol) ? params.$(Symbol("K_a_", enz.P4_cat4, "_cat4")) :
-            1.0,
-            $(enz.P4_cat4 isa Symbol) ? params.$(Symbol("K_i_", enz.P4_cat4, "_cat4")) :
-            1.0,
-            #Z_a_cat
-            calculate_z_cat(
-                $(enz.S1_cat1 isa Symbol) ? metabs.$(enz.S1_cat1) : 0.0,
-                $(enz.S2_cat2 isa Symbol) ? metabs.$(enz.S2_cat2) : 0.0,
-                $(enz.S3_cat3 isa Symbol) ? metabs.$(enz.S3_cat3) : 0.0,
-                $(enz.S4_cat4 isa Symbol) ? metabs.$(enz.S4_cat4) : 0.0,
-                $(enz.P1_cat1 isa Symbol) ? metabs.$(enz.P1_cat1) : 0.0,
-                $(enz.P2_cat2 isa Symbol) ? metabs.$(enz.P2_cat2) : 0.0,
-                $(enz.P3_cat3 isa Symbol) ? metabs.$(enz.P3_cat3) : 0.0,
-                $(enz.P4_cat4 isa Symbol) ? metabs.$(enz.P4_cat4) : 0.0,
+    function_name = (hasproperty(processed_input, :rate_equation_name) ? esc(processed_input.rate_equation_name) : esc(:rate_equation))
+    return quote
+        @inline function $(function_name)(metabs, params, Keq)
+            general_mwc_rate_equation(
+                $(enz.S1_cat1 isa Symbol) ? metabs.$(enz.S1_cat1) : 1.0,
+                $(enz.S2_cat2 isa Symbol) ? metabs.$(enz.S2_cat2) : 1.0,
+                $(enz.S3_cat3 isa Symbol) ? metabs.$(enz.S3_cat3) : 1.0,
+                $(enz.S4_cat4 isa Symbol) ? metabs.$(enz.S4_cat4) : 1.0,
+                $(enz.P1_cat1 isa Symbol) ? metabs.$(enz.P1_cat1) : 1.0,
+                $(enz.P2_cat2 isa Symbol) ? metabs.$(enz.P2_cat2) : 1.0,
+                $(enz.P3_cat3 isa Symbol) ? metabs.$(enz.P3_cat3) : 1.0,
+                $(enz.P4_cat4 isa Symbol) ? metabs.$(enz.P4_cat4) : 1.0,
+                params.L,
+                params.Vmax_a,
+                params.Vmax_i,
                 $(enz.S1_cat1 isa Symbol) ? params.$(Symbol("K_a_", enz.S1_cat1, "_cat1")) :
-                Inf,
-                $(enz.S2_cat2 isa Symbol) ? params.$(Symbol("K_a_", enz.S2_cat2, "_cat2")) :
-                Inf,
-                $(enz.S3_cat3 isa Symbol) ? params.$(Symbol("K_a_", enz.S3_cat3, "_cat3")) :
-                Inf,
-                $(enz.S4_cat4 isa Symbol) ? params.$(Symbol("K_a_", enz.S4_cat4, "_cat4")) :
-                Inf,
-                $(enz.P1_cat1 isa Symbol) ? params.$(Symbol("K_a_", enz.P1_cat1, "_cat1")) :
-                Inf,
-                $(enz.P2_cat2 isa Symbol) ? params.$(Symbol("K_a_", enz.P2_cat2, "_cat2")) :
-                Inf,
-                $(enz.P3_cat3 isa Symbol) ? params.$(Symbol("K_a_", enz.P3_cat3, "_cat3")) :
-                Inf,
-                $(enz.P4_cat4 isa Symbol) ? params.$(Symbol("K_a_", enz.P4_cat4, "_cat4")) :
-                Inf,
-                $(enz.S1_cat1 isa Symbol && enz.P2_cat2 isa Symbol) ?
-                params.$(Symbol("alpha_", enz.S1_cat1, "_", enz.P2_cat2)) : 0.0,
-                $(enz.S1_cat1 isa Symbol && enz.P3_cat3 isa Symbol) ?
-                params.$(Symbol("alpha_", enz.S1_cat1, "_", enz.P3_cat3)) : 0.0,
-                $(enz.S1_cat1 isa Symbol && enz.P4_cat4 isa Symbol) ?
-                params.$(Symbol("alpha_", enz.S1_cat1, "_", enz.P4_cat4)) : 0.0,
-                $(enz.S2_cat2 isa Symbol && enz.P1_cat1 isa Symbol) ?
-                params.$(Symbol("alpha_", enz.S2_cat2, "_", enz.P1_cat1)) : 0.0,
-                $(enz.S2_cat2 isa Symbol && enz.P3_cat3 isa Symbol) ?
-                params.$(Symbol("alpha_", enz.S2_cat2, "_", enz.P3_cat3)) : 0.0,
-                $(enz.S2_cat2 isa Symbol && enz.P4_cat4 isa Symbol) ?
-                params.$(Symbol("alpha_", enz.S2_cat2, "_", enz.P4_cat4)) : 0.0,
-                $(enz.S3_cat3 isa Symbol && enz.P1_cat1 isa Symbol) ?
-                params.$(Symbol("alpha_", enz.S3_cat3, "_", enz.P1_cat1)) : 0.0,
-                $(enz.S3_cat3 isa Symbol && enz.P2_cat2 isa Symbol) ?
-                params.$(Symbol("alpha_", enz.S3_cat3, "_", enz.P2_cat2)) : 0.0,
-                $(enz.S3_cat3 isa Symbol && enz.P4_cat4 isa Symbol) ?
-                params.$(Symbol("alpha_", enz.S3_cat3, "_", enz.P4_cat4)) : 0.0,
-                $(enz.S4_cat4 isa Symbol && enz.P1_cat1 isa Symbol) ?
-                params.$(Symbol("alpha_", enz.S4_cat4, "_", enz.P1_cat1)) : 0.0,
-                $(enz.S4_cat4 isa Symbol && enz.P2_cat2 isa Symbol) ?
-                params.$(Symbol("alpha_", enz.S4_cat4, "_", enz.P2_cat2)) : 0.0,
-                $(enz.S4_cat4 isa Symbol && enz.P3_cat3 isa Symbol) ?
-                params.$(Symbol("alpha_", enz.S4_cat4, "_", enz.P3_cat3)) : 0.0,
-            ),
-            #Z_i_cat
-            calculate_z_cat(
-                $(enz.S1_cat1 isa Symbol) ? metabs.$(enz.S1_cat1) : 0.0,
-                $(enz.S2_cat2 isa Symbol) ? metabs.$(enz.S2_cat2) : 0.0,
-                $(enz.S3_cat3 isa Symbol) ? metabs.$(enz.S3_cat3) : 0.0,
-                $(enz.S4_cat4 isa Symbol) ? metabs.$(enz.S4_cat4) : 0.0,
-                $(enz.P1_cat1 isa Symbol) ? metabs.$(enz.P1_cat1) : 0.0,
-                $(enz.P2_cat2 isa Symbol) ? metabs.$(enz.P2_cat2) : 0.0,
-                $(enz.P3_cat3 isa Symbol) ? metabs.$(enz.P3_cat3) : 0.0,
-                $(enz.P4_cat4 isa Symbol) ? metabs.$(enz.P4_cat4) : 0.0,
+                1.0,
                 $(enz.S1_cat1 isa Symbol) ? params.$(Symbol("K_i_", enz.S1_cat1, "_cat1")) :
-                Inf,
+                1.0,
+                $(enz.S2_cat2 isa Symbol) ? params.$(Symbol("K_a_", enz.S2_cat2, "_cat2")) :
+                1.0,
                 $(enz.S2_cat2 isa Symbol) ? params.$(Symbol("K_i_", enz.S2_cat2, "_cat2")) :
-                Inf,
+                1.0,
+                $(enz.S3_cat3 isa Symbol) ? params.$(Symbol("K_a_", enz.S3_cat3, "_cat3")) :
+                1.0,
                 $(enz.S3_cat3 isa Symbol) ? params.$(Symbol("K_i_", enz.S3_cat3, "_cat3")) :
-                Inf,
+                1.0,
+                $(enz.S4_cat4 isa Symbol) ? params.$(Symbol("K_a_", enz.S4_cat4, "_cat4")) :
+                1.0,
                 $(enz.S4_cat4 isa Symbol) ? params.$(Symbol("K_i_", enz.S4_cat4, "_cat4")) :
-                Inf,
+                1.0,
+                $(enz.P1_cat1 isa Symbol) ? params.$(Symbol("K_a_", enz.P1_cat1, "_cat1")) :
+                1.0,
                 $(enz.P1_cat1 isa Symbol) ? params.$(Symbol("K_i_", enz.P1_cat1, "_cat1")) :
-                Inf,
+                1.0,
+                $(enz.P2_cat2 isa Symbol) ? params.$(Symbol("K_a_", enz.P2_cat2, "_cat2")) :
+                1.0,
                 $(enz.P2_cat2 isa Symbol) ? params.$(Symbol("K_i_", enz.P2_cat2, "_cat2")) :
-                Inf,
+                1.0,
+                $(enz.P3_cat3 isa Symbol) ? params.$(Symbol("K_a_", enz.P3_cat3, "_cat3")) :
+                1.0,
                 $(enz.P3_cat3 isa Symbol) ? params.$(Symbol("K_i_", enz.P3_cat3, "_cat3")) :
-                Inf,
+                1.0,
+                $(enz.P4_cat4 isa Symbol) ? params.$(Symbol("K_a_", enz.P4_cat4, "_cat4")) :
+                1.0,
                 $(enz.P4_cat4 isa Symbol) ? params.$(Symbol("K_i_", enz.P4_cat4, "_cat4")) :
-                Inf,
-                $(enz.S1_cat1 isa Symbol && enz.P2_cat2 isa Symbol) ?
-                params.$(Symbol("alpha_", enz.S1_cat1, "_", enz.P2_cat2)) : 0.0,
-                $(enz.S1_cat1 isa Symbol && enz.P3_cat3 isa Symbol) ?
-                params.$(Symbol("alpha_", enz.S1_cat1, "_", enz.P3_cat3)) : 0.0,
-                $(enz.S1_cat1 isa Symbol && enz.P4_cat4 isa Symbol) ?
-                params.$(Symbol("alpha_", enz.S1_cat1, "_", enz.P4_cat4)) : 0.0,
-                $(enz.S2_cat2 isa Symbol && enz.P1_cat1 isa Symbol) ?
-                params.$(Symbol("alpha_", enz.S2_cat2, "_", enz.P1_cat1)) : 0.0,
-                $(enz.S2_cat2 isa Symbol && enz.P3_cat3 isa Symbol) ?
-                params.$(Symbol("alpha_", enz.S2_cat2, "_", enz.P3_cat3)) : 0.0,
-                $(enz.S2_cat2 isa Symbol && enz.P4_cat4 isa Symbol) ?
-                params.$(Symbol("alpha_", enz.S2_cat2, "_", enz.P4_cat4)) : 0.0,
-                $(enz.S3_cat3 isa Symbol && enz.P1_cat1 isa Symbol) ?
-                params.$(Symbol("alpha_", enz.S3_cat3, "_", enz.P1_cat1)) : 0.0,
-                $(enz.S3_cat3 isa Symbol && enz.P2_cat2 isa Symbol) ?
-                params.$(Symbol("alpha_", enz.S3_cat3, "_", enz.P2_cat2)) : 0.0,
-                $(enz.S3_cat3 isa Symbol && enz.P4_cat4 isa Symbol) ?
-                params.$(Symbol("alpha_", enz.S3_cat3, "_", enz.P4_cat4)) : 0.0,
-                $(enz.S4_cat4 isa Symbol && enz.P1_cat1 isa Symbol) ?
-                params.$(Symbol("alpha_", enz.S4_cat4, "_", enz.P1_cat1)) : 0.0,
-                $(enz.S4_cat4 isa Symbol && enz.P2_cat2 isa Symbol) ?
-                params.$(Symbol("alpha_", enz.S4_cat4, "_", enz.P2_cat2)) : 0.0,
-                $(enz.S4_cat4 isa Symbol && enz.P3_cat3 isa Symbol) ?
-                params.$(Symbol("alpha_", enz.S4_cat4, "_", enz.P3_cat3)) : 0.0,
-            ),
-            #Z_a_reg
-            calculate_z_reg(
-                $(enz.R1_reg1 isa Symbol) ? metabs.$(enz.R1_reg1) : 0.0,
-                $(enz.R2_reg1 isa Symbol) ? metabs.$(enz.R2_reg1) : 0.0,
-                $(enz.R3_reg1 isa Symbol) ? metabs.$(enz.R3_reg1) : 0.0,
-                $(enz.R1_reg2 isa Symbol) ? metabs.$(enz.R1_reg2) : 0.0,
-                $(enz.R2_reg2 isa Symbol) ? metabs.$(enz.R2_reg2) : 0.0,
-                $(enz.R3_reg2 isa Symbol) ? metabs.$(enz.R3_reg2) : 0.0,
-                $(enz.R1_reg3 isa Symbol) ? metabs.$(enz.R1_reg3) : 0.0,
-                $(enz.R2_reg3 isa Symbol) ? metabs.$(enz.R2_reg3) : 0.0,
-                $(enz.R3_reg3 isa Symbol) ? metabs.$(enz.R3_reg3) : 0.0,
-                $(enz.R1_reg1 isa Symbol) ? params.$(Symbol("K_a_", enz.R1_reg1, "_reg1")) :
-                Inf,
-                $(enz.R2_reg1 isa Symbol) ? params.$(Symbol("K_a_", enz.R2_reg1, "_reg1")) :
-                Inf,
-                $(enz.R3_reg1 isa Symbol) ? params.$(Symbol("K_a_", enz.R3_reg1, "_reg1")) :
-                Inf,
-                $(enz.R1_reg2 isa Symbol) ? params.$(Symbol("K_a_", enz.R1_reg2, "_reg2")) :
-                Inf,
-                $(enz.R2_reg2 isa Symbol) ? params.$(Symbol("K_a_", enz.R2_reg2, "_reg2")) :
-                Inf,
-                $(enz.R3_reg2 isa Symbol) ? params.$(Symbol("K_a_", enz.R3_reg2, "_reg2")) :
-                Inf,
-                $(enz.R1_reg3 isa Symbol) ? params.$(Symbol("K_a_", enz.R1_reg3, "_reg3")) :
-                Inf,
-                $(enz.R2_reg3 isa Symbol) ? params.$(Symbol("K_a_", enz.R2_reg3, "_reg3")) :
-                Inf,
-                $(enz.R3_reg3 isa Symbol) ? params.$(Symbol("K_a_", enz.R3_reg3, "_reg3")) :
-                Inf,
-            ),
-            #Z_i_reg
-            calculate_z_reg(
-                $(enz.R1_reg1 isa Symbol) ? metabs.$(enz.R1_reg1) : 0.0,
-                $(enz.R2_reg1 isa Symbol) ? metabs.$(enz.R2_reg1) : 0.0,
-                $(enz.R3_reg1 isa Symbol) ? metabs.$(enz.R3_reg1) : 0.0,
-                $(enz.R1_reg2 isa Symbol) ? metabs.$(enz.R1_reg2) : 0.0,
-                $(enz.R2_reg2 isa Symbol) ? metabs.$(enz.R2_reg2) : 0.0,
-                $(enz.R3_reg2 isa Symbol) ? metabs.$(enz.R3_reg2) : 0.0,
-                $(enz.R1_reg3 isa Symbol) ? metabs.$(enz.R1_reg3) : 0.0,
-                $(enz.R2_reg3 isa Symbol) ? metabs.$(enz.R2_reg3) : 0.0,
-                $(enz.R3_reg3 isa Symbol) ? metabs.$(enz.R3_reg3) : 0.0,
-                $(enz.R1_reg1 isa Symbol) ? params.$(Symbol("K_i_", enz.R1_reg1, "_reg1")) :
-                Inf,
-                $(enz.R2_reg1 isa Symbol) ? params.$(Symbol("K_i_", enz.R2_reg1, "_reg1")) :
-                Inf,
-                $(enz.R3_reg1 isa Symbol) ? params.$(Symbol("K_i_", enz.R3_reg1, "_reg1")) :
-                Inf,
-                $(enz.R1_reg2 isa Symbol) ? params.$(Symbol("K_i_", enz.R1_reg2, "_reg2")) :
-                Inf,
-                $(enz.R2_reg2 isa Symbol) ? params.$(Symbol("K_i_", enz.R2_reg2, "_reg2")) :
-                Inf,
-                $(enz.R3_reg2 isa Symbol) ? params.$(Symbol("K_i_", enz.R3_reg2, "_reg2")) :
-                Inf,
-                $(enz.R1_reg3 isa Symbol) ? params.$(Symbol("K_i_", enz.R1_reg3, "_reg3")) :
-                Inf,
-                $(enz.R2_reg3 isa Symbol) ? params.$(Symbol("K_i_", enz.R2_reg3, "_reg3")) :
-                Inf,
-                $(enz.R3_reg3 isa Symbol) ? params.$(Symbol("K_i_", enz.R3_reg3, "_reg3")) :
-                Inf,
-            ),
-            Keq,
-            oligomeric_state,
-        )
-    end)
+                1.0,
+                #Z_a_cat
+                calculate_z_cat(
+                    $(enz.S1_cat1 isa Symbol) ? metabs.$(enz.S1_cat1) : 0.0,
+                    $(enz.S2_cat2 isa Symbol) ? metabs.$(enz.S2_cat2) : 0.0,
+                    $(enz.S3_cat3 isa Symbol) ? metabs.$(enz.S3_cat3) : 0.0,
+                    $(enz.S4_cat4 isa Symbol) ? metabs.$(enz.S4_cat4) : 0.0,
+                    $(enz.P1_cat1 isa Symbol) ? metabs.$(enz.P1_cat1) : 0.0,
+                    $(enz.P2_cat2 isa Symbol) ? metabs.$(enz.P2_cat2) : 0.0,
+                    $(enz.P3_cat3 isa Symbol) ? metabs.$(enz.P3_cat3) : 0.0,
+                    $(enz.P4_cat4 isa Symbol) ? metabs.$(enz.P4_cat4) : 0.0,
+                    $(enz.S1_cat1 isa Symbol) ?
+                    params.$(Symbol("K_a_", enz.S1_cat1, "_cat1")) : Inf,
+                    $(enz.S2_cat2 isa Symbol) ?
+                    params.$(Symbol("K_a_", enz.S2_cat2, "_cat2")) : Inf,
+                    $(enz.S3_cat3 isa Symbol) ?
+                    params.$(Symbol("K_a_", enz.S3_cat3, "_cat3")) : Inf,
+                    $(enz.S4_cat4 isa Symbol) ?
+                    params.$(Symbol("K_a_", enz.S4_cat4, "_cat4")) : Inf,
+                    $(enz.P1_cat1 isa Symbol) ?
+                    params.$(Symbol("K_a_", enz.P1_cat1, "_cat1")) : Inf,
+                    $(enz.P2_cat2 isa Symbol) ?
+                    params.$(Symbol("K_a_", enz.P2_cat2, "_cat2")) : Inf,
+                    $(enz.P3_cat3 isa Symbol) ?
+                    params.$(Symbol("K_a_", enz.P3_cat3, "_cat3")) : Inf,
+                    $(enz.P4_cat4 isa Symbol) ?
+                    params.$(Symbol("K_a_", enz.P4_cat4, "_cat4")) : Inf,
+                    $(enz.S1_cat1 isa Symbol && enz.P2_cat2 isa Symbol) ?
+                    params.$(Symbol("alpha_", enz.S1_cat1, "_", enz.P2_cat2)) : 0.0,
+                    $(enz.S1_cat1 isa Symbol && enz.P3_cat3 isa Symbol) ?
+                    params.$(Symbol("alpha_", enz.S1_cat1, "_", enz.P3_cat3)) : 0.0,
+                    $(enz.S1_cat1 isa Symbol && enz.P4_cat4 isa Symbol) ?
+                    params.$(Symbol("alpha_", enz.S1_cat1, "_", enz.P4_cat4)) : 0.0,
+                    $(enz.S2_cat2 isa Symbol && enz.P1_cat1 isa Symbol) ?
+                    params.$(Symbol("alpha_", enz.S2_cat2, "_", enz.P1_cat1)) : 0.0,
+                    $(enz.S2_cat2 isa Symbol && enz.P3_cat3 isa Symbol) ?
+                    params.$(Symbol("alpha_", enz.S2_cat2, "_", enz.P3_cat3)) : 0.0,
+                    $(enz.S2_cat2 isa Symbol && enz.P4_cat4 isa Symbol) ?
+                    params.$(Symbol("alpha_", enz.S2_cat2, "_", enz.P4_cat4)) : 0.0,
+                    $(enz.S3_cat3 isa Symbol && enz.P1_cat1 isa Symbol) ?
+                    params.$(Symbol("alpha_", enz.S3_cat3, "_", enz.P1_cat1)) : 0.0,
+                    $(enz.S3_cat3 isa Symbol && enz.P2_cat2 isa Symbol) ?
+                    params.$(Symbol("alpha_", enz.S3_cat3, "_", enz.P2_cat2)) : 0.0,
+                    $(enz.S3_cat3 isa Symbol && enz.P4_cat4 isa Symbol) ?
+                    params.$(Symbol("alpha_", enz.S3_cat3, "_", enz.P4_cat4)) : 0.0,
+                    $(enz.S4_cat4 isa Symbol && enz.P1_cat1 isa Symbol) ?
+                    params.$(Symbol("alpha_", enz.S4_cat4, "_", enz.P1_cat1)) : 0.0,
+                    $(enz.S4_cat4 isa Symbol && enz.P2_cat2 isa Symbol) ?
+                    params.$(Symbol("alpha_", enz.S4_cat4, "_", enz.P2_cat2)) : 0.0,
+                    $(enz.S4_cat4 isa Symbol && enz.P3_cat3 isa Symbol) ?
+                    params.$(Symbol("alpha_", enz.S4_cat4, "_", enz.P3_cat3)) : 0.0,
+                ),
+                #Z_i_cat
+                calculate_z_cat(
+                    $(enz.S1_cat1 isa Symbol) ? metabs.$(enz.S1_cat1) : 0.0,
+                    $(enz.S2_cat2 isa Symbol) ? metabs.$(enz.S2_cat2) : 0.0,
+                    $(enz.S3_cat3 isa Symbol) ? metabs.$(enz.S3_cat3) : 0.0,
+                    $(enz.S4_cat4 isa Symbol) ? metabs.$(enz.S4_cat4) : 0.0,
+                    $(enz.P1_cat1 isa Symbol) ? metabs.$(enz.P1_cat1) : 0.0,
+                    $(enz.P2_cat2 isa Symbol) ? metabs.$(enz.P2_cat2) : 0.0,
+                    $(enz.P3_cat3 isa Symbol) ? metabs.$(enz.P3_cat3) : 0.0,
+                    $(enz.P4_cat4 isa Symbol) ? metabs.$(enz.P4_cat4) : 0.0,
+                    $(enz.S1_cat1 isa Symbol) ?
+                    params.$(Symbol("K_i_", enz.S1_cat1, "_cat1")) : Inf,
+                    $(enz.S2_cat2 isa Symbol) ?
+                    params.$(Symbol("K_i_", enz.S2_cat2, "_cat2")) : Inf,
+                    $(enz.S3_cat3 isa Symbol) ?
+                    params.$(Symbol("K_i_", enz.S3_cat3, "_cat3")) : Inf,
+                    $(enz.S4_cat4 isa Symbol) ?
+                    params.$(Symbol("K_i_", enz.S4_cat4, "_cat4")) : Inf,
+                    $(enz.P1_cat1 isa Symbol) ?
+                    params.$(Symbol("K_i_", enz.P1_cat1, "_cat1")) : Inf,
+                    $(enz.P2_cat2 isa Symbol) ?
+                    params.$(Symbol("K_i_", enz.P2_cat2, "_cat2")) : Inf,
+                    $(enz.P3_cat3 isa Symbol) ?
+                    params.$(Symbol("K_i_", enz.P3_cat3, "_cat3")) : Inf,
+                    $(enz.P4_cat4 isa Symbol) ?
+                    params.$(Symbol("K_i_", enz.P4_cat4, "_cat4")) : Inf,
+                    $(enz.S1_cat1 isa Symbol && enz.P2_cat2 isa Symbol) ?
+                    params.$(Symbol("alpha_", enz.S1_cat1, "_", enz.P2_cat2)) : 0.0,
+                    $(enz.S1_cat1 isa Symbol && enz.P3_cat3 isa Symbol) ?
+                    params.$(Symbol("alpha_", enz.S1_cat1, "_", enz.P3_cat3)) : 0.0,
+                    $(enz.S1_cat1 isa Symbol && enz.P4_cat4 isa Symbol) ?
+                    params.$(Symbol("alpha_", enz.S1_cat1, "_", enz.P4_cat4)) : 0.0,
+                    $(enz.S2_cat2 isa Symbol && enz.P1_cat1 isa Symbol) ?
+                    params.$(Symbol("alpha_", enz.S2_cat2, "_", enz.P1_cat1)) : 0.0,
+                    $(enz.S2_cat2 isa Symbol && enz.P3_cat3 isa Symbol) ?
+                    params.$(Symbol("alpha_", enz.S2_cat2, "_", enz.P3_cat3)) : 0.0,
+                    $(enz.S2_cat2 isa Symbol && enz.P4_cat4 isa Symbol) ?
+                    params.$(Symbol("alpha_", enz.S2_cat2, "_", enz.P4_cat4)) : 0.0,
+                    $(enz.S3_cat3 isa Symbol && enz.P1_cat1 isa Symbol) ?
+                    params.$(Symbol("alpha_", enz.S3_cat3, "_", enz.P1_cat1)) : 0.0,
+                    $(enz.S3_cat3 isa Symbol && enz.P2_cat2 isa Symbol) ?
+                    params.$(Symbol("alpha_", enz.S3_cat3, "_", enz.P2_cat2)) : 0.0,
+                    $(enz.S3_cat3 isa Symbol && enz.P4_cat4 isa Symbol) ?
+                    params.$(Symbol("alpha_", enz.S3_cat3, "_", enz.P4_cat4)) : 0.0,
+                    $(enz.S4_cat4 isa Symbol && enz.P1_cat1 isa Symbol) ?
+                    params.$(Symbol("alpha_", enz.S4_cat4, "_", enz.P1_cat1)) : 0.0,
+                    $(enz.S4_cat4 isa Symbol && enz.P2_cat2 isa Symbol) ?
+                    params.$(Symbol("alpha_", enz.S4_cat4, "_", enz.P2_cat2)) : 0.0,
+                    $(enz.S4_cat4 isa Symbol && enz.P3_cat3 isa Symbol) ?
+                    params.$(Symbol("alpha_", enz.S4_cat4, "_", enz.P3_cat3)) : 0.0,
+                ),
+                #Z_a_reg
+                calculate_z_reg(
+                    $(enz.R1_reg1 isa Symbol) ? metabs.$(enz.R1_reg1) : 0.0,
+                    $(enz.R2_reg1 isa Symbol) ? metabs.$(enz.R2_reg1) : 0.0,
+                    $(enz.R3_reg1 isa Symbol) ? metabs.$(enz.R3_reg1) : 0.0,
+                    $(enz.R1_reg2 isa Symbol) ? metabs.$(enz.R1_reg2) : 0.0,
+                    $(enz.R2_reg2 isa Symbol) ? metabs.$(enz.R2_reg2) : 0.0,
+                    $(enz.R3_reg2 isa Symbol) ? metabs.$(enz.R3_reg2) : 0.0,
+                    $(enz.R1_reg3 isa Symbol) ? metabs.$(enz.R1_reg3) : 0.0,
+                    $(enz.R2_reg3 isa Symbol) ? metabs.$(enz.R2_reg3) : 0.0,
+                    $(enz.R3_reg3 isa Symbol) ? metabs.$(enz.R3_reg3) : 0.0,
+                    $(enz.R1_reg1 isa Symbol) ?
+                    params.$(Symbol("K_a_", enz.R1_reg1, "_reg1")) : Inf,
+                    $(enz.R2_reg1 isa Symbol) ?
+                    params.$(Symbol("K_a_", enz.R2_reg1, "_reg1")) : Inf,
+                    $(enz.R3_reg1 isa Symbol) ?
+                    params.$(Symbol("K_a_", enz.R3_reg1, "_reg1")) : Inf,
+                    $(enz.R1_reg2 isa Symbol) ?
+                    params.$(Symbol("K_a_", enz.R1_reg2, "_reg2")) : Inf,
+                    $(enz.R2_reg2 isa Symbol) ?
+                    params.$(Symbol("K_a_", enz.R2_reg2, "_reg2")) : Inf,
+                    $(enz.R3_reg2 isa Symbol) ?
+                    params.$(Symbol("K_a_", enz.R3_reg2, "_reg2")) : Inf,
+                    $(enz.R1_reg3 isa Symbol) ?
+                    params.$(Symbol("K_a_", enz.R1_reg3, "_reg3")) : Inf,
+                    $(enz.R2_reg3 isa Symbol) ?
+                    params.$(Symbol("K_a_", enz.R2_reg3, "_reg3")) : Inf,
+                    $(enz.R3_reg3 isa Symbol) ?
+                    params.$(Symbol("K_a_", enz.R3_reg3, "_reg3")) : Inf,
+                ),
+                #Z_i_reg
+                calculate_z_reg(
+                    $(enz.R1_reg1 isa Symbol) ? metabs.$(enz.R1_reg1) : 0.0,
+                    $(enz.R2_reg1 isa Symbol) ? metabs.$(enz.R2_reg1) : 0.0,
+                    $(enz.R3_reg1 isa Symbol) ? metabs.$(enz.R3_reg1) : 0.0,
+                    $(enz.R1_reg2 isa Symbol) ? metabs.$(enz.R1_reg2) : 0.0,
+                    $(enz.R2_reg2 isa Symbol) ? metabs.$(enz.R2_reg2) : 0.0,
+                    $(enz.R3_reg2 isa Symbol) ? metabs.$(enz.R3_reg2) : 0.0,
+                    $(enz.R1_reg3 isa Symbol) ? metabs.$(enz.R1_reg3) : 0.0,
+                    $(enz.R2_reg3 isa Symbol) ? metabs.$(enz.R2_reg3) : 0.0,
+                    $(enz.R3_reg3 isa Symbol) ? metabs.$(enz.R3_reg3) : 0.0,
+                    $(enz.R1_reg1 isa Symbol) ?
+                    params.$(Symbol("K_i_", enz.R1_reg1, "_reg1")) : Inf,
+                    $(enz.R2_reg1 isa Symbol) ?
+                    params.$(Symbol("K_i_", enz.R2_reg1, "_reg1")) : Inf,
+                    $(enz.R3_reg1 isa Symbol) ?
+                    params.$(Symbol("K_i_", enz.R3_reg1, "_reg1")) : Inf,
+                    $(enz.R1_reg2 isa Symbol) ?
+                    params.$(Symbol("K_i_", enz.R1_reg2, "_reg2")) : Inf,
+                    $(enz.R2_reg2 isa Symbol) ?
+                    params.$(Symbol("K_i_", enz.R2_reg2, "_reg2")) : Inf,
+                    $(enz.R3_reg2 isa Symbol) ?
+                    params.$(Symbol("K_i_", enz.R3_reg2, "_reg2")) : Inf,
+                    $(enz.R1_reg3 isa Symbol) ?
+                    params.$(Symbol("K_i_", enz.R1_reg3, "_reg3")) : Inf,
+                    $(enz.R2_reg3 isa Symbol) ?
+                    params.$(Symbol("K_i_", enz.R2_reg3, "_reg3")) : Inf,
+                    $(enz.R3_reg3 isa Symbol) ?
+                    params.$(Symbol("K_i_", enz.R3_reg3, "_reg3")) : Inf,
+                ),
+                Keq,
+                oligomeric_state,
+            )
+        end
+
+        metab_names = $(esc(metab_names))
+        param_names = $(esc(param_names))
+
+        metab_names, param_names
+    end
 end
 
 @inline function general_mwc_rate_equation(
@@ -583,4 +628,39 @@ end
         )
     )
     return Z_cat
+end
+
+"Generate the names of the parameters for the rate equation using the same input as @derive_general_mwc_rate_eq"
+function generate_param_names(processed_input)
+    metab_binding_sites = [site for site in keys(processed_input) if site ∈ [:cat1, :cat2, :cat3, :cat4, :cat5, :reg1, :reg2, :reg3]]
+    param_names = (:L, :Vmax_a, :Vmax_i)
+    for site in metab_binding_sites
+        for metab in processed_input[site]
+            param_names = (param_names..., Symbol("K_a_", metab, "_", site), Symbol("K_i_", metab, "_", site))
+        end
+    end
+    catalytic_sites = [site for site in keys(processed_input) if site ∈ [:cat1, :cat2, :cat3, :cat4, :cat5]]
+    for site in catalytic_sites
+        for substrate in processed_input[site]
+            if substrate ∈ processed_input[:substrates]
+                for product in processed_input[:products]
+                    if product ∉ processed_input[site]
+                        param_names = (param_names..., Symbol("alpha_", substrate, "_", product))
+                    end
+                end
+            end
+        end
+    end
+    return param_names
+end
+
+"Generate the names of the metabolites for the rate equation using the same input as @derive_general_mwc_rate_eq"
+function generate_metab_names(processed_input)
+    metab_names = ()
+    for site in keys(processed_input)
+        if site ∈ [:cat1, :cat2, :cat3, :cat4, :cat5, :reg1, :reg2, :reg3]
+            metab_names = (metab_names..., processed_input[site]...)
+        end
+    end
+    return unique(metab_names)
 end

@@ -1,14 +1,14 @@
 using Dates, CSV, DataFrames
 
 """
- data_driven_rate_equation_selection(
-    general_rate_equation::Function,
-    data::DataFrame,
-    metab_names::Tuple{Symbol,Vararg{Symbol}},
-    param_names::Tuple{Symbol,Vararg{Symbol}},
-    range_number_params::Tuple{Int,Int},
-    forward_model_selection::Bool,
-)
+    data_driven_rate_equation_selection(
+        general_rate_equation::Function,
+        data::DataFrame,
+        metab_names::Tuple{Symbol,Vararg{Symbol}},
+        param_names::Tuple{Symbol,Vararg{Symbol}},
+        range_number_params::Tuple{Int,Int},
+        forward_model_selection::Bool,
+    )
 
 This function is used to perform data-driven rate equation selection using a general rate equation and data. The function will select the best rate equation by iteratively removing parameters from the general rate equation and finding an equation that yield best test scores on data not used for fitting.
 
@@ -189,14 +189,17 @@ function param_subset_select(params, param_names, nt_param_removal_code)
         elseif startswith("Vmax", string(param_choice)) &&
                nt_param_removal_code[param_choice] == 2
             params_dict[:Vmax_i] = 0.0
-        elseif startswith("K", string(param_choice)) && nt_param_removal_code[param_choice] == 1
+        elseif startswith("K", string(param_choice)) &&
+               nt_param_removal_code[param_choice] == 1
             K_i = Symbol("K_i_" * string(param_choice)[3:end])
             K_a = Symbol("K_a_" * string(param_choice)[3:end])
             params_dict[K_i] = params_dict[K_a]
-        elseif startswith("K", string(param_choice)) && nt_param_removal_code[param_choice] == 2
+        elseif startswith("K", string(param_choice)) &&
+               nt_param_removal_code[param_choice] == 2
             K_a = Symbol("K_a_" * string(param_choice)[3:end])
             params_dict[K_a] = Inf
-        elseif startswith("K", string(param_choice)) && nt_param_removal_code[param_choice] == 3
+        elseif startswith("K", string(param_choice)) &&
+               nt_param_removal_code[param_choice] == 3
             K_i = Symbol("K_i_" * string(param_choice)[3:end])
             params_dict[K_i] = Inf
         elseif startswith("alpha", string(param_choice)) &&
