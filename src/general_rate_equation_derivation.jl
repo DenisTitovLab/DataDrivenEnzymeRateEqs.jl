@@ -2,255 +2,6 @@
 CODE FOR RATE EQUATION DERIVATION
 =#
 
-#TODO: add cat4
-@inline function general_mwc_rate_equation(
-    S1_cat1::T,
-    S2_cat2::T,
-    S3_cat3::T,
-    S4_cat4::T,
-    P1_cat1::T,
-    P2_cat2::T,
-    P3_cat3::T,
-    P4_cat4::T,
-    L::T,
-    Vmax_a::T,
-    Vmax_i::T,
-    K_a_S1_cat1::T,
-    K_i_S1_cat1::T,
-    K_a_S2_cat2::T,
-    K_i_S2_cat2::T,
-    K_a_S3_cat3::T,
-    K_i_S3_cat3::T,
-    K_a_S4_cat4::T,
-    K_i_S4_cat4::T,
-    K_a_P1_cat1::T,
-    K_i_P1_cat1::T,
-    K_a_P2_cat2::T,
-    K_i_P2_cat2::T,
-    K_a_P3_cat3::T,
-    K_i_P3_cat3::T,
-    K_a_P4_cat4::T,
-    K_i_P4_cat4::T,
-    Z_a_cat::T,
-    Z_i_cat::T,
-    Z_a_reg::T,
-    Z_i_reg::T,
-    Keq::T,
-    n::Int,
-) where {T<:Float64}
-    Vmax_a = 1.0
-    Vmax_a_rev = ifelse(
-        (K_a_P1_cat1 * K_a_P2_cat2 * K_a_P3_cat3 * K_a_P4_cat4) != Inf,
-        Vmax_a * K_a_P1_cat1 * K_a_P2_cat2 * K_a_P3_cat3 * K_a_P4_cat4 /
-        (Keq * K_a_S1_cat1 * K_a_S2_cat2 * K_a_S3_cat3 * K_a_S4_cat4),
-        0.0,
-    )
-    Vmax_i_rev = ifelse(
-        (K_i_P1_cat1 * K_i_P2_cat2 * K_i_P3_cat3 * K_i_S4_cat4) != Inf,
-        Vmax_i * K_i_P1_cat1 * K_i_P2_cat2 * K_i_P3_cat3 * K_i_P4_cat4 /
-        (Keq * K_i_S1_cat1 * K_i_S2_cat2 * K_i_S3_cat3 * K_i_S4_cat4),
-        0.0,
-    )
-    Rate =
-        (
-            (
-                Vmax_a *
-                (S1_cat1 / K_a_S1_cat1) *
-                (S2_cat2 / K_a_S2_cat2) *
-                (S3_cat3 / K_a_S3_cat3) *
-                (S4_cat4 / K_a_S4_cat4) -
-                Vmax_a_rev *
-                (P1_cat1 / K_a_P1_cat1) *
-                (P2_cat2 / K_a_P2_cat2) *
-                (P3_cat3 / K_a_P3_cat3) *
-                (P4_cat4 / K_a_P4_cat4)
-            ) *
-            (Z_a_cat^(n - 1)) *
-            (Z_a_reg^n) +
-            L *
-            (
-                Vmax_i *
-                (S1_cat1 / K_i_S1_cat1) *
-                (S2_cat2 / K_i_S2_cat2) *
-                (S3_cat3 / K_i_S3_cat3) *
-                (S4_cat4 / K_i_S4_cat4) -
-                Vmax_i_rev *
-                (P1_cat1 / K_i_P1_cat1) *
-                (P2_cat2 / K_i_P2_cat2) *
-                (P3_cat3 / K_i_P3_cat3) *
-                (P4_cat4 / K_i_P4_cat4)
-            ) *
-            (Z_i_cat^(n - 1)) *
-            (Z_i_reg^n)
-        ) / ((Z_a_cat^n) * (Z_a_reg^n) + L * (Z_i_cat^n) * (Z_i_reg^n))
-
-    return Rate
-end
-
-@inline function calculate_z_reg(
-    R1_reg1,
-    R2_reg1,
-    R3_reg1,
-    R1_reg2,
-    R2_reg2,
-    R3_reg2,
-    R1_reg3,
-    R2_reg3,
-    R3_reg3,
-    K_R1_reg1,
-    K_R2_reg1,
-    K_R3_reg1,
-    K_R1_reg2,
-    K_R2_reg2,
-    K_R3_reg2,
-    K_R1_reg3,
-    K_R2_reg3,
-    K_R3_reg3,
-)
-    Z_reg = (
-        (1 + R1_reg1 / K_R1_reg1 + R2_reg1 / K_R2_reg1 + R3_reg1 / K_R3_reg1) *
-        (1 + R1_reg2 / K_R1_reg2 + R2_reg2 / K_R2_reg2 + R3_reg2 / K_R3_reg2) *
-        (1 + R1_reg3 / K_R1_reg3 + R2_reg3 / K_R2_reg3 + R3_reg3 / K_R3_reg3)
-    )
-    return Z_reg
-end
-
-@inline function calculate_z_cat(
-    S1_cat1,
-    S2_cat2,
-    S3_cat3,
-    S4_cat4,
-    P1_cat1,
-    P2_cat2,
-    P3_cat3,
-    P4_cat4,
-    K_S1_cat1,
-    K_S2_cat2,
-    K_S3_cat3,
-    K_S4_cat4,
-    K_P1_cat1,
-    K_P2_cat2,
-    K_P3_cat3,
-    K_P4_cat4,
-    alpha_S1_P2,
-    alpha_S1_P3,
-    alpha_S1_P4,
-    alpha_S2_P1,
-    alpha_S2_P3,
-    alpha_S2_P4,
-    alpha_S3_P1,
-    alpha_S3_P2,
-    alpha_S3_P4,
-    alpha_S4_P1,
-    alpha_S4_P2,
-    alpha_S4_P3
-)
-    Z_cat = (
-        - 1 +
-        (1+ S1_cat1/K_S1_cat1) * (1+ S2_cat2/K_S2_cat2) * (1+ S3_cat3/K_S3_cat3) * (1+ S4_cat4/K_S4_cat4) +
-        (1+ P1_cat1/K_P1_cat1) * (1+ P2_cat2/K_P2_cat2) * (1+ P3_cat3/K_P3_cat3) * (1+ P4_cat4/K_P4_cat4) +
-        # 1+
-        # (S1_cat1 / K_S1_cat1) +
-        # (S2_cat2 / K_S2_cat2) +
-        # (S3_cat3 / K_S3_cat3) +
-        # (S4_cat4 / K_S4_cat4) +
-        # (P1_cat1 / K_P1_cat1) +
-        # (P2_cat2 / K_P2_cat2) +
-        # (P3_cat3 / K_P3_cat3) +
-        # (P4_cat4 / K_P4_cat4) +
-        # (S1_cat1 / K_S1_cat1) * (S2_cat2 / K_S2_cat2) +
-        # (S1_cat1 / K_S1_cat1) * (S3_cat3 / K_S3_cat3) +
-        # (S1_cat1 / K_S1_cat1) * (S4_cat4 / K_S4_cat4) +
-        # (S2_cat2 / K_S2_cat2) * (S3_cat3 / K_S3_cat3) +
-        # (S2_cat2 / K_S2_cat2) * (S4_cat4 / K_S4_cat4) +
-        # (S3_cat3 / K_S3_cat3) * (S4_cat4 / K_S4_cat4) +
-        # (S1_cat1 / K_S1_cat1) * (S2_cat2 / K_S2_cat2) * (S3_cat3 / K_S3_cat3) +
-        # (S1_cat1 / K_S1_cat1) * (S2_cat2 / K_S2_cat2) * (S4_cat4 / K_S4_cat4) +
-        # (S1_cat1 / K_S1_cat1) * (S3_cat3 / K_S3_cat3) * (S4_cat4 / K_S4_cat4) +
-        # (S2_cat2 / K_S2_cat2) * (S3_cat3 / K_S3_cat3) * (S4_cat4 / K_S4_cat4) +
-        # (S1_cat1 / K_S1_cat1) * (S2_cat2 / K_S2_cat2) * (S3_cat3 / K_S3_cat3) * (S4_cat4 / K_S4_cat4) +
-        # (P1_cat1 / K_P1_cat1) * (P2_cat2 / K_P2_cat2) +
-        # (P1_cat1 / K_P1_cat1) * (P3_cat3 / K_P3_cat3) +
-        # (P1_cat1 / K_P1_cat1) * (P4_cat4 / K_P4_cat4) +
-        # (P2_cat2 / K_P2_cat2) * (P3_cat3 / K_P3_cat3) +
-        # (P2_cat2 / K_P2_cat2) * (P4_cat4 / K_P4_cat4) +
-        # (P1_cat1 / K_P1_cat1) * (P2_cat2 / K_P2_cat2) * (P3_cat3 / K_P3_cat3) +
-        # (P1_cat1 / K_P1_cat1) * (P2_cat2 / K_P2_cat2) * (P4_cat4 / K_P4_cat4) +
-        # (P1_cat1 / K_P1_cat1) * (P3_cat3 / K_P3_cat3) * (P4_cat4 / K_P4_cat4) +
-        # (P2_cat2 / K_P2_cat2) * (P3_cat3 / K_P3_cat3) * (P4_cat4 / K_P4_cat4) +
-        # (P1_cat1 / K_P1_cat1) * (P2_cat2 / K_P2_cat2) * (P3_cat3 / K_P3_cat3) * (P4_cat4 / K_P4_cat4) +
-        (S1_cat1 / K_S1_cat1) * (1 + alpha_S1_P2 * (P2_cat2 / K_P2_cat2)) * (1 + alpha_S1_P3 * (P3_cat3 / K_P3_cat3)) * (1 + alpha_S1_P4 * (P4_cat4 / K_P4_cat4)) -
-        (S1_cat1 / K_S1_cat1) +
-        (S2_cat2 / K_S2_cat2) * (1 + alpha_S2_P1 * (P1_cat1 / K_P1_cat1)) * (1 + alpha_S2_P3 * (P3_cat3 / K_P3_cat3)) * (1 + alpha_S2_P4 * (P4_cat4 / K_P4_cat4)) -
-        (S2_cat2 / K_S2_cat2) +
-        (S3_cat3 / K_S3_cat3) * (1 + alpha_S3_P1 * (P1_cat1 / K_P1_cat1)) * (1 + alpha_S3_P2 * (P2_cat2 / K_P2_cat2)) * (1 + alpha_S3_P4 * (P4_cat4 / K_P4_cat4)) -
-        (S3_cat3 / K_S3_cat3) +
-        (S4_cat4 / K_S4_cat4) * (1 + alpha_S4_P1 * (P1_cat1 / K_P1_cat1)) * (1 + alpha_S4_P2 * (P2_cat2 / K_P2_cat2)) * (1 + alpha_S4_P3 * (P3_cat3 / K_P3_cat3)) -
-        (S4_cat4 / K_S4_cat4) +
-        (P1_cat1 / K_P1_cat1) * (1 + alpha_S2_P1 * (S2_cat2 / K_S2_cat2)) * (1 + alpha_S3_P1 * (S3_cat3 / K_S3_cat3)) * (1 + alpha_S4_P1 * (S4_cat4 / K_S4_cat4)) -
-        (P1_cat1 / K_P1_cat1) +
-        (P2_cat2 / K_P2_cat2) * (1 + alpha_S1_P2 * (S1_cat1 / K_S1_cat1)) * (1 + alpha_S3_P2 * (S3_cat3 / K_S3_cat3)) * (1 + alpha_S4_P2 * (S4_cat4 / K_S4_cat4)) -
-        (P2_cat2 / K_P2_cat2) +
-        (P3_cat3 / K_P3_cat3) * (1 + alpha_S1_P3 * (S1_cat1 / K_S1_cat1)) * (1 + alpha_S2_P3 * (S2_cat2 / K_S2_cat2)) * (1 + alpha_S4_P3 * (S4_cat4 / K_S4_cat4)) -
-        (P3_cat3 / K_P3_cat3) +
-        (P4_cat4 / K_P4_cat4) * (1 + alpha_S1_P4 * (S1_cat1 / K_S1_cat1)) * (1 + alpha_S2_P4 * (S2_cat2 / K_S2_cat2)) * (1 + alpha_S3_P4 * (S3_cat3 / K_S3_cat3)) -
-        (P4_cat4 / K_P4_cat4) +
-        # alpha_S1_P2 * (S1_cat1 / K_S1_cat1) * (P2_cat2 / K_P2_cat2) +
-        # alpha_S1_P3 * (S1_cat1 / K_S1_cat1) * (P3_cat3 / K_P3_cat3) +
-        # alpha_S1_P4 * (S1_cat1 / K_S1_cat1) * (P4_cat4 / K_P4_cat4) +
-        # alpha_S2_P1 * (S2_cat2 / K_S2_cat2) * (P1_cat1 / K_P1_cat1) +
-        # alpha_S2_P3 * (S2_cat2 / K_S2_cat2) * (P3_cat3 / K_P3_cat3) +
-        # alpha_S2_P4 * (S2_cat2 / K_S2_cat2) * (P4_cat4 / K_P4_cat4) +
-        # alpha_S3_P1 * (S3_cat3 / K_S3_cat3) * (P1_cat1 / K_P1_cat1) +
-        # alpha_S3_P2 * (S3_cat3 / K_S3_cat3) * (P2_cat2 / K_P2_cat2) +
-        # alpha_S3_P4 * (S3_cat3 / K_S3_cat3) * (P4_cat4 / K_P4_cat4) +
-        # alpha_S4_P1 * (S4_cat4 / K_S4_cat4) * (P1_cat1 / K_P1_cat1) +
-        # alpha_S4_P2 * (S4_cat4 / K_S4_cat4) * (P2_cat2 / K_P2_cat2) +
-        # alpha_S4_P3 * (S4_cat4 / K_S4_cat4) * (P3_cat3 / K_P3_cat3) +
-        # alpha_S1_P3 * alpha_S2_P3 * (S1_cat1 / K_S1_cat1) * (S2_cat2 / K_S2_cat2) * (P3_cat3 / K_P3_cat3) +
-        # alpha_S1_P4 * alpha_S2_P4 * (S1_cat1 / K_S1_cat1) * (S2_cat2 / K_S2_cat2) * (P4_cat4 / K_P4_cat4) +
-        # alpha_S1_P2 * alpha_S3_P2 * (S1_cat1 / K_S1_cat1) * (P2_cat2 / K_P2_cat2) * (S3_cat3 / K_S3_cat3) +
-        # alpha_S1_P4 * alpha_S3_P4 * (S1_cat1 / K_S1_cat1) * (S3_cat3 / K_S3_cat3) * (P4_cat4 / K_P4_cat4) +
-        # alpha_S1_P2 * alpha_S4_P2 * (S1_cat1 / K_S1_cat1) * (P2_cat2 / K_P2_cat2) * (S4_cat4 / K_S4_cat4) +
-        # alpha_S1_P3 * alpha_S4_P3 * (S1_cat1 / K_S1_cat1) * (P3_cat3 / K_P3_cat3) * (S4_cat4 / K_S4_cat4) +
-        # alpha_S2_P1 * alpha_S3_P1 * (P1_cat1 / K_P1_cat1) * (S2_cat2 / K_S2_cat2) * (S3_cat3 / K_S3_cat3) +
-        # alpha_S2_P4 * alpha_S3_P4 * (S2_cat2 / K_S2_cat2) * (S3_cat3 / K_S3_cat3) * (P4_cat4 / K_P4_cat4) +
-        # alpha_S2_P1 * alpha_S4_P1 * (P1_cat1 / K_P1_cat1) * (S2_cat2 / K_S2_cat2) * (S4_cat4 / K_S4_cat4) +
-        # alpha_S2_P3 * alpha_S4_P3 * (S2_cat2 / K_S2_cat2) * (P3_cat3 / K_P3_cat3) * (S4_cat4 / K_S4_cat4) +
-        # alpha_S3_P1 * alpha_S4_P1 * (P1_cat1 / K_P1_cat1) * (S3_cat3 / K_S3_cat3) * (S4_cat4 / K_S4_cat4) +
-        # alpha_S3_P2 * alpha_S4_P2 * (P2_cat2 / K_P2_cat2) * (S3_cat3 / K_S3_cat3) * (S4_cat4 / K_S4_cat4) +
-        # alpha_S1_P2 * alpha_S1_P3 * (S1_cat1/K_S1_cat1) * (P2_cat2/K_P2_cat2) * (P3_cat3/K_P3_cat3) +
-        # alpha_S1_P2 * alpha_S1_P4 * (S1_cat1/K_S1_cat1) * (P2_cat2/K_P2_cat2) * (P4_cat4/K_P4_cat4) +
-        # alpha_S1_P3 * alpha_S1_P4 * (S1_cat1/K_S1_cat1) * (P3_cat3/K_P3_cat3) * (P4_cat4/K_P4_cat4) +
-        # alpha_S2_P1 * alpha_S2_P3 * (S2_cat2/K_S2_cat2) * (P1_cat1/K_P1_cat1) * (P3_cat3/K_P3_cat3) +
-        # alpha_S2_P1 * alpha_S2_P4 * (S2_cat2/K_S2_cat2) * (P1_cat1/K_P1_cat1) * (P4_cat4/K_P4_cat4) +
-        # alpha_S2_P3 * alpha_S2_P4 * (S2_cat2/K_S2_cat2) * (P3_cat3/K_P3_cat3) * (P4_cat4/K_P4_cat4) +
-        # alpha_S3_P1 * alpha_S3_P2 * (S3_cat3/K_S3_cat3) * (P1_cat1/K_P1_cat1) * (P2_cat2/K_P2_cat2) +
-        # alpha_S3_P1 * alpha_S3_P4 * (S3_cat3/K_S3_cat3) * (P1_cat1/K_P1_cat1) * (P4_cat4/K_P4_cat4) +
-        # alpha_S3_P2 * alpha_S3_P4 * (S3_cat3/K_S3_cat3) * (P2_cat2/K_P2_cat2) * (P4_cat4/K_P4_cat4) +
-        # alpha_S4_P1 * alpha_S4_P2 * (S4_cat4/K_S4_cat4) * (P1_cat1/K_P1_cat1) * (P2_cat2/K_P2_cat2) +
-        # alpha_S4_P1 * alpha_S4_P3 * (S4_cat4/K_S4_cat4) * (P1_cat1/K_P1_cat1) * (P3_cat3/K_P3_cat3) +
-        # alpha_S4_P2 * alpha_S4_P3 * (S4_cat4/K_S4_cat4) * (P2_cat2/K_P2_cat2) * (P3_cat3/K_P3_cat3) +
-        # alpha_S1_P4 * alpha_S2_P4 * alpha_S3_P4 * (S1_cat1 / K_S1_cat1) * (S2_cat2 / K_S2_cat2) * (S3_cat3 / K_S3_cat3) * (P4_cat4 / K_P4_cat4) +
-        # alpha_S1_P3 * alpha_S2_P3 * alpha_S4_P3 * (S1_cat1 / K_S1_cat1) * (S2_cat2 / K_S2_cat2) * (P3_cat3 / K_P3_cat3) * (S4_cat4 / K_S4_cat4) +
-        # alpha_S1_P2 * alpha_S3_P2 * alpha_S4_P2 * (S1_cat1 / K_S1_cat1) * (P2_cat2 / K_P2_cat2) * (S3_cat3 / K_S3_cat3) * (S4_cat4 / K_S4_cat4) +
-        # alpha_S2_P1 * alpha_S3_P1 * alpha_S4_P1 * (P1_cat1 / K_P1_cat1) * (S2_cat2 / K_S2_cat2) * (S3_cat3 / K_S3_cat3) * (S4_cat4 / K_S4_cat4) +
-        alpha_S1_P3 * alpha_S1_P4 * alpha_S2_P3 * alpha_S2_P4 * (S1_cat1 / K_S1_cat1) * (S2_cat2 / K_S2_cat2) * (P3_cat3 / K_P3_cat3) * (P4_cat4 / K_P4_cat4) +
-        alpha_S1_P2 * alpha_S1_P4 * alpha_S3_P2 * alpha_S3_P4 * (S1_cat1 / K_S1_cat1) * (P2_cat2 / K_P2_cat2) * (S3_cat3 / K_S3_cat3) * (P4_cat4 / K_P4_cat4) +
-        alpha_S1_P2 * alpha_S1_P3 * alpha_S4_P2 * alpha_S4_P3 * (S1_cat1 / K_S1_cat1) * (P2_cat2 / K_P2_cat2) * (P3_cat3 / K_P3_cat3) * (S4_cat4 / K_S4_cat4) +
-        alpha_S2_P1 * alpha_S2_P4 * alpha_S3_P1 * alpha_S3_P4 * (P1_cat1 / K_P1_cat1) * (S2_cat2 / K_S2_cat2) * (S3_cat3 / K_S3_cat3) * (P4_cat4 / K_P4_cat4) +
-        alpha_S2_P1 * alpha_S2_P3 * alpha_S4_P1 * alpha_S4_P3 * (P1_cat1 / K_P1_cat1) * (S2_cat2 / K_S2_cat2) * (P3_cat3 / K_P3_cat3) * (S4_cat4 / K_S4_cat4) +
-        alpha_S3_P1 * alpha_S3_P2 * alpha_S4_P1 * alpha_S4_P2 * (P1_cat1 / K_P1_cat1) * (P2_cat2 / K_P2_cat2) * (S3_cat3 / K_S3_cat3) * (S4_cat4 / K_S4_cat4)
-        # alpha_S1_P2 * alpha_S1_P3 * alpha_S1_P4 * (S1_cat1 / K_S1_cat1) * (P2_cat2 / K_P2_cat2) * (P3_cat3 / K_P3_cat3) * (P4_cat4 / K_P4_cat4) +
-        # alpha_S2_P1 * alpha_S2_P3 * alpha_S2_P4 * (P1_cat1 / K_P1_cat1) * (S2_cat2 / K_S2_cat2) * (P3_cat3 / K_P3_cat3) * (P4_cat4 / K_P4_cat4) +
-        # alpha_S3_P1 * alpha_S3_P2 * alpha_S3_P4 * (P1_cat1 / K_P1_cat1) * (P2_cat2 / K_P2_cat2) * (S3_cat3 / K_S3_cat3) * (P4_cat4 / K_P4_cat4) +
-        # alpha_S4_P1 * alpha_S4_P2 * alpha_S4_P3 * (P1_cat1 / K_P1_cat1) * (P2_cat2 / K_P2_cat2) * (P3_cat3 / K_P3_cat3) * (S4_cat4 / K_S4_cat4)
-    )
-    return Z_cat
-end
-
-
-
 macro derive_general_mwc_rate_eq(metabs_and_regulators_kwargs...)
     expected_input_kwargs = [
         :substrates,
@@ -581,4 +332,255 @@ macro derive_general_mwc_rate_eq(metabs_and_regulators_kwargs...)
             oligomeric_state,
         )
     end)
+end
+
+@inline function general_mwc_rate_equation(
+    S1_cat1::T,
+    S2_cat2::T,
+    S3_cat3::T,
+    S4_cat4::T,
+    P1_cat1::T,
+    P2_cat2::T,
+    P3_cat3::T,
+    P4_cat4::T,
+    L::T,
+    Vmax_a::T,
+    Vmax_i::T,
+    K_a_S1_cat1::T,
+    K_i_S1_cat1::T,
+    K_a_S2_cat2::T,
+    K_i_S2_cat2::T,
+    K_a_S3_cat3::T,
+    K_i_S3_cat3::T,
+    K_a_S4_cat4::T,
+    K_i_S4_cat4::T,
+    K_a_P1_cat1::T,
+    K_i_P1_cat1::T,
+    K_a_P2_cat2::T,
+    K_i_P2_cat2::T,
+    K_a_P3_cat3::T,
+    K_i_P3_cat3::T,
+    K_a_P4_cat4::T,
+    K_i_P4_cat4::T,
+    Z_a_cat::T,
+    Z_i_cat::T,
+    Z_a_reg::T,
+    Z_i_reg::T,
+    Keq::T,
+    n::Int,
+) where {T<:Float64}
+    Vmax_a = 1.0
+    Vmax_a_rev = ifelse(
+        (K_a_P1_cat1 * K_a_P2_cat2 * K_a_P3_cat3 * K_a_P4_cat4) != Inf,
+        Vmax_a * K_a_P1_cat1 * K_a_P2_cat2 * K_a_P3_cat3 * K_a_P4_cat4 /
+        (Keq * K_a_S1_cat1 * K_a_S2_cat2 * K_a_S3_cat3 * K_a_S4_cat4),
+        0.0,
+    )
+    Vmax_i_rev = ifelse(
+        (K_i_P1_cat1 * K_i_P2_cat2 * K_i_P3_cat3 * K_i_S4_cat4) != Inf,
+        Vmax_i * K_i_P1_cat1 * K_i_P2_cat2 * K_i_P3_cat3 * K_i_P4_cat4 /
+        (Keq * K_i_S1_cat1 * K_i_S2_cat2 * K_i_S3_cat3 * K_i_S4_cat4),
+        0.0,
+    )
+    Rate =
+        (
+            (
+                Vmax_a *
+                (S1_cat1 / K_a_S1_cat1) *
+                (S2_cat2 / K_a_S2_cat2) *
+                (S3_cat3 / K_a_S3_cat3) *
+                (S4_cat4 / K_a_S4_cat4) -
+                Vmax_a_rev *
+                (P1_cat1 / K_a_P1_cat1) *
+                (P2_cat2 / K_a_P2_cat2) *
+                (P3_cat3 / K_a_P3_cat3) *
+                (P4_cat4 / K_a_P4_cat4)
+            ) *
+            (Z_a_cat^(n - 1)) *
+            (Z_a_reg^n) +
+            L *
+            (
+                Vmax_i *
+                (S1_cat1 / K_i_S1_cat1) *
+                (S2_cat2 / K_i_S2_cat2) *
+                (S3_cat3 / K_i_S3_cat3) *
+                (S4_cat4 / K_i_S4_cat4) -
+                Vmax_i_rev *
+                (P1_cat1 / K_i_P1_cat1) *
+                (P2_cat2 / K_i_P2_cat2) *
+                (P3_cat3 / K_i_P3_cat3) *
+                (P4_cat4 / K_i_P4_cat4)
+            ) *
+            (Z_i_cat^(n - 1)) *
+            (Z_i_reg^n)
+        ) / ((Z_a_cat^n) * (Z_a_reg^n) + L * (Z_i_cat^n) * (Z_i_reg^n))
+
+    return Rate
+end
+
+@inline function calculate_z_reg(
+    R1_reg1,
+    R2_reg1,
+    R3_reg1,
+    R1_reg2,
+    R2_reg2,
+    R3_reg2,
+    R1_reg3,
+    R2_reg3,
+    R3_reg3,
+    K_R1_reg1,
+    K_R2_reg1,
+    K_R3_reg1,
+    K_R1_reg2,
+    K_R2_reg2,
+    K_R3_reg2,
+    K_R1_reg3,
+    K_R2_reg3,
+    K_R3_reg3,
+)
+    Z_reg = (
+        (1 + R1_reg1 / K_R1_reg1 + R2_reg1 / K_R2_reg1 + R3_reg1 / K_R3_reg1) *
+        (1 + R1_reg2 / K_R1_reg2 + R2_reg2 / K_R2_reg2 + R3_reg2 / K_R3_reg2) *
+        (1 + R1_reg3 / K_R1_reg3 + R2_reg3 / K_R2_reg3 + R3_reg3 / K_R3_reg3)
+    )
+    return Z_reg
+end
+
+@inline function calculate_z_cat(
+    S1_cat1,
+    S2_cat2,
+    S3_cat3,
+    S4_cat4,
+    P1_cat1,
+    P2_cat2,
+    P3_cat3,
+    P4_cat4,
+    K_S1_cat1,
+    K_S2_cat2,
+    K_S3_cat3,
+    K_S4_cat4,
+    K_P1_cat1,
+    K_P2_cat2,
+    K_P3_cat3,
+    K_P4_cat4,
+    alpha_S1_P2,
+    alpha_S1_P3,
+    alpha_S1_P4,
+    alpha_S2_P1,
+    alpha_S2_P3,
+    alpha_S2_P4,
+    alpha_S3_P1,
+    alpha_S3_P2,
+    alpha_S3_P4,
+    alpha_S4_P1,
+    alpha_S4_P2,
+    alpha_S4_P3,
+)
+    Z_cat = (
+        (
+            (1 + S1_cat1 / K_S1_cat1) *
+            (1 + S2_cat2 / K_S2_cat2) *
+            (1 + S3_cat3 / K_S3_cat3) *
+            (1 + S4_cat4 / K_S4_cat4)
+        ) - 1 +
+        (
+            (1 + P1_cat1 / K_P1_cat1) *
+            (1 + P2_cat2 / K_P2_cat2) *
+            (1 + P3_cat3 / K_P3_cat3) *
+            (1 + P4_cat4 / K_P4_cat4)
+        ) +
+        (S1_cat1 / K_S1_cat1) *
+        (1 + alpha_S1_P2 * (P2_cat2 / K_P2_cat2)) *
+        (1 + alpha_S1_P3 * (P3_cat3 / K_P3_cat3)) *
+        (1 + alpha_S1_P4 * (P4_cat4 / K_P4_cat4)) - (S1_cat1 / K_S1_cat1) +
+        (S2_cat2 / K_S2_cat2) *
+        (1 + alpha_S2_P1 * (P1_cat1 / K_P1_cat1)) *
+        (1 + alpha_S2_P3 * (P3_cat3 / K_P3_cat3)) *
+        (1 + alpha_S2_P4 * (P4_cat4 / K_P4_cat4)) - (S2_cat2 / K_S2_cat2) +
+        (S3_cat3 / K_S3_cat3) *
+        (1 + alpha_S3_P1 * (P1_cat1 / K_P1_cat1)) *
+        (1 + alpha_S3_P2 * (P2_cat2 / K_P2_cat2)) *
+        (1 + alpha_S3_P4 * (P4_cat4 / K_P4_cat4)) - (S3_cat3 / K_S3_cat3) +
+        (S4_cat4 / K_S4_cat4) *
+        (1 + alpha_S4_P1 * (P1_cat1 / K_P1_cat1)) *
+        (1 + alpha_S4_P2 * (P2_cat2 / K_P2_cat2)) *
+        (1 + alpha_S4_P3 * (P3_cat3 / K_P3_cat3)) - (S4_cat4 / K_S4_cat4) +
+        (P1_cat1 / K_P1_cat1) *
+        (1 + alpha_S2_P1 * (S2_cat2 / K_S2_cat2)) *
+        (1 + alpha_S3_P1 * (S3_cat3 / K_S3_cat3)) *
+        (1 + alpha_S4_P1 * (S4_cat4 / K_S4_cat4)) - (P1_cat1 / K_P1_cat1) +
+        (P2_cat2 / K_P2_cat2) *
+        (1 + alpha_S1_P2 * (S1_cat1 / K_S1_cat1)) *
+        (1 + alpha_S3_P2 * (S3_cat3 / K_S3_cat3)) *
+        (1 + alpha_S4_P2 * (S4_cat4 / K_S4_cat4)) - (P2_cat2 / K_P2_cat2) +
+        (P3_cat3 / K_P3_cat3) *
+        (1 + alpha_S1_P3 * (S1_cat1 / K_S1_cat1)) *
+        (1 + alpha_S2_P3 * (S2_cat2 / K_S2_cat2)) *
+        (1 + alpha_S4_P3 * (S4_cat4 / K_S4_cat4)) - (P3_cat3 / K_P3_cat3) +
+        (P4_cat4 / K_P4_cat4) *
+        (1 + alpha_S1_P4 * (S1_cat1 / K_S1_cat1)) *
+        (1 + alpha_S2_P4 * (S2_cat2 / K_S2_cat2)) *
+        (1 + alpha_S3_P4 * (S3_cat3 / K_S3_cat3)) - (P4_cat4 / K_P4_cat4) +
+        (
+            alpha_S1_P3 *
+            alpha_S1_P4 *
+            alpha_S2_P3 *
+            alpha_S2_P4 *
+            (S1_cat1 / K_S1_cat1) *
+            (S2_cat2 / K_S2_cat2) *
+            (P3_cat3 / K_P3_cat3) *
+            (P4_cat4 / K_P4_cat4)
+        ) +
+        (
+            alpha_S1_P2 *
+            alpha_S1_P4 *
+            alpha_S3_P2 *
+            alpha_S3_P4 *
+            (S1_cat1 / K_S1_cat1) *
+            (P2_cat2 / K_P2_cat2) *
+            (S3_cat3 / K_S3_cat3) *
+            (P4_cat4 / K_P4_cat4)
+        ) +
+        (
+            alpha_S1_P2 *
+            alpha_S1_P3 *
+            alpha_S4_P2 *
+            alpha_S4_P3 *
+            (S1_cat1 / K_S1_cat1) *
+            (P2_cat2 / K_P2_cat2) *
+            (P3_cat3 / K_P3_cat3) *
+            (S4_cat4 / K_S4_cat4)
+        ) +
+        (
+            alpha_S2_P1 *
+            alpha_S2_P4 *
+            alpha_S3_P1 *
+            alpha_S3_P4 *
+            (P1_cat1 / K_P1_cat1) *
+            (S2_cat2 / K_S2_cat2) *
+            (S3_cat3 / K_S3_cat3) *
+            (P4_cat4 / K_P4_cat4)
+        ) +
+        (
+            alpha_S2_P1 *
+            alpha_S2_P3 *
+            alpha_S4_P1 *
+            alpha_S4_P3 *
+            (P1_cat1 / K_P1_cat1) *
+            (S2_cat2 / K_S2_cat2) *
+            (P3_cat3 / K_P3_cat3) *
+            (S4_cat4 / K_S4_cat4)
+        ) +
+        (
+            alpha_S3_P1 *
+            alpha_S3_P2 *
+            alpha_S4_P1 *
+            alpha_S4_P2 *
+            (P1_cat1 / K_P1_cat1) *
+            (P2_cat2 / K_P2_cat2) *
+            (S3_cat3 / K_S3_cat3) *
+            (S4_cat4 / K_S4_cat4)
+        )
+    )
+    return Z_cat
 end
