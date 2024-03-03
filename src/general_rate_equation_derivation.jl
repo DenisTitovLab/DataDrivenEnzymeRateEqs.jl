@@ -36,7 +36,24 @@ where:
 - A function that calculates the rate of the reaction using the general MWC rate equation
 - A tuple of the names of the metabolites and parameters used in the rate equation
 """
-macro derive_general_mwc_rate_eq(metabs_and_regulators_kwargs...)
+macro derive_general_mwc_rate_eq(metabs_and_regulators_kwargs)
+
+    # processed_input = NamedTuple()
+    # for expr in metabs_and_regulators_kwargs
+    #     expr.args[1] ∈ expected_input_kwargs || error(
+    #         "invalid keyword: ",
+    #         expr.args[1],
+    #         ". The only supported keywords are: ",
+    #         expected_input_kwargs,
+    #     )
+    #     println(expr)
+    #     println(expr.args[1])
+    #     println(typeof(expr.args[1]))
+    #     println(expr.args[2])
+    #     println(typeof(expr.args[2]))
+    #     processed_input = merge(processed_input, (; expr.args[1] => eval(expr)))
+    # end
+    processed_input = getfield(__module__, Symbol(metabs_and_regulators_kwargs))
     expected_input_kwargs = [
         :substrates,
         :products,
@@ -51,20 +68,18 @@ macro derive_general_mwc_rate_eq(metabs_and_regulators_kwargs...)
         :oligomeric_state,
         :rate_equation_name
     ]
-    processed_input = NamedTuple()
-    for expr in metabs_and_regulators_kwargs
-        expr.args[1] ∈ expected_input_kwargs || error(
+    for kwarg in keys(processed_input)
+        kwarg ∈ expected_input_kwargs || error(
             "invalid keyword: ",
-            expr.args[1],
+            kwarg,
             ". The only supported keywords are: ",
             expected_input_kwargs,
         )
-        processed_input = merge(processed_input, (; expr.args[1] => eval(expr)))
     end
-    @assert 0 < length(processed_input.substrates) <= 3 "At least 1 and no more that 3 substrates are supported"
-    @assert 0 < length(processed_input.products) <= 3 "At least 1 and no more that 3 products are supported"
+    @assert 0 < length(processed_input.substrates) <= 4 "At least 1 and no more that 4 substrates are supported"
+    @assert 0 < length(processed_input.products) <= 4 "At least 1 and no more that 4 products are supported"
     cat_site_metabs = [processed_input.cat1...]
-    for field in [:cat2, :cat3]
+    for field in [:cat2, :cat3, :cat4]
         if hasproperty(processed_input, field)
             push!(cat_site_metabs, processed_input[field]...)
         end
@@ -105,17 +120,17 @@ macro derive_general_mwc_rate_eq(metabs_and_regulators_kwargs...)
         elseif hasproperty(processed_input, :cat3) && field == :cat3
             for metab_name in processed_input[field]
                 if metab_name ∈ processed_input.substrates
-                    enz = merge(enz, (; Symbol(:S, 3, field) => metab_name))
+                    enz = merge(enz, (; Symbol(:S, 3, "_", field) => metab_name))
                 elseif metab_name ∈ processed_input.products
-                    enz = merge(enz, (; Symbol(:P, 3, field) => metab_name))
+                    enz = merge(enz, (; Symbol(:P, 3, "_", field) => metab_name))
                 end
             end
         elseif hasproperty(processed_input, :cat4) && field == :cat4
             for metab_name in processed_input[field]
                 if metab_name ∈ processed_input.substrates
-                    enz = merge(enz, (; Symbol(:S, 4, field) => metab_name))
+                    enz = merge(enz, (; Symbol(:S, 4, "_", field) => metab_name))
                 elseif metab_name ∈ processed_input.products
-                    enz = merge(enz, (; Symbol(:P, 4, field) => metab_name))
+                    enz = merge(enz, (; Symbol(:P, 4, "_", field) => metab_name))
                 end
             end
         elseif hasproperty(processed_input, :reg1) && field == :reg1
@@ -159,6 +174,7 @@ macro derive_general_mwc_rate_eq(metabs_and_regulators_kwargs...)
     end
     # qualified_name = esc(GlobalRef(Main, :rate_equation))
     function_name = (hasproperty(processed_input, :rate_equation_name) ? esc(processed_input.rate_equation_name) : esc(:rate_equation))
+    oligomeric_state = esc(processed_input.oligomeric_state)
     return quote
         @inline function $(function_name)(metabs, params, Keq)
             general_mwc_rate_equation(
@@ -368,7 +384,7 @@ macro derive_general_mwc_rate_eq(metabs_and_regulators_kwargs...)
                     params.$(Symbol("K_i_", enz.R3_reg3, "_reg3")) : Inf,
                 ),
                 Keq,
-                oligomeric_state,
+                $(oligomeric_state),
             )
         end
 
@@ -662,5 +678,5 @@ function generate_metab_names(processed_input)
             metab_names = (metab_names..., processed_input[site]...)
         end
     end
-    return unique(metab_names)
+    return Tuple(unique(metab_names))
 end

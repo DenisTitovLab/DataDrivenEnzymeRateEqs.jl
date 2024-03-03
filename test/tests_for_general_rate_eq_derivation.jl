@@ -4,7 +4,36 @@
 ##
 using DataDrivenEnzymeRateEqs, Test, BenchmarkTools
 
-metab_names, param_names = @derive_general_mwc_rate_eq(
+##
+#TODO: test random inputs into @derive_general_mwc_rate_eq and make sure the resulting rate equation, param_names and metab_names always work together
+substrates = [Symbol(:S, i) for i in 1:rand(1:4)]
+products = [Symbol(:P, i) for i in 1:rand(1:4)]
+regulators = [Symbol(:R, i) for i in 1:rand(1:9)]
+enzyme_parameters = ()
+enzyme_parameters = (; substrates=substrates, products=products, cat1=[substrates[1], products[1]])
+for i in 1:max(length(substrates), length(products))
+    global enzyme_parameters = (; enzyme_parameters..., Symbol(:cat, i) => filter!(x -> x !== :Blank, [get(substrates, i, :Blank), get(products, i, :Blank)]))
+end
+for i in eachindex(regulators)
+    not_fully_occupied_sites = [site for site in [:reg1, :reg2, :reg3] if !haskey(enzyme_parameters, site) || (haskey(enzyme_parameters, site) && length(enzyme_parameters[site]) < 3)]
+    reg_site_name = rand(not_fully_occupied_sites)
+    global enzyme_parameters = (; enzyme_parameters..., reg_site_name => haskey(enzyme_parameters, reg_site_name) ? [enzyme_parameters[reg_site_name]..., regulators[i]] : [regulators[i]])
+end
+enzyme_parameters = (; enzyme_parameters..., Keq=20_000.0, oligomeric_state=rand(1:4), rate_equation_name=:rate_equation)
+
+metab_names, param_names = @derive_general_mwc_rate_eq(enzyme_parameters)
+params_nt = NamedTuple{param_names}(rand(length(param_names)))
+metabs_nt = NamedTuple{metab_names}(rand(length(metab_names)))
+benchmark_result = @benchmark rate_equation($(metabs_nt), $(params_nt), $(20000.0))
+@test mean(benchmark_result.times) <= 100 #ns
+@test benchmark_result.allocs == 0
+
+benchmark_result = @benchmark rate_equation(metabs_nt, params_nt, 20000.0)
+@test mean(benchmark_result.times) <= 150 #ns
+@test benchmark_result.allocs <= 1
+
+#test `@derive_mwc_rate_eq` generated `rate_equation::Function`
+PKM2_enzyme = (;
     substrates = [:PEP, :ADP],
     products = [:Pyruvate, :ATP],
     cat1 = [:ATP, :ADP],
@@ -15,11 +44,8 @@ metab_names, param_names = @derive_general_mwc_rate_eq(
     oligomeric_state = 4,
     rate_equation_name = :rate_equation,
 )
+metab_names, param_names = @derive_general_mwc_rate_eq(PKM2_enzyme)
 
-#TODO: test random inputs into @derive_general_mwc_rate_eq and make sure the resulting rate equation, param_names and metab_names always work together
-
-
-#test `@derive_mwc_rate_eq` generated `rate_equation::Function`
 @test rate_equation isa Function
 params_nt = (
     L=10.0,

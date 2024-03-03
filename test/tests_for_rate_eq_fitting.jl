@@ -6,7 +6,7 @@ using DataDrivenEnzymeRateEqs, Test
 using CMAEvolutionStrategy, DataFrames, CSV, Statistics
 using BenchmarkTools
 
-@derive_general_mwc_rate_eq(
+PKM2_enzyme = (;
     substrates = [:PEP, :ADP],
     products = [:Pyruvate, :ATP],
     cat1 = [:ATP, :ADP],
@@ -14,8 +14,11 @@ using BenchmarkTools
     reg1 = [:F16BP],
     reg2 = [:Phenylalanine],
     Keq = 20_000.0,
-    oligomeric_state = 4
+    oligomeric_state = 4,
+    rate_equation_name = :rate_equation,
 )
+@derive_general_mwc_rate_eq(PKM2_enzyme)
+
 
 
 rate_equation(metabs, p) = rate_equation(metabs, p, 20000.0)
