@@ -35,7 +35,7 @@ function data_driven_rate_equation_selection(
     @assert range_number_params[1] >=
             (1 + sum([occursin("K_a_", string(param_name)) for param_name in param_names]))
     @assert range_number_params[2] <= length(param_names)
-
+    println("Past assertions")
     #generate param_removal_code_names by converting each mirror parameter for a and i into one name
     #(e.g. K_a_Metabolite1 and K_i_Metabolite1 into K_Metabolite1)
     param_removal_code_names = (
@@ -48,18 +48,28 @@ function data_driven_rate_equation_selection(
     #generate all possible combination of parameter removal codes
     all_param_removal_codes = calculate_all_parameter_removal_codes(param_names)
 
-    if forward_model_selection
-        start_num_params, end_num_params = range_number_params[2], range_number_params[1]
-    elseif !forward_model_selection
-        start_num_params, end_num_params = range_number_params[1], range_number_params[2]
-    end
     num_alpha_params = count(occursin.("alpha", string.([param_names...])))
-    starting_param_removal_codes = [
-        x for x in all_param_removal_codes if length(param_names) - num_alpha_params -
-        sum(values(x[1:(end-num_alpha_params)]) .> 0) == start_num_params
-    ]
+    if forward_model_selection
+        num_param_range = (range_number_params[2]-1):-1:range_number_params[1]
+        starting_param_removal_codes = [
+            x for
+            x in all_param_removal_codes if length(param_names) - num_alpha_params -
+            sum(values(x[1:(end-num_alpha_params)]) .> 0) == range_number_params[2]
+        ]
+    elseif !forward_model_selection
+        num_param_range = (range_number_params[1]+1):1:range_number_params[2]
+        starting_param_removal_codes = [
+            x for
+            x in all_param_removal_codes if length(param_names) - num_alpha_params -
+            sum(values(x[1:(end-num_alpha_params)]) .> 0) == range_number_params[1]
+        ]
+    end
+
     previous_param_removal_codes = starting_param_removal_codes
-    for num_params = start_num_params:end_num_params
+    println("About to start loop with num_params: $num_param_range")
+    for num_params in num_param_range
+        println("Running loop with num_params: $num_params")
+
         #calculate param_removal_codes for `num_params` given `all_param_removal_codes` and fixed params from previous `num_params`
         if forward_model_selection
             nt_param_removal_codes = forward_selection_next_param_removal_codes(
@@ -79,9 +89,9 @@ function data_driven_rate_equation_selection(
             )
         end
         #pmap over nt_param_removal_codes for a given `num_params` return rescaled and nt_param_subset added
-        # Fit equation with nt_param_removal_codes parameters to training data
-        results_array = pmap(
-            param_removal_code -> train_rate_equation(
+        #TODO: change to pmap
+        results_array = map(
+            nt_param_removal_code -> train_rate_equation(
                 general_rate_equation,
                 data,
                 metab_names,
@@ -91,32 +101,38 @@ function data_driven_rate_equation_selection(
             ),
             nt_param_removal_codes,
         )
-        #convert results_array to DataFrame and save in csv file
-        results_df = DataFrame(results_array)
-        CSV.write(
-            "$(Dates.format(now(),"mmddyy"))_$(forward_model_selection ? "forward" : "reverse")_results_df_num_params_$(num_params).csv",
-            results_df,
-        )
 
+        #convert results_array to DataFrame and save in csv file
+        df_results = DataFrame(results_array)
+        df_results.nt_param_removal_codes = nt_param_removal_codes
+        df_results
+        # CSV.write(
+        #     "$(Dates.format(now(),"mmddyy"))_$(forward_model_selection ? "forward" : "reverse")_model_select_results_$(num_params)_num_params.csv",
+        #     df_results,
+        # )
         #store top 10% for next loop as `previous_param_removal_codes`
         filter!(row -> row.train_loss < 1.1 * minimum(df_results.train_loss), df_results)
-        previous_param_removal_codes = df_results.nt_param_removal_code
+        previous_param_removal_codes = values.(df_results.nt_param_removal_codes)
 
         #calculate test loss for top 10% subsets for each `num_params`
-        #TODO: I guess don't use param_removal_code as train params are already converted using nt_param_removal_code
-        test_loss = pmap(
-            param_removal_code -> test_rate_equation(
+        #TODO: loop over all figures and calculate test loss for each figure
+        #TODO: consider looping over all figures and calculating test loss separately from train loss calculations
+        #TODO: change to pmap
+        test_loss = map(
+            nt_fitted_params -> test_rate_equation(
                 general_rate_equation,
                 data,
                 nt_fitted_params,
                 metab_names,
                 param_names,
             ),
-            top_10_percent_loss_results,
+            df_results.params,
         )
         #store rescaled results
 
     end
+    println("Finished loop")
+
     #return train loss and params for all tested subsets, test loss for all tested subsets
 end
 
@@ -144,8 +160,8 @@ function test_rate_equation(
     fig_point_indexes = [findall(data.fig_num .== i) for i in unique(data.fig_num)]
     fitted_params = values(nt_fitted_params)
     test_loss = loss_rate_equation(
-        rate_equation::Function,
         fitted_params,
+        rate_equation::Function,
         rate_data_nt::NamedTuple,
         param_names::Tuple{Symbol,Vararg{Symbol}},
         fig_point_indexes::Vector{Vector{Int64}};
@@ -181,31 +197,31 @@ function param_subset_select(params, param_names, nt_param_removal_code)
         Dict(param_name => params[i] for (i, param_name) in enumerate(param_names))
 
     for param_choice in keys(nt_param_removal_code)
-        if startswith("L", string(param_choice)) && nt_param_removal_code[param_choice] == 1
+        if startswith(string(param_choice), "L") && nt_param_removal_code[param_choice] == 1
             params_dict[:L] = 0.0
-        elseif startswith("Vmax", string(param_choice)) &&
+        elseif startswith(string(param_choice), "Vmax") &&
                nt_param_removal_code[param_choice] == 1
             params_dict[:Vmax_i] = params_dict[:Vmax_a]
-        elseif startswith("Vmax", string(param_choice)) &&
+        elseif startswith(string(param_choice), "Vmax") &&
                nt_param_removal_code[param_choice] == 2
-            params_dict[:Vmax_i] = 0.0
-        elseif startswith("K", string(param_choice)) &&
+            global params_dict[:Vmax_i] = 0.0
+        elseif startswith(string(param_choice), "K") &&
                nt_param_removal_code[param_choice] == 1
             K_i = Symbol("K_i_" * string(param_choice)[3:end])
             K_a = Symbol("K_a_" * string(param_choice)[3:end])
             params_dict[K_i] = params_dict[K_a]
-        elseif startswith("K", string(param_choice)) &&
+        elseif startswith(string(param_choice), "K") &&
                nt_param_removal_code[param_choice] == 2
             K_a = Symbol("K_a_" * string(param_choice)[3:end])
             params_dict[K_a] = Inf
-        elseif startswith("K", string(param_choice)) &&
+        elseif startswith(string(param_choice), "K") &&
                nt_param_removal_code[param_choice] == 3
             K_i = Symbol("K_i_" * string(param_choice)[3:end])
             params_dict[K_i] = Inf
-        elseif startswith("alpha", string(param_choice)) &&
+        elseif startswith(string(param_choice), "alpha") &&
                nt_param_removal_code[param_choice] == 0
             params_dict[param_choice] = 0.0
-        elseif startswith("alpha", string(param_choice)) &&
+        elseif startswith(string(param_choice), "alpha") &&
                nt_param_removal_code[param_choice] == 1
             params_dict[param_choice] = 1.0
         end

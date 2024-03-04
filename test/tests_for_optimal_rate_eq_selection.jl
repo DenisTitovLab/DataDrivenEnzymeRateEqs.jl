@@ -147,24 +147,22 @@ end
 
 # #
 # #test the ability of `data_driven_rate_equation_selection` to recover the rate_equation and params used to generated data for an arbitrary enzyme
-# data_gen_rate_equation(metabs, params) = params.Vmax * (metabs.S / params.K_S) / (1 + metabs.S / params.K_S)
-# param_names = (:Vmax, :K_S)
-# metab_names = (:S,)
-# params = (Vmax = 10.0, K_S = 1.0)
-# data = DataFrame(S = [0.1, 0.5, 1.0, 2.0, 5.0, 10.0, 20.0, 50.0, 100.0])
-# noise_sd = 0.2
-# data.Rate = [data_gen_rate_equation(row, params) * (1 + noise_sd * randn()) for row in eachrow(data)]
-# data.source = ["Figure1" for i in 1:nrow(data)]
+data_gen_rate_equation(metabs, params) = params.Vmax * (metabs.S / params.K_S - metabs.P / params.K_P) / (1 + metabs.S / params.K_S + metabs.P / params.K_P)
+param_names = (:Vmax, :K_S, :K_P)
+metab_names = (:S, :P)
+params = (Vmax=10.0, K_S=1.0, K_P=5.0)
+data = DataFrame(S=[0.1, 0.5, 1.0, 2.0, 5.0, 10.0, 20.0, 50.0, 100.0])
+data.P = [0.0 for row in eachrow(data)]
+noise_sd = 0.2
+data.Rate = [data_gen_rate_equation(row, params) * (1 + noise_sd * randn()) for row in eachrow(data)]
+data.source = ["Figure1" for i in 1:nrow(data)]
+fit_result = fit_rate_equation(data_gen_rate_equation, data, metab_names, param_names; n_iter=20)
+@test isapprox(fit_result.params.K_S, params.K_S, rtol=3 * noise_sd)
 
-# @derive_general_mwc_rate_eq(substrates = [:S,], products = [], reg1 = [], reg2 = [], Keq = 1.0)
-# param_names = (
-#     :L,
-#     :Vmax_a,
-#     :Vmax_i,
-#     :K_a_S,
-#     :K_i_S,
-# )
-# rate_equation((;S=1.0), (; L=1.0, Vmax_a=1.0, Vmax_i=1.0, K_a_S_cat=1.0, K_i_S_cat=1.0), 1.0)
-
-# fit_result = fit_rate_equation(rate_equation, data, metab_names, param_names; n_iter=20)
-# @test isapprox(fit_result.params.K_S, params.K_S, rtol=3*noise_sd)
+enzyme_parameters = (; substrates=[:S,], products=[:P], cat1=[:S, :P], reg1=[], reg2=[], Keq=1.0, oligomeric_state=1, rate_equation_name=:derived_rate_equation)
+metab_names, param_names = @derive_general_mwc_rate_eq(enzyme_parameters)
+nt_params = NamedTuple{param_names}(rand(length(param_names)))
+nt_metabs = NamedTuple{metab_names}(rand(length(metab_names)))
+derived_rate_equation(nt_metabs, nt_params) = derived_rate_equation(nt_metabs, nt_params, enzyme_parameters.Keq)
+fit_result = fit_rate_equation(derived_rate_equation, data, metab_names, param_names; n_iter=20)
+selection_result = data_driven_rate_equation_selection(derived_rate_equation, data, metab_names, param_names, (3, 7), true)

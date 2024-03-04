@@ -22,18 +22,16 @@ end
 enzyme_parameters = (; enzyme_parameters..., Keq=20_000.0, oligomeric_state=rand(1:4), rate_equation_name=:rand_enz_rate_equation)
 
 metab_names, param_names = @derive_general_mwc_rate_eq(enzyme_parameters)
-
 params_nt = NamedTuple{param_names}(rand(length(param_names)))
 metabs_nt = NamedTuple{metab_names}(rand(length(metab_names)))
 benchmark_result = @benchmark rand_enz_rate_equation($(metabs_nt), $(params_nt), $(20000.0))
 @test mean(benchmark_result.times) <= 100 #ns
 @test benchmark_result.allocs == 0
-
 benchmark_result = @benchmark rand_enz_rate_equation(metabs_nt, params_nt, 20000.0)
 @test mean(benchmark_result.times) <= 150 #ns
 @test benchmark_result.allocs <= 1
 
-#test `@derive_mwc_rate_eq` generated `rate_equation::Function`
+#test `@derive_mwc_rate_eq` generated `rate_equation::Function` using PKM2 data
 PKM2_enzyme = (;
     substrates = [:PEP, :ADP],
     products = [:Pyruvate, :ATP],
@@ -75,7 +73,6 @@ metabs_nt =
 benchmark_result = @benchmark pkm2_rate_equation($(metabs_nt), $(params_nt), $(20000.0))
 @test mean(benchmark_result.times) <= 100 #ns
 @test benchmark_result.allocs == 0
-
 benchmark_result = @benchmark pkm2_rate_equation(metabs_nt, params_nt, 20000.0)
 @test mean(benchmark_result.times) <= 150 #ns
 @test benchmark_result.allocs <= 1
