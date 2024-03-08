@@ -10,8 +10,8 @@ using CMAEvolutionStrategy, DataFrames, Statistics
     fit_rate_equation(
         rate_equation::Function,
         data::DataFrame,
-        metab_names::Tuple,
-        param_names::Tuple;
+        metab_names::Tuple{Symbol, Vararg{Symbol}},
+        param_names::Tuple{Symbol, Vararg{Symbol}};
         n_iter = 20
 )
 
@@ -20,8 +20,8 @@ Fit `rate_equation` to `data` and return loss and best fit parameters.
 # Arguments
 - `rate_equation::Function`: Function that takes a NamedTuple of metabolite concentrations (with `metab_names` keys) and parameters (with `param_names` keys) and returns an enzyme rate.
 - `data::DataFrame`: DataFrame containing the data with column `Rate` and columns for each `metab_names` where each row is one measurement. It also needs to have a column `source` that contains a string that identifies the source of the data. This is used to calculate the weights for each figure in the publication.
-- `metab_names::Tuple`: Tuple of metabolite names that correspond to the metabolites of `rate_equation` and column names in `data`.
-- `param_names::Tuple`: Tuple of parameter names that correspond to the parameters of `rate_equation`.
+- `metab_names::Tuple{Symbol, Vararg{Symbol}}`: Tuple of metabolite names that correspond to the metabolites of `rate_equation` and column names in `data`.
+- `param_names::Tuple{Symbol, Vararg{Symbol}}`: Tuple of parameter names that correspond to the parameters of `rate_equation`.
 - `n_iter::Int`: Number of iterations to run the fitting process.
 
 # Returns
@@ -43,15 +43,15 @@ fit_rate_equation(rate_equation, data, (:A,), (:Vmax, :K_S))
 function fit_rate_equation(
     rate_equation::Function,
     data::DataFrame,
-    metab_names::Tuple,
-    param_names::Tuple;
+    metab_names::Tuple{Symbol, Vararg{Symbol}},
+    param_names::Tuple{Symbol, Vararg{Symbol}};
     n_iter = 20,
 )
     train_results = train_rate_equation(
         rate_equation::Function,
         data::DataFrame,
-        metab_names::Tuple,
-        param_names::Tuple;
+        metab_names::Tuple{Symbol, Vararg{Symbol}},
+        param_names::Tuple{Symbol, Vararg{Symbol}};
         n_iter = n_iter,
         nt_param_removal_code = nothing,
     )
@@ -63,26 +63,26 @@ end
 function train_rate_equation(
     rate_equation::Function,
     data::DataFrame,
-    metab_names::Tuple,
-    param_names::Tuple;
+    metab_names::Tuple{Symbol, Vararg{Symbol}},
+    param_names::Tuple{Symbol, Vararg{Symbol}};
     n_iter = 20,
     nt_param_removal_code = nothing,
 )
+    filtered_data = data[.!isnan.(data.Rate), [:Rate, metab_names..., :source]]
+    #Only include Rate > 0 because otherwise log_ratio_predict_vs_data() will have to divide by 0
+    filter!(row -> row.Rate != 0, filtered_data)
     # Add a new column to data to assign an integer to each source/figure from publication
-    data.fig_num = vcat(
+    filtered_data.fig_num = vcat(
         [
-            i * ones(Int64, count(==(unique(data.source)[i]), data.source)) for
-            i = 1:length(unique(data.source))
+            i * ones(Int64, count(==(unique(filtered_data.source)[i]), filtered_data.source)) for
+            i = 1:length(unique(filtered_data.source))
         ]...,
     )
-
+    # Add a column containing indexes of points corresponding to each figure
+    fig_point_indexes =
+        [findall(filtered_data.fig_num .== i) for i in unique(filtered_data.fig_num)]
     # Convert DF to NamedTuple for better type stability / speed
-    #TODO: add fig_point_indexes to rate_data_nt to avoid passing it as an argument to loss_rate_equation
-    rate_data_nt =
-        Tables.columntable(data[.!isnan.(data.Rate), [:Rate, metab_names..., :fig_num]])
-
-    # Make a vector containing indexes of points corresponding to each figure
-    fig_point_indexes = [findall(data.fig_num .== i) for i in unique(data.fig_num)]
+    rate_data_nt = Tables.columntable(filtered_data)
 
     # Check if nt_param_removal_code makes loss returns NaN and abort early if it does. The latter
     # could happens due to nt_param_removal_code making params=Inf
@@ -97,7 +97,7 @@ function train_rate_equation(
             nt_param_removal_code = nt_param_removal_code,
         ),
     )
-        @warn "Loss returns NaN for this param combo in train_rate_equation() before minimization"
+        # @warn "Loss returns NaN for this param combo in train_rate_equation() before minimization"
         return (
             train_loss = Inf,
             params = NamedTuple{param_names}(Tuple(fill(NaN, length(param_names)))),
@@ -187,7 +187,7 @@ function loss_rate_equation(
     params,
     rate_equation::Function,
     rate_data_nt::NamedTuple,
-    param_names,
+    param_names::Tuple{Symbol, Vararg{Symbol}},
     fig_point_indexes::Vector{Vector{Int}};
     rescale_params_from_0_10_scale = true,
     nt_param_removal_code = nothing,

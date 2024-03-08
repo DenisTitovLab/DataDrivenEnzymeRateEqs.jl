@@ -36,6 +36,7 @@ function data_driven_rate_equation_selection(
             (1 + sum([occursin("K_a_", string(param_name)) for param_name in param_names]))
     @assert range_number_params[2] <= length(param_names)
     println("Past assertions")
+
     #generate param_removal_code_names by converting each mirror parameter for a and i into one name
     #(e.g. K_a_Metabolite1 and K_i_Metabolite1 into K_Metabolite1)
     param_removal_code_names = (
@@ -67,6 +68,8 @@ function data_driven_rate_equation_selection(
 
     previous_param_removal_codes = starting_param_removal_codes
     println("About to start loop with num_params: $num_param_range")
+    df_train_results = DataFrame()
+    df_test_results = DataFrame()
     for num_params in num_param_range
         println("Running loop with num_params: $num_params")
 
@@ -102,10 +105,13 @@ function data_driven_rate_equation_selection(
             nt_param_removal_codes,
         )
 
-        #convert results_array to DataFrame and save in csv file
+        #convert results_array to DataFrame
         df_results = DataFrame(results_array)
+        df_results.num_params = fill(num_params, nrow(df_results))
         df_results.nt_param_removal_codes = nt_param_removal_codes
-        df_results
+        df_train_results = vcat(df_train_results, df_results)
+
+        # Optinally consider saving results to csv file for long running calculation of cluster
         # CSV.write(
         #     "$(Dates.format(now(),"mmddyy"))_$(forward_model_selection ? "forward" : "reverse")_model_select_results_$(num_params)_num_params.csv",
         #     df_results,
@@ -114,26 +120,68 @@ function data_driven_rate_equation_selection(
         filter!(row -> row.train_loss < 1.1 * minimum(df_results.train_loss), df_results)
         previous_param_removal_codes = values.(df_results.nt_param_removal_codes)
 
-        #calculate test loss for top 10% subsets for each `num_params`
-        #TODO: loop over all figures and calculate test loss for each figure
-        #TODO: consider looping over all figures and calculating test loss separately from train loss calculations
+        #calculate loocv test loss for top subset for each `num_params`
         #TODO: change to pmap
-        test_loss = map(
-            nt_fitted_params -> test_rate_equation(
+        best_nt_param_removal_code =
+            df_results.nt_param_removal_codes[argmin(df_results.train_loss)]
+        test_results = map(
+            removed_fig -> loocv_rate_equation(
+                removed_fig,
                 general_rate_equation,
                 data,
-                nt_fitted_params,
                 metab_names,
-                param_names,
+                param_names;
+                n_iter = 20,
+                nt_param_removal_code = best_nt_param_removal_code,
             ),
-            df_results.params,
+            unique(data.source),
         )
-        #store rescaled results
+        df_results = DataFrame(test_results)
+        df_results.num_params = fill(num_params, nrow(df_results))
+        df_results.nt_param_removal_codes =
+            fill(best_nt_param_removal_code, nrow(df_results))
+        df_test_results = vcat(df_test_results, df_results)
 
     end
-    println("Finished loop")
 
-    #return train loss and params for all tested subsets, test loss for all tested subsets
+    return (train_results = df_train_results, test_results = df_test_results)
+end
+
+"function to calculate train loss without a figure and test loss on removed figure"
+function loocv_rate_equation(
+    fig,
+    rate_equation::Function,
+    data::DataFrame,
+    metab_names::Tuple{Symbol,Vararg{Symbol}},
+    param_names::Tuple{Symbol,Vararg{Symbol}};
+    n_iter = 20,
+    nt_param_removal_code = nothing,
+)
+    # Drop selected figure from data
+    train_data = data[data.source.!=fig, :]
+    test_data = data[data.source.==fig, :]
+    # Calculate fit
+    train_res = train_rate_equation(
+        rate_equation,
+        train_data,
+        metab_names,
+        param_names;
+        n_iter = n_iter,
+        nt_param_removal_code = nt_param_removal_code,
+    )
+    test_loss = test_rate_equation(
+        rate_equation,
+        test_data,
+        train_res.params,
+        metab_names,
+        param_names,
+    )
+    return (
+        fig = fig,
+        train_loss = train_res.train_loss,
+        test_loss = test_loss,
+        params = train_res.params,
+    )
 end
 
 """Function to calculate loss for a given `rate_equation` and `nt_fitted_params` on `data` that was not used for training"""
@@ -144,20 +192,24 @@ function test_rate_equation(
     metab_names::Tuple{Symbol,Vararg{Symbol}},
     param_names::Tuple{Symbol,Vararg{Symbol}},
 )
+    filtered_data = data[.!isnan.(data.Rate), [:Rate, metab_names..., :source]]
+    #Only include Rate > 0 because otherwise log_ratio_predict_vs_data() will have to divide by 0
+    filter!(row -> row.Rate != 0, filtered_data)
     # Add a new column to data to assign an integer to each source/figure from publication
-    data.fig_num = vcat(
+    filtered_data.fig_num = vcat(
         [
-            i * ones(Int64, count(==(unique(data.source)[i]), data.source)) for
-            i = 1:length(unique(data.source))
+            i * ones(
+                Int64,
+                count(==(unique(filtered_data.source)[i]), filtered_data.source),
+            ) for i = 1:length(unique(filtered_data.source))
         ]...,
     )
-
+    # Add a column containing indexes of points corresponding to each figure
+    fig_point_indexes =
+        [findall(filtered_data.fig_num .== i) for i in unique(filtered_data.fig_num)]
     # Convert DF to NamedTuple for better type stability / speed
-    rate_data_nt =
-        Tables.columntable(data[.!isnan.(data.Rate), [:Rate, metab_names..., :fig_num]])
+    rate_data_nt = Tables.columntable(filtered_data)
 
-    # Make a vector containing indexes of points corresponding to each figure
-    fig_point_indexes = [findall(data.fig_num .== i) for i in unique(data.fig_num)]
     fitted_params = values(nt_fitted_params)
     test_loss = loss_rate_equation(
         fitted_params,

@@ -77,14 +77,36 @@ TODO: delete PKM2 example above after making below to use more complex test_rate
 randomly generated parameters and data around K values.
 Add an option to fit real Vmax values instead of fixing Vmax=1.0.
 =#
-test_rate_equation(metabs, params) = params.Vmax * (metabs.S / params.K_S) / (1 + metabs.S / params.K_S)
-
-param_names = (:Vmax, :K_S)
-metab_names = (:S,)
-params = (Vmax=10.0, K_S=1.0)
-data = DataFrame(S=[0.1, 0.5, 1.0, 2.0, 5.0, 10.0, 20.0, 50.0, 100.0])
+test_rate_equation_Keq = 1.0
+test_rate_equation(metabs, params) = params.Vmax * (metabs.S / params.K_S - (1 / test_rate_equation_Keq) * metabs.P / params.K_P) / (1 + metabs.S / params.K_S + metabs.P / params.K_P)
+param_names = (:Vmax, :K_S, :K_P)
+metab_names = (:S, :P)
+params = (Vmax=10.0, K_S=1.0, K_P=5.0)
+#create DataFrame of simulated data
+num_datapoints = 10
+num_figures = 8
+S_concs = Float64[]
+P_concs = Float64[]
+sources = String[]
+for i in 1:num_figures
+    if i < num_figures ÷ 2
+        for S in range(0, 10 * params.K_S, num_datapoints)
+            push!(S_concs, S)
+            push!(P_concs, 0.0)
+            push!(sources, "Figure$i")
+        end
+    else
+        for P in range(0, 10 * params.K_P, num_datapoints)
+            push!(S_concs, 0.0)
+            push!(P_concs, P)
+            push!(sources, "Figure$i")
+        end
+    end
+end
+data = DataFrame(S=S_concs, P=P_concs, source=sources)
 noise_sd = 0.2
 data.Rate = [test_rate_equation(row, params) * (1 + noise_sd * randn()) for row in eachrow(data)]
-data.source = ["Figure1" for i in 1:nrow(data)]
 fit_result = fit_rate_equation(test_rate_equation, data, metab_names, param_names; n_iter=20)
+
 @test isapprox(fit_result.params.K_S, params.K_S, rtol=3 * noise_sd)
+@test isapprox(fit_result.params.K_P, params.K_P, rtol=3 * noise_sd)

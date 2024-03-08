@@ -5,7 +5,6 @@
 using DataDrivenEnzymeRateEqs, Test, BenchmarkTools
 
 ##
-#TODO: test random inputs into @derive_general_mwc_rate_eq and make sure the resulting rate equation, param_names and metab_names always work together
 substrates = [Symbol(:S, i) for i in 1:rand(1:4)]
 products = [Symbol(:P, i) for i in 1:rand(1:4)]
 regulators = [Symbol(:R, i) for i in 1:rand(1:9)]
