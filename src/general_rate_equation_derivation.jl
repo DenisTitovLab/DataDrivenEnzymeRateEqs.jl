@@ -1,6 +1,7 @@
 #=
 CODE FOR RATE EQUATION DERIVATION
 =#
+using Distributed
 
 @doc raw"""
     derive_general_mwc_rate_eq(metabs_and_regulators_kwargs...)

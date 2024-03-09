@@ -1,4 +1,4 @@
-using Dates, CSV, DataFrames
+using Dates, CSV, DataFrames, Distributed
 
 """
     data_driven_rate_equation_selection(
@@ -93,7 +93,7 @@ function data_driven_rate_equation_selection(
         end
         #pmap over nt_param_removal_codes for a given `num_params` return rescaled and nt_param_subset added
         #TODO: change to pmap
-        results_array = map(
+        results_array = pmap(
             nt_param_removal_code -> train_rate_equation(
                 general_rate_equation,
                 data,
@@ -124,7 +124,7 @@ function data_driven_rate_equation_selection(
         #TODO: change to pmap
         best_nt_param_removal_code =
             df_results.nt_param_removal_codes[argmin(df_results.train_loss)]
-        test_results = map(
+        test_results = pmap(
             removed_fig -> loocv_rate_equation(
                 removed_fig,
                 general_rate_equation,
