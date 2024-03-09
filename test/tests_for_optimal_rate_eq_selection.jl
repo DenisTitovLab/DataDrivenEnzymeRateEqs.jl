@@ -2,11 +2,9 @@
 # TestEnv.activate()
 
 ##
-using Distributed
-addprocs()
-@everywhere using DataDrivenEnzymeRateEqs, Test
-@everywhere using CMAEvolutionStrategy, DataFrames, CSV, Statistics
-@everywhere using BenchmarkTools
+using DataDrivenEnzymeRateEqs, Test
+using CMAEvolutionStrategy, DataFrames, CSV, Statistics
+using BenchmarkTools
 
 #test forward_selection_next_param_removal_codes
 num_metabolites = rand(4:8)
@@ -184,19 +182,14 @@ data
 
 fit_result = fit_rate_equation(data_gen_rate_equation, data, metab_names, param_names; n_iter=20)
 
-# @everywhere enzyme_parameters = (; substrates=[:S,], products=[:P], cat1=[:S, :P], reg1=[], reg2=[], Keq=1.0, oligomeric_state=1, rate_equation_name=:derived_rate_equation)
-# @everywhere metab_names, param_names = @derive_general_mwc_rate_eq(enzyme_parameters)
-# nt_params = NamedTuple{param_names}(rand(length(param_names)))
-# nt_metabs = NamedTuple{metab_names}(rand(length(metab_names)))
-# @everywhere derived_rate_equation_no_Keq(nt_metabs, nt_params) = derived_rate_equation(nt_metabs, nt_params, enzyme_parameters.Keq)
-# # fit_result = fit_rate_equation(derived_rate_equation, data, metab_names, param_names; n_iter=20)
-# selection_result = @time data_driven_rate_equation_selection(derived_rate_equation_no_Keq, data, metab_names, param_names, (3, 7), true)
+enzyme_parameters = (; substrates=[:S,], products=[:P], cat1=[:S, :P], reg1=[], reg2=[], Keq=1.0, oligomeric_state=1, rate_equation_name=:derived_rate_equation)
+metab_names, param_names = @derive_general_mwc_rate_eq(enzyme_parameters)
+nt_params = NamedTuple{param_names}(rand(length(param_names)))
+nt_metabs = NamedTuple{metab_names}(rand(length(metab_names)))
+derived_rate_equation_no_Keq(nt_metabs, nt_params) = derived_rate_equation(nt_metabs, nt_params, enzyme_parameters.Keq)
+fit_result = fit_rate_equation(derived_rate_equation_no_Keq, data, metab_names, param_names; n_iter=20)
+selection_result = @time data_driven_rate_equation_selection(derived_rate_equation_no_Keq, data, metab_names, param_names, (3, 7), true)
 
-# for n in unique(selection_result.test_results.num_params)
-#     println("for $n param, mean(test_losses) = $(mean(selection_result.test_results[selection_result.test_results.num_params .== n, :test_loss]))")
-# end
-
-# Remove all the workers
-for n in workers()
-    rmprocs(n)
+for n in unique(selection_result.test_results.num_params)
+    println("for $n param, mean(test_losses) = $(mean(selection_result.test_results[selection_result.test_results.num_params .== n, :test_loss]))")
 end
