@@ -318,7 +318,7 @@ function forward_selection_next_param_removal_codes(
             sum(param_removal_codes[1:(end-num_alpha_params)] .> 0)
         ) == num_params
     ]
-    #choose param_removal_codes with n_removed_params number of parameters removed that also contain non-zero elements from previous_param_removal_codes
+    # #choose param_removal_codes with n_removed_params number of parameters removed that also contain non-zero elements from previous_param_removal_codes
     param_removal_codes = []
     for previous_param_subset_mask in previous_param_subset_masks
         push!(
@@ -326,17 +326,21 @@ function forward_selection_next_param_removal_codes(
             unique([
                 param_code_w_num_params .* previous_param_subset_mask.mask .+
                 previous_param_subset_mask.non_zero_params for
-                param_code_w_num_params in all_param_codes_w_num_params if (
-                    length(param_names) - num_alpha_params - sum(
-                        (param_code_w_num_params.*previous_param_subset_mask.mask.+previous_param_subset_mask.non_zero_params)[1:(end-num_alpha_params)] .>
-                        0,
-                    )
-                ) == num_params
+                param_code_w_num_params in all_param_codes_w_num_params #if (
+                #     length(param_names) - num_alpha_params - sum(
+                #         (param_code_w_num_params.*previous_param_subset_mask.mask.+previous_param_subset_mask.non_zero_params)[1:(end-num_alpha_params)] .>
+                #         0,
+                #     )
+                # ) == num_params
             ])...,
         )
     end
-    nt_param_removal_codes =
-        [NamedTuple{param_removal_code_names}(x) for x in unique(param_removal_codes)]
+    nt_param_removal_codes = [
+        NamedTuple{param_removal_code_names}(x) for
+        x in unique(param_removal_codes) if (
+            length(param_names) - num_alpha_params - sum(x[1:(end-num_alpha_params)] .> 0)
+        ) == num_params
+    ]
     return nt_param_removal_codes
 end
 
@@ -383,16 +387,20 @@ function reverse_selection_next_param_removal_codes(
             unique([
                 previous_param_subset_mask.non_zero_params .*
                 (param_code_w_num_params .!= 0) for
-                param_code_w_num_params in all_param_codes_w_num_params if (
-                    length(param_names) - num_alpha_params - sum(
-                        (previous_param_subset_mask.non_zero_params.*(param_code_w_num_params.!=0))[1:(end-num_alpha_params)] .>
-                        0,
-                    )
-                ) == num_params
+                param_code_w_num_params in all_param_codes_w_num_params #if (
+                #     length(param_names) - num_alpha_params - sum(
+                #         (previous_param_subset_mask.non_zero_params.*(param_code_w_num_params.!=0))[1:(end-num_alpha_params)] .>
+                #         0,
+                #     )
+                # ) == num_params
             ])...,
         )
     end
-    nt_param_removal_codes =
-        [NamedTuple{param_removal_code_names}(x) for x in unique(param_removal_codes)]
+    nt_param_removal_codes = [
+        NamedTuple{param_removal_code_names}(x) for
+        x in unique(param_removal_codes) if (
+            length(param_names) - num_alpha_params - sum(x[1:(end-num_alpha_params)] .> 0)
+        ) == num_params
+    ]
     return nt_param_removal_codes
 end
