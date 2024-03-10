@@ -191,5 +191,5 @@ fit_result = fit_rate_equation(derived_rate_equation_no_Keq, data, metab_names, 
 selection_result = @time data_driven_rate_equation_selection(derived_rate_equation_no_Keq, data, metab_names, param_names, (3, 7), true)
 
 for n in unique(selection_result.test_results.num_params)
-    println("for $n param, mean(test_losses) = $(mean(selection_result.test_results[selection_result.test_results.num_params .== n, :test_loss]))")
+    println("for $n param, mean(test_losses) = $(mean(selection_result.test_results[selection_result.test_results.num_params .== n, :test_loss_leftout_fig]))")
 end

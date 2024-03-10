@@ -51,14 +51,14 @@ function data_driven_rate_equation_selection(
 
     num_alpha_params = count(occursin.("alpha", string.([param_names...])))
     if forward_model_selection
-        num_param_range = (range_number_params[2]-1):-1:range_number_params[1]
+        num_param_range = (range_number_params[2]):-1:range_number_params[1]
         starting_param_removal_codes = [
             x for
             x in all_param_removal_codes if length(param_names) - num_alpha_params -
             sum(values(x[1:(end-num_alpha_params)]) .> 0) == range_number_params[2]
         ]
     elseif !forward_model_selection
-        num_param_range = (range_number_params[1]+1):1:range_number_params[2]
+        num_param_range = (range_number_params[1]):1:range_number_params[2]
         starting_param_removal_codes = [
             x for
             x in all_param_removal_codes if length(param_names) - num_alpha_params -
@@ -178,8 +178,8 @@ function loocv_rate_equation(
     )
     return (
         fig = fig,
-        train_loss = train_res.train_loss,
-        test_loss = test_loss,
+        train_loss_wo_fig = train_res.train_loss,
+        test_loss_leftout_fig = test_loss,
         params = train_res.params,
     )
 end
@@ -296,9 +296,13 @@ function forward_selection_next_param_removal_codes(
 
     num_alpha_params = count(occursin.("alpha", string.([param_names...])))
     @assert all([
-        length(param_names) - num_alpha_params -
-        sum(param_removal_code[1:(end-num_alpha_params)] .> 0) == num_params + 1 for
-        param_removal_code in previous_param_removal_codes
+        (
+            length(param_names) - num_alpha_params -
+            sum(param_removal_code[1:(end-num_alpha_params)] .> 0) == num_params + 1
+        ) || (
+            length(param_names) - num_alpha_params -
+            sum(param_removal_code[1:(end-num_alpha_params)] .> 0) == num_params
+        ) for param_removal_code in previous_param_removal_codes
     ])
     previous_param_subset_masks = unique([
         (
@@ -357,9 +361,13 @@ function reverse_selection_next_param_removal_codes(
 
     num_alpha_params = count(occursin.("alpha", string.([param_names...])))
     @assert all([
-        length(param_names) - num_alpha_params -
-        sum(param_removal_code[1:(end-num_alpha_params)] .> 0) == num_params - 1 for
-        param_removal_code in previous_param_removal_codes
+        (
+            length(param_names) - num_alpha_params -
+            sum(param_removal_code[1:(end-num_alpha_params)] .> 0) == num_params - 1
+        ) || (
+            length(param_names) - num_alpha_params -
+            sum(param_removal_code[1:(end-num_alpha_params)] .> 0) == num_params
+        ) for param_removal_code in previous_param_removal_codes
     ])
     previous_param_subset_masks = unique([
         (
