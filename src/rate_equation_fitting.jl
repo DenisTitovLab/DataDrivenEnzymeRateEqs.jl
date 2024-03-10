@@ -136,8 +136,8 @@ function train_rate_equation(
         end
         push!(solns, sol)
     end
-    filter!(sol -> sol != Inf ? !isinf(fbest(sol)) : !isinf(fbest(sol)), solns)
-    filter!(sol -> sol != NaN ? !isnan(fbest(sol)) : !isnan(fbest(sol)), solns)
+    filter!(sol -> sol != Inf, solns)
+    filter!(sol -> fbest(sol) != NaN, solns)
 
     if isempty(solns)
         @warn "All of the iterations of fits for this param combo return NaN or Inf in train_rate_equation() before minimization"

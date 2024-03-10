@@ -92,7 +92,6 @@ function data_driven_rate_equation_selection(
             )
         end
         #pmap over nt_param_removal_codes for a given `num_params` return rescaled and nt_param_subset added
-        #TODO: change to pmap
         results_array = pmap(
             nt_param_removal_code -> train_rate_equation(
                 general_rate_equation,
@@ -177,7 +176,7 @@ function loocv_rate_equation(
         param_names,
     )
     return (
-        fig = fig,
+        dropped_fig = fig,
         train_loss_wo_fig = train_res.train_loss,
         test_loss_leftout_fig = test_loss,
         params = train_res.params,
