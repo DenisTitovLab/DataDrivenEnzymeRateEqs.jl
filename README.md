@@ -25,7 +25,7 @@ DataDrivenEnzymeRateEqs.jl outputs the following info about enzyme:
 
 ### Make up an enzyme rate equation and generate noisy data
 ```julia
-using DataFrames
+using DataDrivenEnzymeRateEqs, DataFrames
 
 data_gen_rate_equation_Keq = 1.0
 data_gen_rate_equation(metabs, params) = params.Vmax * (metabs.S / params.K_S - (1 / data_gen_rate_equation_Keq) * metabs.P / params.K_P) / (1 + metabs.S / params.K_S + metabs.P / params.K_P)
@@ -62,17 +62,17 @@ data
 ### Use the `data` above to identify the rate equation and check that it is same as `data_gen_rate_equation`:  
 
 ```julia
-using DataDrivenEnzymeRateEqs, DataFrames
-
-fit_result = fit_rate_equation(data_gen_rate_equation, data, metab_names, param_names; n_iter=20)
-
-enzyme_parameters = (; substrates=[:S,], products=[:P], cat1=[:S, :P], reg1=[], reg2=[], Keq=1.0, oligomeric_state=4, rate_equation_name=:derived_rate_equation)
+#Define enzyme
+enzyme_parameters = (; substrates=[:S,], products=[:P], cat1=[:S, :P], reg1=[], reg2=[], Keq=1.0, oligomeric_state=1, rate_equation_name=:derived_rate_equation)
 metab_names, param_names = @derive_general_mwc_rate_eq(enzyme_parameters)
-nt_params = NamedTuple{param_names}(rand(length(param_names)))
-nt_metabs = NamedTuple{metab_names}(rand(length(metab_names)))
+
+#Find the best rate equation
 derived_rate_equation_no_Keq(nt_metabs, nt_params) = derived_rate_equation(nt_metabs, nt_params, enzyme_parameters.Keq)
-fit_result = fit_rate_equation(derived_rate_equation_no_Keq, data, metab_names, param_names; n_iter=20)
 selection_result = @time data_driven_rate_equation_selection(derived_rate_equation_no_Keq, data, metab_names, param_names, (3, 7), true)
+
+#Display best equation with 3 parameters. Compare sym_rate_equation with data_gen_rate_equation with Vmax=1
+nt_param_removal_code = filter(x -> x.num_params .== 3, selection_result.test_results).nt_param_removal_codes[1]
+sym_rate_equation = display_rate_equation(derived_rate_equation, metab_names, param_names; nt_param_removal_code=nt_param_removal_code)
 ```
 
 ## Documentation
