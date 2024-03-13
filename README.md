@@ -23,7 +23,7 @@ DataDrivenEnzymeRateEqs.jl outputs the following info about enzyme:
 
 ## Example
 
-### Make up an enzyme rate equation and generate noisy data
+#### Make up an enzyme rate equation and generate noisy data
 ```julia
 using DataDrivenEnzymeRateEqs, DataFrames
 
@@ -32,7 +32,9 @@ data_gen_rate_equation(metabs, params) = params.Vmax * (metabs.S / params.K_S - 
 param_names = (:Vmax, :K_S, :K_P)
 metab_names = (:S, :P)
 params = (Vmax=10.0, K_S=1e-3, K_P=5e-3)
-#create DataFrame of simulated data
+```
+#### Generate noisy data using `data_gen_rate_equation`
+```julia
 num_datapoints = 10
 num_figures = 4
 S_concs = Float64[]
@@ -57,10 +59,8 @@ end
 data = DataFrame(S=S_concs, P=P_concs, source=sources)
 noise_sd = 0.2
 data.Rate = [data_gen_rate_equation(row, params) * (1 + noise_sd * randn()) for row in eachrow(data)]
-data
 ```
-### Use the `data` above to identify the rate equation and check that it is same as `data_gen_rate_equation`:  
-
+#### Use the `data` above to identify the rate equation and check that it is same as `data_gen_rate_equation`  
 ```julia
 #Define enzyme
 enzyme_parameters = (; substrates=[:S,], products=[:P], cat1=[:S, :P], reg1=[], reg2=[], Keq=1.0, oligomeric_state=1, rate_equation_name=:derived_rate_equation)
@@ -80,7 +80,6 @@ sym_rate_equation = display_rate_equation(derived_rate_equation, metab_names, pa
 Check the [Documentation](https://denistitovlab.github.io/DataDrivenEnzymeRateEqs.jl/dev/) for more info
 
 ## Plans for the future
-- add helper functions that allow easy viewing of the rate equations in latex
 - add rate equations based on Rapid Equilibrium approximation
 - add rate equations based on Quasy-Steady-State approximation
 - add plotting functions
