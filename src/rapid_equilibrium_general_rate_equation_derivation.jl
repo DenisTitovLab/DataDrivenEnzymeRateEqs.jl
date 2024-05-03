@@ -11,19 +11,17 @@ Derive a function that calculates the rate of a reaction using the general rate 
 The general rapid equilibrium rate equation is given by:
 
 ```math
-Rate = \\frac{{V_{max}^a \\prod_{i=1}^{n} \\left(\\frac{S_i}{K_{a, i}}\\right) - V_{max}^a_{rev} \\prod_{i=1}^{n} \\left(\\frac{P_i}{K_{a, i}}\\right) \\cdot Z_{a, cat}^{n-1} \\cdot Z_{a, reg}^n + L \\left(V_{max}^i \\prod_{i=1}^{n} \\left(\\frac{S_i}{K_{i, i}}\\right) - V_{max}^i_{rev} \\prod_{i=1}^{n} \\left(\\frac{P_i}{K_{i, i}}\\right)\\right) \\cdot Z_{i, cat}^{n-1} \\cdot Z_{i, reg}^n}}{Z_{a, cat}^n \\cdot Z_{a, reg}^n + L \\cdot Z_{i, cat}^n \\cdot Z_{i, reg}^n}
+Rate = \\frac{{V_{max} \\prod_{i=1}^{n} \\left(\\frac{S_i}{K_{S_i}}\\right) - V_{max}_{rev} \\prod_{i=1}^{n} \\left(\\frac{P_i}{K_{P_i}}\\right) - V_{max rev} \\prod_{i=1}^{n} \\left(\\frac{P_i}{K_{P_i}}\\right)\\right)}{Z_{cat}}
 ```
 
 where:
-- ``V_{max}^a`` is the maximum rate of the forward reaction
-- ``V_{max rev}^a`` is the maximum rate of the reverse reaction
-- ``V_{max}^i`` is the maximum rate of the forward reaction
-- ``V_{max rev}^i`` is the maximum rate of the reverse reaction
+- ``V_{max}`` is the maximum rate of the forward reaction
+- ``V_{max rev}`` is the maximum rate of the reverse reaction
 - ``S_i`` is the concentration of the ``i^{th}`` substrate
 - ``P_i`` is the concentration of the ``i^{th}`` product
-- ``K_{a, i}`` is the Michaelis constant for the ``i^{th}`` substrate
-- ``K_{i, i}`` is the Michaelis constant for the ``i^{th}`` product
-- ``Z_{a, cat}`` is the allosteric factor for the catalytic site
+- ``K_{S_i}`` is the binding constant of the ``i^{th}`` substrate to enzyme
+- ``K_{S_i}`` is the binding constant of the ``i^{th}`` product to enzyme
+- ``Z_{cat}`` is the allosteric factor for the catalytic site
 
 # Arguments
 - `metabs_and_regulators_kwargs...`: keyword arguments that specify the substrates, products, catalytic sites, regulatory sites, and other parameters of the reaction.
@@ -125,7 +123,6 @@ macro derive_general_rapid_equilibrium_rate_eq(metabs_and_regulators_kwargs)
                 $(enz.P3_cat3 isa Symbol) ? metabs.$(enz.P3_cat3) : 1.0,
                 $(enz.P4_cat4 isa Symbol) ? metabs.$(enz.P4_cat4) : 1.0,
                 params.Vmax,
-                x,
                 $(enz.S1_cat1 isa Symbol) ? params.$(Symbol("K_", enz.S1_cat1, "_cat1")) :
                 1.0,
                 $(enz.S2_cat2 isa Symbol) ? params.$(Symbol("K_", enz.S2_cat2, "_cat2")) :
@@ -411,13 +408,12 @@ function generate_param_names(processed_input)
         site for site in keys(processed_input) if
         site ∈ [:cat1, :cat2, :cat3, :cat4]
     ]
-    param_names = (:L, :Vmax_a, :Vmax_i)
+    param_names = (:Vmax,)
     for site in metab_binding_sites
         for metab in processed_input[site]
             param_names = (
                 param_names...,
-                Symbol("K_a_", metab, "_", site),
-                Symbol("K_i_", metab, "_", site),
+                Symbol("K_", metab, "_", site),
             )
         end
     end
