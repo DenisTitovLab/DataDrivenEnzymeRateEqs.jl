@@ -1,5 +1,5 @@
 #=
-CODE FOR RATE EQUATION DERIVATION
+CODE FOR MWC RATE EQUATION DERIVATION
 =#
 using Distributed
 
@@ -11,14 +11,14 @@ Derive a function that calculates the rate of a reaction using the general MWC r
 The general MWC rate equation is given by:
 
 ```math
-Rate = \frac{{V_{max}^a \prod_{i=1}^{n} \left(\frac{S_i}{K_{a, i}}\right) - V_{max}^a_{rev} \prod_{i=1}^{n} \left(\frac{P_i}{K_{a, i}}\right) \cdot Z_{a, cat}^{n-1} \cdot Z_{a, reg}^n + L \left(V_{max}^i \prod_{i=1}^{n} \left(\frac{S_i}{K_{i, i}}\right) - V_{max}^i_{rev} \prod_{i=1}^{n} \left(\frac{P_i}{K_{i, i}}\right)\right) \cdot Z_{i, cat}^{n-1} \cdot Z_{i, reg}^n}}{Z_{a, cat}^n \cdot Z_{a, reg}^n + L \cdot Z_{i, cat}^n \cdot Z_{i, reg}^n}
+Rate = \\frac{{V_{max}^a \\prod_{i=1}^{n} \\left(\\frac{S_i}{K_{a, i}}\\right) - V_{max}^a_{rev} \\prod_{i=1}^{n} \\left(\\frac{P_i}{K_{a, i}}\\right) \\cdot Z_{a, cat}^{n-1} \\cdot Z_{a, reg}^n + L \\left(V_{max}^i \\prod_{i=1}^{n} \\left(\\frac{S_i}{K_{i, i}}\\right) - V_{max}^i_{rev} \\prod_{i=1}^{n} \\left(\\frac{P_i}{K_{i, i}}\\right)\\right) \\cdot Z_{i, cat}^{n-1} \\cdot Z_{i, reg}^n}}{Z_{a, cat}^n \\cdot Z_{a, reg}^n + L \\cdot Z_{i, cat}^n \\cdot Z_{i, reg}^n}
 ```
 
 where:
 - ``V_{max}^a`` is the maximum rate of the forward reaction
-- ``V_{max}^a_{rev}`` is the maximum rate of the reverse reaction
+- ``V_{max rev}^a`` is the maximum rate of the reverse reaction
 - ``V_{max}^i`` is the maximum rate of the forward reaction
-- ``V_{max}^i_{rev}`` is the maximum rate of the reverse reaction
+- ``V_{max rev}^i`` is the maximum rate of the reverse reaction
 - ``S_i`` is the concentration of the ``i^{th}`` substrate
 - ``P_i`` is the concentration of the ``i^{th}`` product
 - ``K_{a, i}`` is the Michaelis constant for the ``i^{th}`` substrate
@@ -27,7 +27,7 @@ where:
 - ``Z_{i, cat}`` is the allosteric factor for the catalytic site
 - ``Z_{a, reg}`` is the allosteric factor for the regulatory site
 - ``Z_{i, reg}`` is the allosteric factor for the regulatory site
-- ``L`` is the concentration of the ligand
+- ``L`` is the ratio of inactive to active enzyme conformations in the absence of ligands
 - ``n`` is the oligomeric state of the enzyme
 
 # Arguments
@@ -39,21 +39,6 @@ where:
 """
 macro derive_general_mwc_rate_eq(metabs_and_regulators_kwargs)
 
-    # processed_input = NamedTuple()
-    # for expr in metabs_and_regulators_kwargs
-    #     expr.args[1] ∈ expected_input_kwargs || error(
-    #         "invalid keyword: ",
-    #         expr.args[1],
-    #         ". The only supported keywords are: ",
-    #         expected_input_kwargs,
-    #     )
-    #     println(expr)
-    #     println(expr.args[1])
-    #     println(typeof(expr.args[1]))
-    #     println(expr.args[2])
-    #     println(typeof(expr.args[2]))
-    #     processed_input = merge(processed_input, (; expr.args[1] => eval(expr)))
-    # end
     processed_input = getfield(__module__, Symbol(metabs_and_regulators_kwargs))
     expected_input_kwargs = [
         :substrates,
@@ -510,145 +495,6 @@ end
     )
     return Z_reg
 end
-
-# @inline function calculate_z_cat(
-#     S1_cat1,
-#     S2_cat2,
-#     S3_cat3,
-#     S4_cat4,
-#     P1_cat1,
-#     P2_cat2,
-#     P3_cat3,
-#     P4_cat4,
-#     K_S1_cat1,
-#     K_S2_cat2,
-#     K_S3_cat3,
-#     K_S4_cat4,
-#     K_P1_cat1,
-#     K_P2_cat2,
-#     K_P3_cat3,
-#     K_P4_cat4,
-#     alpha_S1_P2,
-#     alpha_S1_P3,
-#     alpha_S1_P4,
-#     alpha_S2_P1,
-#     alpha_S2_P3,
-#     alpha_S2_P4,
-#     alpha_S3_P1,
-#     alpha_S3_P2,
-#     alpha_S3_P4,
-#     alpha_S4_P1,
-#     alpha_S4_P2,
-#     alpha_S4_P3,
-# )
-#     Z_cat = (
-#         (
-#             (1 + S1_cat1 / K_S1_cat1) *
-#             (1 + S2_cat2 / K_S2_cat2) *
-#             (1 + S3_cat3 / K_S3_cat3) *
-#             (1 + S4_cat4 / K_S4_cat4)
-#         ) - 1 +
-#         (
-#             (1 + P1_cat1 / K_P1_cat1) *
-#             (1 + P2_cat2 / K_P2_cat2) *
-#             (1 + P3_cat3 / K_P3_cat3) *
-#             (1 + P4_cat4 / K_P4_cat4)
-#         ) +
-#         (S1_cat1 / K_S1_cat1) *
-#         (1 + alpha_S1_P2 * (P2_cat2 / K_P2_cat2)) *
-#         (1 + alpha_S1_P3 * (P3_cat3 / K_P3_cat3)) *
-#         (1 + alpha_S1_P4 * (P4_cat4 / K_P4_cat4)) - (S1_cat1 / K_S1_cat1) +
-#         (S2_cat2 / K_S2_cat2) *
-#         (1 + alpha_S2_P1 * (P1_cat1 / K_P1_cat1)) *
-#         (1 + alpha_S2_P3 * (P3_cat3 / K_P3_cat3)) *
-#         (1 + alpha_S2_P4 * (P4_cat4 / K_P4_cat4)) - (S2_cat2 / K_S2_cat2) +
-#         (S3_cat3 / K_S3_cat3) *
-#         (1 + alpha_S3_P1 * (P1_cat1 / K_P1_cat1)) *
-#         (1 + alpha_S3_P2 * (P2_cat2 / K_P2_cat2)) *
-#         (1 + alpha_S3_P4 * (P4_cat4 / K_P4_cat4)) - (S3_cat3 / K_S3_cat3) +
-#         (S4_cat4 / K_S4_cat4) *
-#         (1 + alpha_S4_P1 * (P1_cat1 / K_P1_cat1)) *
-#         (1 + alpha_S4_P2 * (P2_cat2 / K_P2_cat2)) *
-#         (1 + alpha_S4_P3 * (P3_cat3 / K_P3_cat3)) - (S4_cat4 / K_S4_cat4) +
-#         (P1_cat1 / K_P1_cat1) *
-#         (1 + alpha_S2_P1 * (S2_cat2 / K_S2_cat2)) *
-#         (1 + alpha_S3_P1 * (S3_cat3 / K_S3_cat3)) *
-#         (1 + alpha_S4_P1 * (S4_cat4 / K_S4_cat4)) - (P1_cat1 / K_P1_cat1) +
-#         (P2_cat2 / K_P2_cat2) *
-#         (1 + alpha_S1_P2 * (S1_cat1 / K_S1_cat1)) *
-#         (1 + alpha_S3_P2 * (S3_cat3 / K_S3_cat3)) *
-#         (1 + alpha_S4_P2 * (S4_cat4 / K_S4_cat4)) - (P2_cat2 / K_P2_cat2) +
-#         (P3_cat3 / K_P3_cat3) *
-#         (1 + alpha_S1_P3 * (S1_cat1 / K_S1_cat1)) *
-#         (1 + alpha_S2_P3 * (S2_cat2 / K_S2_cat2)) *
-#         (1 + alpha_S4_P3 * (S4_cat4 / K_S4_cat4)) - (P3_cat3 / K_P3_cat3) +
-#         (P4_cat4 / K_P4_cat4) *
-#         (1 + alpha_S1_P4 * (S1_cat1 / K_S1_cat1)) *
-#         (1 + alpha_S2_P4 * (S2_cat2 / K_S2_cat2)) *
-#         (1 + alpha_S3_P4 * (S3_cat3 / K_S3_cat3)) - (P4_cat4 / K_P4_cat4) +
-#         (
-#             alpha_S1_P3 *
-#             alpha_S1_P4 *
-#             alpha_S2_P3 *
-#             alpha_S2_P4 *
-#             (S1_cat1 / K_S1_cat1) *
-#             (S2_cat2 / K_S2_cat2) *
-#             (P3_cat3 / K_P3_cat3) *
-#             (P4_cat4 / K_P4_cat4)
-#         ) +
-#         (
-#             alpha_S1_P2 *
-#             alpha_S1_P4 *
-#             alpha_S3_P2 *
-#             alpha_S3_P4 *
-#             (S1_cat1 / K_S1_cat1) *
-#             (P2_cat2 / K_P2_cat2) *
-#             (S3_cat3 / K_S3_cat3) *
-#             (P4_cat4 / K_P4_cat4)
-#         ) +
-#         (
-#             alpha_S1_P2 *
-#             alpha_S1_P3 *
-#             alpha_S4_P2 *
-#             alpha_S4_P3 *
-#             (S1_cat1 / K_S1_cat1) *
-#             (P2_cat2 / K_P2_cat2) *
-#             (P3_cat3 / K_P3_cat3) *
-#             (S4_cat4 / K_S4_cat4)
-#         ) +
-#         (
-#             alpha_S2_P1 *
-#             alpha_S2_P4 *
-#             alpha_S3_P1 *
-#             alpha_S3_P4 *
-#             (P1_cat1 / K_P1_cat1) *
-#             (S2_cat2 / K_S2_cat2) *
-#             (S3_cat3 / K_S3_cat3) *
-#             (P4_cat4 / K_P4_cat4)
-#         ) +
-#         (
-#             alpha_S2_P1 *
-#             alpha_S2_P3 *
-#             alpha_S4_P1 *
-#             alpha_S4_P3 *
-#             (P1_cat1 / K_P1_cat1) *
-#             (S2_cat2 / K_S2_cat2) *
-#             (P3_cat3 / K_P3_cat3) *
-#             (S4_cat4 / K_S4_cat4)
-#         ) +
-#         (
-#             alpha_S3_P1 *
-#             alpha_S3_P2 *
-#             alpha_S4_P1 *
-#             alpha_S4_P2 *
-#             (P1_cat1 / K_P1_cat1) *
-#             (P2_cat2 / K_P2_cat2) *
-#             (S3_cat3 / K_S3_cat3) *
-#             (S4_cat4 / K_S4_cat4)
-#         )
-#     )
-#     return Z_cat
-# end
 
 @inline function calculate_z_cat(
     S1_cat1,
