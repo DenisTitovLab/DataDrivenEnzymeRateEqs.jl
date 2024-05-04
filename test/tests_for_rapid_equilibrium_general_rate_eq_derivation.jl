@@ -33,9 +33,6 @@ metabs_nt = NamedTuple{metab_names}((rand(length(substrates))..., zeros(length(p
 Vmax = 1.0
 metabs_nt = NamedTuple{metab_names}(((1e12 .* rand(length(substrates)))..., zeros(length(products))...))
 @test isapprox(rand_enz_rate_equation(metabs_nt, params_nt, Keq), Vmax, rtol=1e-6)
-
-propertynames(params_nt)[3]
-
 global substrate_Ks = 1.0
 global product_Ks = 1.0
 substrate_params = [Symbol("K_", Symbol(:S, i)) for i in 1:length(substrates)]
@@ -47,7 +44,6 @@ for param in propertynames(params_nt)
         global product_Ks *= params_nt[param]
     end
 end
-
 Vmax_rev = Vmax * product_Ks / (Keq * substrate_Ks)
 metabs_nt = NamedTuple{metab_names}(((zeros(length(substrates)))..., 1e12 .* rand(length(products))...))
 @test isapprox(rand_enz_rate_equation(metabs_nt, params_nt, Keq), -Vmax_rev, rtol=1e-6)
