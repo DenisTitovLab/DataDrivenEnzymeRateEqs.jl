@@ -1,5 +1,5 @@
-using TestEnv
-TestEnv.activate()
+# using TestEnv
+# TestEnv.activate()
 
 ##
 using DataDrivenEnzymeRateEqs, Test, BenchmarkTools
@@ -36,19 +36,18 @@ metabs_nt = NamedTuple{metab_names}(((1e12 .* rand(length(substrates)))..., zero
 
 propertynames(params_nt)[3]
 
-substrate_Ks = 1.0
-product_Ks = 1.0
+global substrate_Ks = 1.0
+global product_Ks = 1.0
 substrate_params = [Symbol("K_", Symbol(:S, i)) for i in 1:length(substrates)]
 product_params = [Symbol("K_", Symbol(:P, i)) for i in 1:length(products)]
 for param in propertynames(params_nt)
     if param ∈ substrate_params
-        substrate_Ks *= params_nt[param]
+        global substrate_Ks *= params_nt[param]
     elseif param ∈ product_params
-        product_Ks *= params_nt[param]
+        global product_Ks *= params_nt[param]
     end
 end
 
-Vmax_rev = params_nt.Vmax * product_Ks / (Keq * substrate_Ks)
+Vmax_rev = Vmax * product_Ks / (Keq * substrate_Ks)
 metabs_nt = NamedTuple{metab_names}(((zeros(length(substrates)))..., 1e12 .* rand(length(products))...))
 @test isapprox(rand_enz_rate_equation(metabs_nt, params_nt, Keq), -Vmax_rev, rtol=1e-6)
-rand_enz_rate_equation(metabs_nt, params_nt, Keq)

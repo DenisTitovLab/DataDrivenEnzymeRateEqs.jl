@@ -45,8 +45,8 @@ macro derive_general_rapid_equilibrium_rate_eq(metabs_and_regulators_kwargs)
     @assert 0 < length(processed_input.substrates) <= 3 "At least 1 and no more that 3 substrates are supported"
     @assert 0 < length(processed_input.products) <= 3 "At least 1 and no more that 3 products are supported"
 
-    metab_names = generate_metab_names(processed_input)
-    param_names = generate_param_names(processed_input)
+    metab_names = rapid_equilibrium_metab_names(processed_input)
+    param_names = rapid_equilibrium_param_names(processed_input)
 
     enz = NamedTuple()
     for (i, substrate) in enumerate(processed_input[:substrates])
@@ -83,7 +83,7 @@ macro derive_general_rapid_equilibrium_rate_eq(metabs_and_regulators_kwargs)
                 $(enz.P2 isa Symbol) ? params.$(Symbol("K_", enz.P2)) : 1.0,
                 $(enz.P3 isa Symbol) ? params.$(Symbol("K_", enz.P3)) : 1.0,
                 #Z_cat
-                calculate_z_cat(
+                calculate_z_cat_rapid_equilibrium(
                     $(enz.S1 isa Symbol) ? metabs.$(enz.S1) : 0.0,
                     $(enz.S2 isa Symbol) ? metabs.$(enz.S2) : 0.0,
                     $(enz.S3 isa Symbol) ? metabs.$(enz.S3) : 0.0,
@@ -158,7 +158,7 @@ end
     return Rate
 end
 
-@inline function calculate_z_cat(
+@inline function calculate_z_cat_rapid_equilibrium(
     S1,
     S2,
     S3,
@@ -247,7 +247,7 @@ end
 end
 
 "Generate the names of the parameters for the rate equation using the same input as @derive_general_rapid_equilibrium_rate_eq"
-function generate_param_names(processed_input)
+function rapid_equilibrium_param_names(processed_input)
     param_names = (:Vmax,)
     for metab in [processed_input[:substrates]..., processed_input[:products]...]
         param_names = (param_names..., Symbol("K_", metab))
@@ -262,7 +262,7 @@ function generate_param_names(processed_input)
 end
 
 "Generate the names of the metabolites for the rate equation using the same input as @derive_general_rapid_equilibrium_rate_eq"
-function generate_metab_names(processed_input)
+function rapid_equilibrium_metab_names(processed_input)
     metab_names = ()
     for site in keys(processed_input)
         if site ∈ [:substrates, :products]
