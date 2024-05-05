@@ -451,33 +451,26 @@ end
 
 "Generate the names of the parameters for the rate equation using the same input as @derive_general_mwc_rate_eq"
 function generate_param_names(processed_input)
-    metab_binding_sites = [
-        site for site in keys(processed_input) if
-        site ∈ [:cat1, :cat2, :cat3, :cat4, :cat5, :reg1, :reg2, :reg3]
-    ]
     param_names = (:L, :Vmax_a, :Vmax_i)
-    for site in metab_binding_sites
-        for metab in processed_input[site]
-            param_names = (
-                param_names...,
-                Symbol("K_a_", metab, "_", site),
-                Symbol("K_i_", metab, "_", site),
-            )
+    for metab in [
+        processed_input[:substrates]...,
+        processed_input[:products]...,
+        processed_input[:regulators]...,
+    ]
+        param_names = (
+            param_names...,
+            Symbol("K_a_", metab, "_", site),
+            Symbol("K_i_", metab, "_", site),
+        )
+    end
+    for substrate in processed_input[:substrates]
+        for product in processed_input[:products]
+            param_names = (param_names..., Symbol("alpha_", substrate, "_", product))
         end
     end
-    catalytic_sites = [
-        site for site in keys(processed_input) if site ∈ [:cat1, :cat2, :cat3, :cat4, :cat5]
-    ]
-    for site in catalytic_sites
-        for substrate in processed_input[site]
-            if substrate ∈ processed_input[:substrates]
-                for product in processed_input[:products]
-                    if product ∉ processed_input[site]
-                        param_names =
-                            (param_names..., Symbol("alpha_", substrate, "_", product))
-                    end
-                end
-            end
+    for (i, regulator1) in enumerate(processed_input[:regulators])[1:(end-1)]
+        for regulator2 in processed_input[:regulators][(i+1):end]
+            param_names = (param_names..., Symbol("alpha_", regulator1, "_", regulator2))
         end
     end
     return param_names
