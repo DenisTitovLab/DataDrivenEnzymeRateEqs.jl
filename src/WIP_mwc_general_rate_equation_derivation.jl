@@ -470,7 +470,7 @@ function generate_param_names(processed_input)
     end
     for (i, regulator1) in enumerate(processed_input[:regulators])[1:(end-1)]
         for regulator2 in processed_input[:regulators][(i+1):end]
-            param_names = (param_names..., Symbol("alpha_", regulator1, "_", regulator2))
+            param_names = (param_names..., Symbol("delta_", regulator1, "_", regulator2))
         end
     end
     return param_names
