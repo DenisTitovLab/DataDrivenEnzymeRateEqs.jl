@@ -32,6 +32,7 @@ function data_driven_rate_equation_selection(
     forward_model_selection::Bool,
 )
     #check that range_number_params within bounds of minimal and maximal number of parameters
+    #TODO: move to after the removal code generation to make more general
     @assert range_number_params[1] >=
             (1 + sum([occursin("K_a_", string(param_name)) for param_name in param_names]))
     @assert range_number_params[2] <= length(param_names)
