@@ -1,5 +1,5 @@
 module DataDrivenEnzymeRateEqs
-include("mwc_general_rate_equation_derivation_w_cat_reg_sites.jl")
+include("mwc_general_rate_equation_derivation.jl")
 include("rapid_equilibrium_general_rate_equation_derivation.jl")
 include("rate_equation_fitting.jl")
 include("data_driven_rate_equation_selection.jl")

@@ -6,16 +6,24 @@ using DataDrivenEnzymeRateEqs, Test
 using CMAEvolutionStrategy, DataFrames, CSV, Statistics
 using BenchmarkTools
 
+# PKM2_enzyme = (;
+#     substrates = [:PEP, :ADP],
+#     products = [:Pyruvate, :ATP],
+#     cat1 = [:ATP, :ADP],
+#     cat2 = [:PEP, :Pyruvate],
+#     reg1 = [:F16BP],
+#     reg2 = [:Phenylalanine],
+#     Keq = 20_000.0,
+#     oligomeric_state = 4,
+#     rate_equation_name = :rate_equation,
+# )
 PKM2_enzyme = (;
     substrates = [:PEP, :ADP],
     products = [:Pyruvate, :ATP],
-    cat1 = [:ATP, :ADP],
-    cat2 = [:PEP, :Pyruvate],
-    reg1 = [:F16BP],
-    reg2 = [:Phenylalanine],
+    regulators = [:F16BP, :Phenylalanine],
     Keq = 20_000.0,
     oligomeric_state = 4,
-    rate_equation_name = :rate_equation,
+    rate_equation_name = :pkm2_rate_equation,
 )
 @derive_general_mwc_rate_eq(PKM2_enzyme)
 
@@ -31,20 +39,23 @@ param_names = (
     :L,
     :Vmax_a,
     :Vmax_i,
-    :K_a_PEP_cat2,
-    :K_i_PEP_cat2,
-    :K_a_ADP_cat1,
-    :K_i_ADP_cat1,
-    :K_a_Pyruvate_cat2,
-    :K_i_Pyruvate_cat2,
-    :K_a_ATP_cat1,
-    :K_i_ATP_cat1,
-    :K_a_F16BP_reg1,
-    :K_i_F16BP_reg1,
-    :K_a_Phenylalanine_reg2,
-    :K_i_Phenylalanine_reg2,
+    :K_a_PEP,
+    :K_i_PEP,
+    :K_a_ADP,
+    :K_i_ADP,
+    :K_a_Pyruvate,
+    :K_i_Pyruvate,
+    :K_a_ATP,
+    :K_i_ATP,
+    :K_a_F16BP,
+    :K_i_F16BP,
+    :K_a_Phenylalanine,
+    :K_i_Phenylalanine,
     :alpha_PEP_ATP,
+    :alpha_PEP_Pyruvate,
     :alpha_ADP_Pyruvate,
+    :alpha_ADP_ATP,
+    :delta_F16BP_Phenylalanine,
 )
 metab_names = (:PEP, :ADP, :Pyruvate, :ATP, :F16BP, :Phenylalanine)
 
