@@ -891,92 +891,194 @@ end
 
     three_metab_bound =
         (S1 / K_S1) * (
-            (S2 / K_S2) * (S3 / K_S3) +
-            alpha_S1_P1 * alpha_S2_P1 * (S2 / K_S2) * (P1 / K_P1) +
-            alpha_S1_P2 * alpha_S2_P2 * (S2 / K_S2) * (P2 / K_P2) +
-            alpha_S1_P3 * alpha_S2_P3 * (S2 / K_S2) * (P3 / K_P3) +
-            alpha_S1_R1 * alpha_S2_R1 * (S2 / K_S2) * (R1 / K_R1) +
-            alpha_S1_R2 * alpha_S2_R2 * (S2 / K_S2) * (R2 / K_R2) +
-            alpha_S1_R3 * alpha_S2_R3 * (S2 / K_S2) * (R3 / K_R3) +
-            alpha_S1_R4 * alpha_S2_R4 * (S2 / K_S2) * (R4 / K_R4) +
-            alpha_S1_R5 * alpha_S2_R5 * (S2 / K_S2) * (R5 / K_R5) +
-            alpha_S1_R6 * alpha_S2_R6 * (S2 / K_S2) * (R6 / K_R6) +
-            alpha_S1_P1 * alpha_S3_P1 * (S3 / K_S3) * (P1 / K_P1) +
-            alpha_S1_P2 * alpha_S3_P2 * (S3 / K_S3) * (P2 / K_P2) +
-            alpha_S1_P3 * alpha_S3_P3 * (S3 / K_S3) * (P3 / K_P3) +
-            alpha_S1_R1 * alpha_S3_R1 * (S3 / K_S3) * (R1 / K_R1) +
-            alpha_S1_R2 * alpha_S3_R2 * (S3 / K_S3) * (R2 / K_R2) +
-            alpha_S1_R3 * alpha_S3_R3 * (S3 / K_S3) * (R3 / K_R3) +
-            alpha_S1_R4 * alpha_S3_R4 * (S3 / K_S3) * (R4 / K_R4) +
-            alpha_S1_R5 * alpha_S3_R5 * (S3 / K_S3) * (R5 / K_R5) +
-            alpha_S1_R6 * alpha_S3_R6 * (S3 / K_S3) * (R6 / K_R6) +
-            alpha_S1_P1 * alpha_S1_P2 * (P1 / K_P1) * (P2 / K_P2) +
-            alpha_S1_P1 * alpha_S1_P3 * (P1 / K_P1) * (P3 / K_P3) +
-            alpha_S1_P2 * alpha_S1_P3 * (P2 / K_P2) * (P3 / K_P3) +
-            alpha_S1_R1 * alpha_S1_R2 * alpha_R1_R2 * (R1 / K_R1) * (R2 / K_R2) +
-            alpha_S1_R1 * alpha_S1_R3 * alpha_R1_R3 * (R1 / K_R1) * (R3 / K_R3) +
-            alpha_S1_R1 * alpha_S1_R4 * alpha_R1_R4 * (R1 / K_R1) * (R4 / K_R4) +
-            alpha_S1_R1 * alpha_S1_R5 * alpha_R1_R5 * (R1 / K_R1) * (R5 / K_R5) +
-            alpha_S1_R1 * alpha_S1_R6 * alpha_R1_R6 * (R1 / K_R1) * (R6 / K_R6) +
-            alpha_S1_R2 * alpha_S1_R3 * alpha_R2_R3 * (R2 / K_R2) * (R3 / K_R3) +
-            alpha_S1_R2 * alpha_S1_R4 * alpha_R2_R4 * (R2 / K_R2) * (R4 / K_R4) +
-            alpha_S1_R2 * alpha_S1_R5 * alpha_R2_R5 * (R2 / K_R2) * (R5 / K_R5) +
-            alpha_S1_R2 * alpha_S1_R6 * alpha_R2_R6 * (R2 / K_R2) * (R6 / K_R6) +
-            alpha_S1_R3 * alpha_S1_R4 * alpha_R3_R4 * (R3 / K_R3) * (R4 / K_R4) +
-            alpha_S1_R3 * alpha_S1_R5 * alpha_R3_R5 * (R3 / K_R3) * (R5 / K_R5) +
-            alpha_S1_R3 * alpha_S1_R6 * alpha_R3_R6 * (R3 / K_R3) * (R6 / K_R6) +
-            alpha_S1_R4 * alpha_S1_R5 * alpha_R4_R5 * (R4 / K_R4) * (R5 / K_R5) +
-            alpha_S1_R4 * alpha_S1_R6 * alpha_R4_R6 * (R4 / K_R4) * (R6 / K_R6) +
-            alpha_S1_R5 * alpha_S1_R6 * alpha_R5_R6 * (R5 / K_R5) * (R6 / K_R6)
+            (S2 / K_S2) * (
+                (S3 / K_S3) +
+                alpha_S1_P1 * alpha_S2_P1 * (P1 / K_P1) +
+                alpha_S1_P2 * alpha_S2_P2 * (P2 / K_P2) +
+                alpha_S1_P3 * alpha_S2_P3 * (P3 / K_P3) +
+                alpha_S1_R1 * alpha_S2_R1 * (R1 / K_R1) +
+                alpha_S1_R2 * alpha_S2_R2 * (R2 / K_R2) +
+                alpha_S1_R3 * alpha_S2_R3 * (R3 / K_R3) +
+                alpha_S1_R4 * alpha_S2_R4 * (R4 / K_R4) +
+                alpha_S1_R5 * alpha_S2_R5 * (R5 / K_R5) +
+                alpha_S1_R6 * alpha_S2_R6 * (R6 / K_R6)
+            ) +
+            (S3 / K_S3) * (
+                alpha_S1_P1 * alpha_S3_P1 * (P1 / K_P1) +
+                alpha_S1_P2 * alpha_S3_P2 * (P2 / K_P2) +
+                alpha_S1_P3 * alpha_S3_P3 * (P3 / K_P3) +
+                alpha_S1_R1 * alpha_S3_R1 * (R1 / K_R1) +
+                alpha_S1_R2 * alpha_S3_R2 * (R2 / K_R2) +
+                alpha_S1_R3 * alpha_S3_R3 * (R3 / K_R3) +
+                alpha_S1_R4 * alpha_S3_R4 * (R4 / K_R4) +
+                alpha_S1_R5 * alpha_S3_R5 * (R5 / K_R5) +
+                alpha_S1_R6 * alpha_S3_R6 * (R6 / K_R6)
+            ) +
+            (alpha_S1_P1 * (P1 / K_P1)) * (
+                alpha_S1_P2 * (P2 / K_P2) +
+                alpha_S1_P3 * (P3 / K_P3) +
+                alpha_S1_R1 * alpha_P1_R1 * (R1 / K_R1) +
+                alpha_S1_R2 * alpha_P1_R2 * (R2 / K_R2) +
+                alpha_S1_R3 * alpha_P1_R3 * (R3 / K_R3) +
+                alpha_S1_R4 * alpha_P1_R4 * (R4 / K_R4) +
+                alpha_S1_R5 * alpha_P1_R5 * (R5 / K_R5) +
+                alpha_S1_R6 * alpha_P1_R6 * (R6 / K_R6)
+            ) +
+            (alpha_S1_P2 * (P2 / K_P2)) * (
+                alpha_S1_P3 * (P3 / K_P3) +
+                alpha_S1_R1 * alpha_P2_R1 * (R1 / K_R1) +
+                alpha_S1_R2 * alpha_P2_R2 * (R2 / K_R2) +
+                alpha_S1_R3 * alpha_P2_R3 * (R3 / K_R3) +
+                alpha_S1_R4 * alpha_P2_R4 * (R4 / K_R4) +
+                alpha_S1_R5 * alpha_P2_R5 * (R5 / K_R5) +
+                alpha_S1_R6 * alpha_P2_R6 * (R6 / K_R6)
+            ) +
+            (alpha_S1_P3 * (P3 / K_P3)) * (
+                alpha_S1_R1 * alpha_P3_R1 * (R1 / K_R1) +
+                alpha_S1_R2 * alpha_P3_R2 * (R2 / K_R2) +
+                alpha_S1_R3 * alpha_P3_R3 * (R3 / K_R3) +
+                alpha_S1_R4 * alpha_P3_R4 * (R4 / K_R4) +
+                alpha_S1_R5 * alpha_P3_R5 * (R5 / K_R5) +
+                alpha_S1_R6 * alpha_P3_R6 * (R6 / K_R6)
+            ) +
+            (alpha_S1_R1 * (R1 / K_R1)) * (
+                alpha_S1_R2 * alpha_R1_R2 * (R2 / K_R2) +
+                alpha_S1_R3 * alpha_R1_R3 * (R3 / K_R3) +
+                alpha_S1_R4 * alpha_R1_R4 * (R4 / K_R4) +
+                alpha_S1_R5 * alpha_R1_R5 * (R5 / K_R5) +
+                alpha_S1_R6 * alpha_R1_R6 * (R6 / K_R6)
+            ) +
+            (alpha_S1_R2 * (R2 / K_R2)) * (
+                alpha_S1_R3 * alpha_R2_R3 * (R3 / K_R3) +
+                alpha_S1_R4 * alpha_R2_R4 * (R4 / K_R4) +
+                alpha_S1_R5 * alpha_R2_R5 * (R5 / K_R5) +
+                alpha_S1_R6 * alpha_R2_R6 * (R6 / K_R6)
+            ) +
+            (alpha_S1_R3 * (R3 / K_R3)) * (
+                alpha_S1_R4 * alpha_R3_R4 * (R4 / K_R4) +
+                alpha_S1_R5 * alpha_R3_R5 * (R5 / K_R5) +
+                alpha_S1_R6 * alpha_R3_R6 * (R6 / K_R6)
+            ) +
+            (alpha_S1_R4 * (R4 / K_R4)) * (
+                alpha_S1_R5 * alpha_R4_R5 * (R5 / K_R5) +
+                alpha_S1_R6 * alpha_R4_R6 * (R6 / K_R6)
+            ) +
+            (alpha_S1_R5 * (R5 / K_R5)) * (alpha_S1_R6 * alpha_R5_R6 * (R6 / K_R6))
         ) +
         (S2 / K_S2) * (
-            alpha_S2_P1 * alpha_S3_P1 * (S3 / K_S3) * (P1 / K_P1) +
-            alpha_S2_P2 * alpha_S3_P2 * (S3 / K_S3) * (P2 / K_P2) +
-            alpha_S2_P3 * alpha_S3_P3 * (S3 / K_S3) * (P3 / K_P3) +
-            alpha_S2_R1 * alpha_S3_R1 * (S3 / K_S3) * (R1 / K_R1) +
-            alpha_S2_R2 * alpha_S3_R2 * (S3 / K_S3) * (R2 / K_R2) +
-            alpha_S2_R3 * alpha_S3_R3 * (S3 / K_S3) * (R3 / K_R3) +
-            alpha_S2_R4 * alpha_S3_R4 * (S3 / K_S3) * (R4 / K_R4) +
-            alpha_S2_R5 * alpha_S3_R5 * (S3 / K_S3) * (R5 / K_R5) +
-            alpha_S2_R6 * alpha_S3_R6 * (S3 / K_S3) * (R6 / K_R6) +
-            alpha_S2_P1 * alpha_S2_P2 * (P1 / K_P1) * (P2 / K_P2) +
-            alpha_S2_P1 * alpha_S2_P3 * (P1 / K_P1) * (P3 / K_P3) +
-            alpha_S2_P2 * alpha_S2_P3 * (P2 / K_P2) * (P3 / K_P3) +
-            alpha_S2_R1 * alpha_S2_R2 * alpha_R1_R2 * (R1 / K_R1) * (R2 / K_R2) +
-            alpha_S2_R1 * alpha_S2_R3 * alpha_R1_R3 * (R1 / K_R1) * (R3 / K_R3) +
-            alpha_S2_R1 * alpha_S2_R4 * alpha_R1_R4 * (R1 / K_R1) * (R4 / K_R4) +
-            alpha_S2_R1 * alpha_S2_R5 * alpha_R1_R5 * (R1 / K_R1) * (R5 / K_R5) +
-            alpha_S2_R1 * alpha_S2_R6 * alpha_R1_R6 * (R1 / K_R1) * (R6 / K_R6) +
-            alpha_S2_R2 * alpha_S2_R3 * alpha_R2_R3 * (R2 / K_R2) * (R3 / K_R3) +
-            alpha_S2_R2 * alpha_S2_R4 * alpha_R2_R4 * (R2 / K_R2) * (R4 / K_R4) +
-            alpha_S2_R2 * alpha_S2_R5 * alpha_R2_R5 * (R2 / K_R2) * (R5 / K_R5) +
-            alpha_S2_R2 * alpha_S2_R6 * alpha_R2_R6 * (R2 / K_R2) * (R6 / K_R6) +
-            alpha_S2_R3 * alpha_S2_R4 * alpha_R3_R4 * (R3 / K_R3) * (R4 / K_R4) +
-            alpha_S2_R3 * alpha_S2_R5 * alpha_R3_R5 * (R3 / K_R3) * (R5 / K_R5) +
-            alpha_S2_R3 * alpha_S2_R6 * alpha_R3_R6 * (R3 / K_R3) * (R6 / K_R6) +
-            alpha_S2_R4 * alpha_S2_R5 * alpha_R4_R5 * (R4 / K_R4) * (R5 / K_R5) +
-            alpha_S2_R4 * alpha_S2_R6 * alpha_R4_R6 * (R4 / K_R4) * (R6 / K_R6) +
-            alpha_S2_R5 * alpha_S2_R6 * alpha_R5_R6 * (R5 / K_R5) * (R6 / K_R6)
+            (S3 / K_S3) * (
+                alpha_S2_P1 * alpha_S3_P1 * (P1 / K_P1) +
+                alpha_S2_P2 * alpha_S3_P2 * (P2 / K_P2) +
+                alpha_S2_P3 * alpha_S3_P3 * (P3 / K_P3) +
+                alpha_S2_R1 * alpha_S3_R1 * (R1 / K_R1) +
+                alpha_S2_R2 * alpha_S3_R2 * (R2 / K_R2) +
+                alpha_S2_R3 * alpha_S3_R3 * (R3 / K_R3) +
+                alpha_S2_R4 * alpha_S3_R4 * (R4 / K_R4) +
+                alpha_S2_R5 * alpha_S3_R5 * (R5 / K_R5) +
+                alpha_S2_R6 * alpha_S3_R6 * (R6 / K_R6)
+            ) +
+            (alpha_S2_P1 * (P1 / K_P1)) * (
+                alpha_S2_P2 * (P2 / K_P2) +
+                alpha_S2_P3 * (P3 / K_P3) +
+                alpha_S2_R1 * alpha_P1_R1 * (R1 / K_R1) +
+                alpha_S2_R2 * alpha_P1_R2 * (R2 / K_R2) +
+                alpha_S2_R3 * alpha_P1_R3 * (R3 / K_R3) +
+                alpha_S2_R4 * alpha_P1_R4 * (R4 / K_R4) +
+                alpha_S2_R5 * alpha_P1_R5 * (R5 / K_R5) +
+                alpha_S2_R6 * alpha_P1_R6 * (R6 / K_R6)
+            ) +
+            (alpha_S2_P2 * (P2 / K_P2)) * (
+                alpha_S2_P3 * (P3 / K_P3) +
+                alpha_S2_R1 * alpha_P2_R1 * (R1 / K_R1) +
+                alpha_S2_R2 * alpha_P2_R2 * (R2 / K_R2) +
+                alpha_S2_R3 * alpha_P2_R3 * (R3 / K_R3) +
+                alpha_S2_R4 * alpha_P2_R4 * (R4 / K_R4) +
+                alpha_S2_R5 * alpha_P2_R5 * (R5 / K_R5) +
+                alpha_S2_R6 * alpha_P2_R6 * (R6 / K_R6)
+            ) +
+            (alpha_S2_P3 * (P3 / K_P3)) * (
+                alpha_S2_R1 * alpha_P3_R1 * (R1 / K_R1) +
+                alpha_S2_R2 * alpha_P3_R2 * (R2 / K_R2) +
+                alpha_S2_R3 * alpha_P3_R3 * (R3 / K_R3) +
+                alpha_S2_R4 * alpha_P3_R4 * (R4 / K_R4) +
+                alpha_S2_R5 * alpha_P3_R5 * (R5 / K_R5) +
+                alpha_S2_R6 * alpha_P3_R6 * (R6 / K_R6)
+            ) +
+            (alpha_S2_R1 * (R1 / K_R1)) * (
+                alpha_S2_R2 * alpha_R1_R2 * (R2 / K_R2) +
+                alpha_S2_R3 * alpha_R1_R3 * (R3 / K_R3) +
+                alpha_S2_R4 * alpha_R1_R4 * (R4 / K_R4) +
+                alpha_S2_R5 * alpha_R1_R5 * (R5 / K_R5) +
+                alpha_S2_R6 * alpha_R1_R6 * (R6 / K_R6)
+            ) +
+            (alpha_S2_R2 * (R2 / K_R2)) * (
+                alpha_S2_R3 * alpha_R2_R3 * (R3 / K_R3) +
+                alpha_S2_R4 * alpha_R2_R4 * (R4 / K_R4) +
+                alpha_S2_R5 * alpha_R2_R5 * (R5 / K_R5) +
+                alpha_S2_R6 * alpha_R2_R6 * (R6 / K_R6)
+            ) +
+            (alpha_S2_R3 * (R3 / K_R3)) * (
+                alpha_S2_R4 * alpha_R3_R4 * (R4 / K_R4) +
+                alpha_S2_R5 * alpha_R3_R5 * (R5 / K_R5) +
+                alpha_S2_R6 * alpha_R3_R6 * (R6 / K_R6)
+            ) +
+            (alpha_S2_R4 * (R4 / K_R4)) * (
+                alpha_S2_R5 * alpha_R4_R5 * (R5 / K_R5) +
+                alpha_S2_R6 * alpha_R4_R6 * (R6 / K_R6)
+            ) +
+            (alpha_S2_R5 * (R5 / K_R5)) * (alpha_S2_R6 * alpha_R5_R6 * (R6 / K_R6))
         ) +
         (S3 / K_S3) * (
-            alpha_S3_P1 * alpha_S3_P2 * (P1 / K_P1) * (P2 / K_P2) +
-            alpha_S3_P1 * alpha_S3_P3 * (P1 / K_P1) * (P3 / K_P3) +
-            alpha_S3_P2 * alpha_S3_P3 * (P2 / K_P2) * (P3 / K_P3) +
-            alpha_S3_R1 * alpha_S3_R2 * alpha_S1_R2 * (R1 / K_R1) * (R2 / K_R2) +
-            alpha_S3_R1 * alpha_S3_R3 * alpha_S1_R3 * (R1 / K_R1) * (R3 / K_R3) +
-            alpha_S3_R1 * alpha_S3_R4 * alpha_S1_R4 * (R1 / K_R1) * (R4 / K_R4) +
-            alpha_S3_R1 * alpha_S3_R5 * alpha_S1_R5 * (R1 / K_R1) * (R5 / K_R5) +
-            alpha_S3_R1 * alpha_S3_R6 * alpha_S1_R6 * (R1 / K_R1) * (R6 / K_R6) +
-            alpha_S3_R2 * alpha_S3_R3 * alpha_S1_R3 * (R2 / K_R2) * (R3 / K_R3) +
-            alpha_S3_R2 * alpha_S3_R4 * alpha_S1_R4 * (R2 / K_R2) * (R4 / K_R4) +
-            alpha_S3_R2 * alpha_S3_R5 * alpha_S1_R5 * (R2 / K_R2) * (R5 / K_R5) +
-            alpha_S3_R2 * alpha_S3_R6 * alpha_S1_R6 * (R2 / K_R2) * (R6 / K_R6) +
-            alpha_S3_R3 * alpha_S3_R4 * alpha_S1_R4 * (R3 / K_R3) * (R4 / K_R4) +
-            alpha_S3_R3 * alpha_S3_R5 * alpha_S1_R5 * (R3 / K_R3) * (R5 / K_R5) +
-            alpha_S3_R3 * alpha_S3_R6 * alpha_S1_R6 * (R3 / K_R3) * (R6 / K_R6) +
-            alpha_S3_R4 * alpha_S3_R5 * alpha_S1_R5 * (R4 / K_R4) * (R5 / K_R5) +
-            alpha_S3_R4 * alpha_S3_R6 * alpha_S1_R6 * (R4 / K_R4) * (R6 / K_R6) +
-            alpha_S3_R5 * alpha_S3_R6 * alpha_S1_R6 * (R5 / K_R5) * (R6 / K_R6)
+            (alpha_S3_P1 * (P1 / K_P1)) * (
+                alpha_S3_P2 * (P2 / K_P2) +
+                alpha_S3_P3 * (P3 / K_P3) +
+                alpha_S3_R1 * alpha_P1_R1 * (R1 / K_R1) +
+                alpha_S3_R2 * alpha_P1_R2 * (R2 / K_R2) +
+                alpha_S3_R3 * alpha_P1_R3 * (R3 / K_R3) +
+                alpha_S3_R4 * alpha_P1_R4 * (R4 / K_R4) +
+                alpha_S3_R5 * alpha_P1_R5 * (R5 / K_R5) +
+                alpha_S3_R6 * alpha_P1_R6 * (R6 / K_R6)
+            ) +
+            (alpha_S3_P2 * (P2 / K_P2)) * (
+                alpha_S3_P3 * (P3 / K_P3) +
+                alpha_S3_R1 * alpha_P2_R1 * (R1 / K_R1) +
+                alpha_S3_R2 * alpha_P2_R2 * (R2 / K_R2) +
+                alpha_S3_R3 * alpha_P2_R3 * (R3 / K_R3) +
+                alpha_S3_R4 * alpha_P2_R4 * (R4 / K_R4) +
+                alpha_S3_R5 * alpha_P2_R5 * (R5 / K_R5) +
+                alpha_S3_R6 * alpha_P2_R6 * (R6 / K_R6)
+            ) +
+            (alpha_S3_P3 * (P3 / K_P3)) * (
+                alpha_S3_R1 * alpha_P3_R1 * (R1 / K_R1) +
+                alpha_S3_R2 * alpha_P3_R2 * (R2 / K_R2) +
+                alpha_S3_R3 * alpha_P3_R3 * (R3 / K_R3) +
+                alpha_S3_R4 * alpha_P3_R4 * (R4 / K_R4) +
+                alpha_S3_R5 * alpha_P3_R5 * (R5 / K_R5) +
+                alpha_S3_R6 * alpha_P3_R6 * (R6 / K_R6)
+            ) +
+            (alpha_S3_R1 * (R1 / K_R1)) * (
+                alpha_S3_R2 * alpha_S1_R2 * (R2 / K_R2) +
+                alpha_S3_R3 * alpha_S1_R3 * (R3 / K_R3) +
+                alpha_S3_R4 * alpha_S1_R4 * (R4 / K_R4) +
+                alpha_S3_R5 * alpha_S1_R5 * (R5 / K_R5) +
+                alpha_S3_R6 * alpha_S1_R6 * (R6 / K_R6)
+            ) +
+            (alpha_S3_R2 * (R2 / K_R2)) * (
+                alpha_S3_R3 * alpha_S1_R3 * (R3 / K_R3) +
+                alpha_S3_R4 * alpha_S1_R4 * (R4 / K_R4) +
+                alpha_S3_R5 * alpha_S1_R5 * (R5 / K_R5) +
+                alpha_S3_R6 * alpha_S1_R6 * (R6 / K_R6)
+            ) +
+            (alpha_S3_R3 * (R3 / K_R3)) * (
+                alpha_S3_R4 * alpha_S1_R4 * (R4 / K_R4) +
+                alpha_S3_R5 * alpha_S1_R5 * (R5 / K_R5) +
+                alpha_S3_R6 * alpha_S1_R6 * (R6 / K_R6)
+            ) +
+            (alpha_S3_R4 * (R4 / K_R4)) * (
+                alpha_S3_R5 * alpha_S1_R5 * (R5 / K_R5) +
+                alpha_S3_R6 * alpha_S1_R6 * (R6 / K_R6)
+            ) +
+            (alpha_S3_R5 * (R5 / K_R5)) * (alpha_S3_R6 * alpha_S1_R6 * (R6 / K_R6))
         ) +
         (P1 / K_P1) * (
             (P2 / K_P2) * (P3 / K_P3) +
