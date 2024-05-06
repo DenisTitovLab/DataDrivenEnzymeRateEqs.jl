@@ -124,9 +124,6 @@ metabs_nt =
     (PEP=0.0, ADP=0.0, Pyruvate=1e12, ATP=1e12, F16BP=0.0, Phenylalanine=1e12)
 @test isapprox(pkm2_rate_equation(metabs_nt, params_nt, 20000.0), -Vmax_i_rev, rtol=1e-6)
 
-
-pkm2_rate_equation(metabs_nt, params_nt, 20000.0)
-
 display_rate_equation(
     pkm2_rate_equation,
     metab_names,
