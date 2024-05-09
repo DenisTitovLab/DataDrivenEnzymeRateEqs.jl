@@ -1398,249 +1398,94 @@ end
                 alpha_R1_R5 * alpha_R2_R5 * (R5 * R5_allostery / K_R5) +
                 alpha_R1_R6 * alpha_R2_R6 * (R6 * R6_allostery / K_R6)
             ) +
-            alpha_R1_R3 *
-            alpha_R1_R4 *
-            alpha_R3_R4 *
-            (R3 * R3_allostery / K_R3) *
-            (R4 * R4_allostery / K_R4) +
-            alpha_R1_R3 *
-            alpha_R1_R5 *
-            alpha_R3_R5 *
-            (R3 * R3_allostery / K_R3) *
-            (R5 * R5_allostery / K_R5) +
-            alpha_R1_R3 *
-            alpha_R1_R6 *
-            alpha_R3_R6 *
-            (R3 * R3_allostery / K_R3) *
-            (R6 * R6_allostery / K_R6) +
-            alpha_R1_R4 *
-            alpha_R1_R5 *
-            alpha_R4_R5 *
-            (R4 * R4_allostery / K_R4) *
-            (R5 * R5_allostery / K_R5) +
-            alpha_R1_R4 *
-            alpha_R1_R6 *
-            alpha_R4_R6 *
-            (R4 * R4_allostery / K_R4) *
-            (R6 * R6_allostery / K_R6) +
-            alpha_R1_R5 *
-            alpha_R1_R6 *
-            alpha_R5_R6 *
-            (R5 * R5_allostery / K_R5) *
-            (R6 * R6_allostery / K_R6)
+            (alpha_R1_R3 * (R3 * R3_allostery / K_R3)) * (
+                alpha_R1_R4 * alpha_R3_R4 * (R4 * R4_allostery / K_R4) +
+                alpha_R1_R5 * alpha_R3_R5 * (R5 * R5_allostery / K_R5) +
+                alpha_R1_R6 * alpha_R3_R6 * (R6 * R6_allostery / K_R6)
+            ) +
+            (alpha_R1_R4 * (R4 * R4_allostery / K_R4)) * (
+                alpha_R1_R5 * alpha_R4_R5 * (R5 * R5_allostery / K_R5) +
+                alpha_R1_R6 * alpha_R4_R6 * (R6 * R6_allostery / K_R6)
+            ) +
+            (alpha_R1_R5 * (R5 * R5_allostery / K_R5)) *
+            (alpha_R1_R6 * alpha_R5_R6 * (R6 * R6_allostery / K_R6))
         ) +
-        alpha_R2_R3 *
-        alpha_R2_R4 *
-        alpha_R3_R4 *
-        (R2 * R2_allostery / K_R2) *
-        (R3 * R3_allostery / K_R3) *
-        (R4 * R4_allostery / K_R4) +
-        alpha_R2_R3 *
-        alpha_R2_R5 *
-        alpha_R3_R5 *
-        (R2 * R2_allostery / K_R2) *
-        (R3 * R3_allostery / K_R3) *
-        (R5 * R5_allostery / K_R5) +
-        alpha_R2_R3 *
-        alpha_R2_R6 *
-        alpha_R3_R6 *
-        (R2 * R2_allostery / K_R2) *
-        (R3 * R3_allostery / K_R3) *
-        (R6 * R6_allostery / K_R6) +
-        alpha_R2_R4 *
-        alpha_R2_R5 *
-        alpha_R4_R5 *
-        (R2 * R2_allostery / K_R2) *
-        (R4 * R4_allostery / K_R4) *
-        (R5 * R5_allostery / K_R5) +
-        alpha_R2_R4 *
-        alpha_R2_R6 *
-        alpha_R4_R6 *
-        (R2 * R2_allostery / K_R2) *
-        (R4 * R4_allostery / K_R4) *
-        (R6 * R6_allostery / K_R6) +
-        alpha_R2_R5 *
-        alpha_R2_R6 *
-        alpha_R5_R6 *
-        (R2 * R2_allostery / K_R2) *
-        (R5 * R5_allostery / K_R5) *
-        (R6 * R6_allostery / K_R6) +
-        alpha_R3_R4 *
-        alpha_R3_R5 *
-        alpha_R4_R5 *
-        (R3 * R3_allostery / K_R3) *
-        (R4 * R4_allostery / K_R4) *
-        (R5 * R5_allostery / K_R5) +
-        alpha_R3_R4 *
-        alpha_R3_R6 *
-        alpha_R4_R6 *
-        (R3 * R3_allostery / K_R3) *
-        (R4 * R4_allostery / K_R4) *
-        (R6 * R6_allostery / K_R6) +
-        alpha_R3_R5 *
-        alpha_R3_R6 *
-        alpha_R5_R6 *
-        (R3 * R3_allostery / K_R3) *
-        (R5 * R5_allostery / K_R5) *
-        (R6 * R6_allostery / K_R6) +
-        alpha_R4_R5 *
-        alpha_R4_R6 *
-        alpha_R5_R6 *
-        (R4 * R4_allostery / K_R4) *
-        (R5 * R5_allostery / K_R5) *
-        (R6 * R6_allostery / K_R6)
+        (R2 * R2_allostery / K_R2) * (
+            (alpha_R2_R3 * (R3 * R3_allostery / K_R3)) * (
+                alpha_R2_R4 * alpha_R3_R4 * (R4 * R4_allostery / K_R4) +
+                alpha_R2_R5 * alpha_R3_R5 * (R5 * R5_allostery / K_R5) +
+                alpha_R2_R6 * alpha_R3_R6 * (R6 * R6_allostery / K_R6)
+            ) +
+            (alpha_R2_R4 * (R4 * R4_allostery / K_R4)) * (
+                alpha_R2_R5 * alpha_R4_R5 * (R5 * R5_allostery / K_R5) +
+                alpha_R2_R6 * alpha_R4_R6 * (R6 * R6_allostery / K_R6)
+            ) +
+            (alpha_R2_R5 * (R5 * R5_allostery / K_R5)) *
+            (alpha_R2_R6 * alpha_R5_R6 * (R6 * R6_allostery / K_R6))
+        ) +
+        (R3 * R3_allostery / K_R3) * (
+            (alpha_R3_R4 * (R4 * R4_allostery / K_R4)) * (
+                alpha_R3_R5 * alpha_R4_R5 * (R5 * R5_allostery / K_R5) +
+                alpha_R3_R6 * alpha_R4_R6 * (R6 * R6_allostery / K_R6)
+            ) +
+            (alpha_R3_R5 * (R5 * R5_allostery / K_R5)) *
+            (alpha_R3_R6 * alpha_R5_R6 * (R6 * R6_allostery / K_R6))
+        ) +
+        (R4 * R4_allostery / K_R4) * (
+            (alpha_R4_R5 * (R5 * R5_allostery / K_R5)) *
+            (alpha_R4_R6 * alpha_R5_R6 * (R6 * R6_allostery / K_R6))
+        )
 
     four_metab_bound =
-        alpha_R1_R2 *
-        alpha_R1_R3 *
-        alpha_R1_R4 *
-        alpha_R2_R3 *
-        alpha_R2_R4 *
-        alpha_R3_R4 *
-        (R1 * R1_allostery / K_R1) *
-        (R2 * R2_allostery / K_R2) *
-        (R3 * R3_allostery / K_R3) *
-        (R4 * R4_allostery / K_R4) +
-        alpha_R1_R2 *
-        alpha_R1_R3 *
-        alpha_R1_R5 *
-        alpha_R2_R3 *
-        alpha_R2_R5 *
-        alpha_R3_R5 *
-        (R1 * R1_allostery / K_R1) *
-        (R2 * R2_allostery / K_R2) *
-        (R3 * R3_allostery / K_R3) *
-        (R5 * R5_allostery / K_R5) +
-        alpha_R1_R2 *
-        alpha_R1_R3 *
-        alpha_R1_R6 *
-        alpha_R2_R3 *
-        alpha_R2_R6 *
-        alpha_R3_R6 *
-        (R1 * R1_allostery / K_R1) *
-        (R2 * R2_allostery / K_R2) *
-        (R3 * R3_allostery / K_R3) *
-        (R6 * R6_allostery / K_R6) +
-        alpha_R1_R2 *
-        alpha_R1_R4 *
-        alpha_R1_R5 *
-        alpha_R2_R4 *
-        alpha_R2_R5 *
-        alpha_R4_R5 *
-        (R1 * R1_allostery / K_R1) *
-        (R2 * R2_allostery / K_R2) *
-        (R4 * R4_allostery / K_R4) *
-        (R5 * R5_allostery / K_R5) +
-        alpha_R1_R2 *
-        alpha_R1_R4 *
-        alpha_R1_R6 *
-        alpha_R2_R4 *
-        alpha_R2_R6 *
-        alpha_R4_R6 *
-        (R1 * R1_allostery / K_R1) *
-        (R2 * R2_allostery / K_R2) *
-        (R4 * R4_allostery / K_R4) *
-        (R6 * R6_allostery / K_R6) +
-        alpha_R1_R2 *
-        alpha_R1_R5 *
-        alpha_R1_R6 *
-        alpha_R2_R5 *
-        alpha_R2_R6 *
-        alpha_R5_R6 *
-        (R1 * R1_allostery / K_R1) *
-        (R2 * R2_allostery / K_R2) *
-        (R5 * R5_allostery / K_R5) *
-        (R6 * R6_allostery / K_R6) +
-        alpha_R1_R3 *
-        alpha_R1_R4 *
-        alpha_R1_R5 *
-        alpha_R3_R4 *
-        alpha_R3_R5 *
-        alpha_R4_R5 *
-        (R1 * R1_allostery / K_R1) *
-        (R3 * R3_allostery / K_R3) *
-        (R4 * R4_allostery / K_R4) *
-        (R5 * R5_allostery / K_R5) +
-        alpha_R1_R3 *
-        alpha_R1_R4 *
-        alpha_R1_R6 *
-        alpha_R3_R4 *
-        alpha_R3_R6 *
-        alpha_R4_R6 *
-        (R1 * R1_allostery / K_R1) *
-        (R3 * R3_allostery / K_R3) *
-        (R4 * R4_allostery / K_R4) *
-        (R6 * R6_allostery / K_R6) +
-        alpha_R1_R3 *
-        alpha_R1_R5 *
-        alpha_R1_R6 *
-        alpha_R3_R5 *
-        alpha_R3_R6 *
-        alpha_R5_R6 *
-        (R1 * R1_allostery / K_R1) *
-        (R3 * R3_allostery / K_R3) *
-        (R5 * R5_allostery / K_R5) *
-        (R6 * R6_allostery / K_R6) +
-        alpha_R1_R4 *
-        alpha_R1_R5 *
-        alpha_R1_R6 *
-        alpha_R4_R5 *
-        alpha_R4_R6 *
-        alpha_R5_R6 *
-        (R1 * R1_allostery / K_R1) *
-        (R4 * R4_allostery / K_R4) *
-        (R5 * R5_allostery / K_R5) *
-        (R6 * R6_allostery / K_R6) +
-        alpha_R2_R3 *
-        alpha_R2_R4 *
-        alpha_R2_R5 *
-        alpha_R3_R4 *
-        alpha_R3_R5 *
-        alpha_R4_R5 *
-        (R2 * R2_allostery / K_R2) *
-        (R3 * R3_allostery / K_R3) *
-        (R4 * R4_allostery / K_R4) *
-        (R5 * R5_allostery / K_R5) +
-        alpha_R2_R3 *
-        alpha_R2_R4 *
-        alpha_R2_R6 *
-        alpha_R3_R4 *
-        alpha_R3_R6 *
-        alpha_R4_R6 *
-        (R2 * R2_allostery / K_R2) *
-        (R3 * R3_allostery / K_R3) *
-        (R4 * R4_allostery / K_R4) *
-        (R6 * R6_allostery / K_R6) +
-        alpha_R2_R3 *
-        alpha_R2_R5 *
-        alpha_R2_R6 *
-        alpha_R3_R5 *
-        alpha_R3_R6 *
-        alpha_R5_R6 *
-        (R2 * R2_allostery / K_R2) *
-        (R3 * R3_allostery / K_R3) *
-        (R5 * R5_allostery / K_R5) *
-        (R6 * R6_allostery / K_R6) +
-        alpha_R2_R4 *
-        alpha_R2_R5 *
-        alpha_R2_R6 *
-        alpha_R4_R5 *
-        alpha_R4_R6 *
-        alpha_R5_R6 *
-        (R2 * R2_allostery / K_R2) *
-        (R4 * R4_allostery / K_R4) *
-        (R5 * R5_allostery / K_R5) *
-        (R6 * R6_allostery / K_R6) +
-        alpha_R3_R4 *
-        alpha_R3_R5 *
-        alpha_R3_R6 *
-        alpha_R4_R5 *
-        alpha_R4_R6 *
-        alpha_R5_R6 *
-        (R3 * R3_allostery / K_R3) *
-        (R4 * R4_allostery / K_R4) *
-        (R5 * R5_allostery / K_R5) *
-        (R6 * R6_allostery / K_R6)
+        (R1 * R1_allostery / K_R1) * (
+            (alpha_R1_R2 * (R2 * R2_allostery / K_R2)) * (
+                (alpha_R1_R3 * alpha_R2_R3 * (R3 * R3_allostery / K_R3)) * (
+                    alpha_R1_R4 * alpha_R2_R4 * alpha_R3_R4 * (R4 * R4_allostery / K_R4) +
+                    alpha_R1_R5 * alpha_R2_R5 * alpha_R3_R5 * (R5 * R5_allostery / K_R5) +
+                    alpha_R1_R6 * alpha_R2_R6 * alpha_R3_R6 * (R6 * R6_allostery / K_R6)
+                ) +
+                (alpha_R1_R4 * alpha_R2_R4 * (R4 * R4_allostery / K_R4)) * (
+                    alpha_R1_R5 * alpha_R2_R5 * alpha_R4_R5 * (R5 * R5_allostery / K_R5) +
+                    alpha_R1_R6 * alpha_R2_R6 * alpha_R4_R6 * (R6 * R6_allostery / K_R6)
+                ) +
+                (alpha_R1_R5 * alpha_R2_R5 * (R5 * R5_allostery / K_R5)) *
+                (alpha_R1_R6 * alpha_R2_R6 * alpha_R5_R6 * (R6 * R6_allostery / K_R6))
+            ) +
+            (alpha_R1_R3 * (R3 * R3_allostery / K_R3)) * (
+                (alpha_R1_R4 * alpha_R3_R4 * (R4 * R4_allostery / K_R4)) * (
+                    alpha_R1_R5 * alpha_R3_R5 * alpha_R4_R5 * (R5 * R5_allostery / K_R5) +
+                    alpha_R1_R6 * alpha_R3_R6 * alpha_R4_R6 * (R6 * R6_allostery / K_R6)
+                ) +
+                (alpha_R1_R5 * alpha_R3_R5 * (R5 * R5_allostery / K_R5)) *
+                (alpha_R1_R6 * alpha_R3_R6 * alpha_R5_R6 * (R6 * R6_allostery / K_R6))
+            ) +
+            (alpha_R1_R4 * (R4 * R4_allostery / K_R4)) * (
+                (alpha_R1_R5 * alpha_R4_R5 * (R5 * R5_allostery / K_R5)) *
+                (alpha_R1_R6 * alpha_R4_R6 * alpha_R5_R6 * (R6 * R6_allostery / K_R6))
+            )
+        ) +
+        (R2 * R2_allostery / K_R2) * (
+            (alpha_R2_R3 * (R3 * R3_allostery / K_R3)) * (
+                (alpha_R2_R4 * alpha_R3_R4 * (R4 * R4_allostery / K_R4)) * (
+                    alpha_R2_R5 * alpha_R3_R5 * alpha_R4_R5 * (R5 * R5_allostery / K_R5) +
+                    alpha_R2_R6 * alpha_R3_R6 * alpha_R4_R6 * (R6 * R6_allostery / K_R6)
+                ) +
+                (alpha_R2_R5 * alpha_R3_R5 * (R5 * R5_allostery / K_R5)) *
+                (alpha_R2_R6 * alpha_R3_R6 * alpha_R5_R6 * (R6 * R6_allostery / K_R6))
+            ) +
+            (alpha_R2_R4 * (R4 * R4_allostery / K_R4)) * (
+                (alpha_R2_R5 * alpha_R4_R5 * (R5 * R5_allostery / K_R5)) *
+                (alpha_R2_R6 * alpha_R4_R6 * alpha_R5_R6 * (R6 * R6_allostery / K_R6))
+            )
+        ) +
+        (R3 * R3_allostery / K_R3) * (
+            alpha_R3_R4 *
+            (R4 * R4_allostery / K_R4) *
+            (
+                (alpha_R3_R5 * alpha_R4_R5 * (R5 * R5_allostery / K_R5)) *
+                (alpha_R3_R6 * alpha_R4_R6 * alpha_R5_R6 * (R6 * R6_allostery / K_R6))
+            )
+        )
 
     five_metab_bound =
         alpha_R1_R2 *
