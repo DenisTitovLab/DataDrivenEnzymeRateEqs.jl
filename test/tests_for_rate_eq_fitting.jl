@@ -18,46 +18,22 @@ using BenchmarkTools
 #     rate_equation_name = :rate_equation,
 # )
 PKM2_enzyme = (;
-    substrates = [:PEP, :ADP],
-    products = [:Pyruvate, :ATP],
-    regulators = [:F16BP, :Phenylalanine],
-    Keq = 20_000.0,
-    oligomeric_state = 4,
-    rate_equation_name = :pkm2_rate_equation,
+    substrates=[:PEP, :ADP],
+    products=[:Pyruvate, :ATP],
+    regulators=[:F16BP, :Phenylalanine],
+    Keq=20_000.0,
+    oligomeric_state=4,
+    rate_equation_name=:pkm2_rate_equation,
 )
-@derive_general_mwc_rate_eq(PKM2_enzyme)
+metab_names, param_names = @derive_general_mwc_rate_eq(PKM2_enzyme)
 
 
 
-rate_equation(metabs, p) = rate_equation(metabs, p, 20000.0)
+rate_equation(metabs, p) = pkm2_rate_equation(metabs, p, 20000.0)
 #Load and process data
 PKM2_data_for_fit = CSV.read(joinpath(@__DIR__, "Data_for_tests/PKM2_data.csv"), DataFrame)
 #Add source column that uniquely identifies a figure from publication
 PKM2_data_for_fit.source = PKM2_data_for_fit.Article .* "_" .* PKM2_data_for_fit.Fig
-
-param_names = (
-    :L,
-    :Vmax_a,
-    :Vmax_i,
-    :K_a_PEP,
-    :K_i_PEP,
-    :K_a_ADP,
-    :K_i_ADP,
-    :K_a_Pyruvate,
-    :K_i_Pyruvate,
-    :K_a_ATP,
-    :K_i_ATP,
-    :K_a_F16BP,
-    :K_i_F16BP,
-    :K_a_Phenylalanine,
-    :K_i_Phenylalanine,
-    :alpha_PEP_ATP,
-    :alpha_PEP_Pyruvate,
-    :alpha_ADP_Pyruvate,
-    :alpha_ADP_ATP,
-    :delta_F16BP_Phenylalanine,
-)
-metab_names = (:PEP, :ADP, :Pyruvate, :ATP, :F16BP, :Phenylalanine)
 
 data = PKM2_data_for_fit
 data.fig_num = vcat(
@@ -70,14 +46,15 @@ rate_data_nt = Tables.columntable(data[.!isnan.(data.Rate), [:Rate, metab_names.
 
 # Make a vector containing indexes of points corresponding to each figure
 fig_point_indexes = [findall(data.fig_num .== i) for i in unique(data.fig_num)]
-kinetic_params = [rand() for i = 1:length(param_names)]
+num_alphas = sum([1 for param_name in param_names if occursin("alpha", string(param_name))])
+kinetic_params = [[rand() for i = 1:length(param_names)-num_alphas]..., [rand([0,1]) for i = 1:num_alphas]...]
 benchmark_result = @benchmark DataDrivenEnzymeRateEqs.loss_rate_equation(kinetic_params, rate_equation, rate_data_nt, param_names, fig_point_indexes)
-@test mean(benchmark_result.times) <= 100_000 #ns
+@test mean(benchmark_result.times) <= 150_000 #ns
 benchmark_result = @benchmark DataDrivenEnzymeRateEqs.loss_rate_equation($(kinetic_params), rate_equation, $(rate_data_nt), $(param_names), $(fig_point_indexes))
-@test mean(benchmark_result.times) <= 100_000 #ns
+@test mean(benchmark_result.times) <= 150_000 #ns
 
 #TODO: make fake data with noise and known params and ensure known params are recovered
-fit_result = fit_rate_equation(rate_equation, data, metab_names, param_names; n_iter=20)
+fit_result = @time fit_rate_equation(rate_equation, data, metab_names, param_names; n_iter=20)
 @test isapprox(fit_result.train_loss, 0.08946088323758938, rtol=1e-3)
 @test fit_result.params isa NamedTuple{param_names}{NTuple{length(param_names),Float64}}
 

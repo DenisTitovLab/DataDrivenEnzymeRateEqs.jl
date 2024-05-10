@@ -52,7 +52,9 @@ macro derive_general_mwc_rate_eq(metabs_and_regulators_kwargs)
     end
     @assert 0 < length(processed_input.substrates) <= 3 "At least 1 and no more that 3 substrates are supported"
     @assert 0 < length(processed_input.products) <= 3 "At least 1 and no more that 3 products are supported"
-    @assert 0 < length(processed_input.regulators) <= 6 "no more that 6 regulators are supported"
+    if haskey(processed_input, :regulators)
+        @assert 0 < length(processed_input.regulators) <= 6 "no more that 6 regulators are supported"
+    end
 
     metab_names = generate_metab_names(processed_input)
     param_names = generate_param_names(processed_input)
@@ -790,48 +792,66 @@ end
     alpha_R4_R6,
     alpha_R5_R6,
 )
-    R1_competitive =
+    R1_bind_cat = ifelse(
         (1 - alpha_S1_R1) *
         (1 - alpha_S2_R1) *
         (1 - alpha_S3_R1) *
         (1 - alpha_P1_R1) *
         (1 - alpha_P2_R1) *
-        (1 - alpha_P3_R1)
-    R2_competitive =
+        (1 - alpha_P3_R1) != 0.0,
+        1.0,
+        0.0,
+    )
+    R2_bind_cat = ifelse(
         (1 - alpha_S1_R2) *
         (1 - alpha_S2_R2) *
         (1 - alpha_S3_R2) *
         (1 - alpha_P1_R2) *
         (1 - alpha_P2_R2) *
-        (1 - alpha_P3_R2)
-    R3_competitive =
+        (1 - alpha_P3_R2) != 0.0,
+        1.0,
+        0.0,
+    )
+    R3_bind_cat = ifelse(
         (1 - alpha_S1_R3) *
         (1 - alpha_S2_R3) *
         (1 - alpha_S3_R3) *
         (1 - alpha_P1_R3) *
         (1 - alpha_P2_R3) *
-        (1 - alpha_P3_R3)
-    R4_competitive =
+        (1 - alpha_P3_R3) != 0.0,
+        1.0,
+        0.0,
+    )
+    R4_bind_cat = ifelse(
         (1 - alpha_S1_R4) *
         (1 - alpha_S2_R4) *
         (1 - alpha_S3_R4) *
         (1 - alpha_P1_R4) *
         (1 - alpha_P2_R4) *
-        (1 - alpha_P3_R4)
-    R5_competitive =
+        (1 - alpha_P3_R4) != 0.0,
+        1.0,
+        0.0,
+    )
+    R5_bind_cat = ifelse(
         (1 - alpha_S1_R5) *
         (1 - alpha_S2_R5) *
         (1 - alpha_S3_R5) *
         (1 - alpha_P1_R5) *
         (1 - alpha_P2_R5) *
-        (1 - alpha_P3_R5)
-    R6_competitive =
+        (1 - alpha_P3_R5) != 0.0,
+        1.0,
+        0.0,
+    )
+    R6_bind_cat = ifelse(
         (1 - alpha_S1_R6) *
         (1 - alpha_S2_R6) *
         (1 - alpha_S3_R6) *
         (1 - alpha_P1_R6) *
         (1 - alpha_P2_R6) *
-        (1 - alpha_P3_R6)
+        (1 - alpha_P3_R6) != 0.0,
+        1.0,
+        0.0,
+    )
     one_metab_bound = (
         S1 / K_S1 +
         S2 / K_S2 +
@@ -839,12 +859,12 @@ end
         P1 / K_P1 +
         P2 / K_P2 +
         P3 / K_P3 +
-        R1_competitive * R1 / K_R1 +
-        R2_competitive * R2 / K_R2 +
-        R3_competitive * R3 / K_R3 +
-        R4_competitive * R4 / K_R4 +
-        R5_competitive * R5 / K_R5 +
-        R6_competitive * R6 / K_R6
+        R1_bind_cat * R1 / K_R1 +
+        R2_bind_cat * R2 / K_R2 +
+        R3_bind_cat * R3 / K_R3 +
+        R4_bind_cat * R4 / K_R4 +
+        R5_bind_cat * R5 / K_R5 +
+        R6_bind_cat * R6 / K_R6
     )
     two_metab_bound =
         (S1 / K_S1) * (S2 / K_S2) +
@@ -857,82 +877,82 @@ end
             alpha_S1_P1 * (P1 / K_P1) +
             alpha_S1_P2 * (P2 / K_P2) +
             alpha_S1_P3 * (P3 / K_P3) +
-            alpha_S1_R1 * (R1_competitive * R1 / K_R1) +
-            alpha_S1_R2 * (R2_competitive * R2 / K_R2) +
-            alpha_S1_R3 * (R3_competitive * R3 / K_R3) +
-            alpha_S1_R4 * (R4_competitive * R4 / K_R4) +
-            alpha_S1_R5 * (R5_competitive * R5 / K_R5) +
-            alpha_S1_R6 * (R6_competitive * R6 / K_R6)
+            alpha_S1_R1 * (R1_bind_cat * R1 / K_R1) +
+            alpha_S1_R2 * (R2_bind_cat * R2 / K_R2) +
+            alpha_S1_R3 * (R3_bind_cat * R3 / K_R3) +
+            alpha_S1_R4 * (R4_bind_cat * R4 / K_R4) +
+            alpha_S1_R5 * (R5_bind_cat * R5 / K_R5) +
+            alpha_S1_R6 * (R6_bind_cat * R6 / K_R6)
         ) +
         (S2 / K_S2) * (
             alpha_S2_P1 * (P1 / K_P1) +
             alpha_S2_P2 * (P2 / K_P2) +
             alpha_S2_P3 * (P3 / K_P3) +
-            alpha_S2_R1 * (R1_competitive * R1 / K_R1) +
-            alpha_S2_R2 * (R2_competitive * R2 / K_R2) +
-            alpha_S2_R3 * (R3_competitive * R3 / K_R3) +
-            alpha_S2_R4 * (R4_competitive * R4 / K_R4) +
-            alpha_S2_R5 * (R5_competitive * R5 / K_R5) +
-            alpha_S2_R6 * (R6_competitive * R6 / K_R6)
+            alpha_S2_R1 * (R1_bind_cat * R1 / K_R1) +
+            alpha_S2_R2 * (R2_bind_cat * R2 / K_R2) +
+            alpha_S2_R3 * (R3_bind_cat * R3 / K_R3) +
+            alpha_S2_R4 * (R4_bind_cat * R4 / K_R4) +
+            alpha_S2_R5 * (R5_bind_cat * R5 / K_R5) +
+            alpha_S2_R6 * (R6_bind_cat * R6 / K_R6)
         ) +
         (S3 / K_S3) * (
             alpha_S3_P1 * (P1 / K_P1) +
             alpha_S3_P2 * (P2 / K_P2) +
             alpha_S3_P3 * (P3 / K_P3) +
-            alpha_S3_R1 * (R1_competitive * R1 / K_R1) +
-            alpha_S3_R2 * (R2_competitive * R2 / K_R2) +
-            alpha_S3_R3 * (R3_competitive * R3 / K_R3) +
-            alpha_S3_R4 * (R4_competitive * R4 / K_R4) +
-            alpha_S3_R5 * (R5_competitive * R5 / K_R5) +
-            alpha_S3_R6 * (R6_competitive * R6 / K_R6)
+            alpha_S3_R1 * (R1_bind_cat * R1 / K_R1) +
+            alpha_S3_R2 * (R2_bind_cat * R2 / K_R2) +
+            alpha_S3_R3 * (R3_bind_cat * R3 / K_R3) +
+            alpha_S3_R4 * (R4_bind_cat * R4 / K_R4) +
+            alpha_S3_R5 * (R5_bind_cat * R5 / K_R5) +
+            alpha_S3_R6 * (R6_bind_cat * R6 / K_R6)
         ) +
         (P1 / K_P1) * (
-            alpha_P1_R1 * (R1_competitive * R1 / K_R1) +
-            alpha_P1_R2 * (R2_competitive * R2 / K_R2) +
-            alpha_P1_R3 * (R3_competitive * R3 / K_R3) +
-            alpha_P1_R4 * (R4_competitive * R4 / K_R4) +
-            alpha_P1_R5 * (R5_competitive * R5 / K_R5) +
-            alpha_P1_R6 * (R6_competitive * R6 / K_R6)
+            alpha_P1_R1 * (R1_bind_cat * R1 / K_R1) +
+            alpha_P1_R2 * (R2_bind_cat * R2 / K_R2) +
+            alpha_P1_R3 * (R3_bind_cat * R3 / K_R3) +
+            alpha_P1_R4 * (R4_bind_cat * R4 / K_R4) +
+            alpha_P1_R5 * (R5_bind_cat * R5 / K_R5) +
+            alpha_P1_R6 * (R6_bind_cat * R6 / K_R6)
         ) +
         (P2 / K_P2) * (
-            alpha_P2_R1 * (R1_competitive * R1 / K_R1) +
-            alpha_P2_R2 * (R2_competitive * R2 / K_R2) +
-            alpha_P2_R3 * (R3_competitive * R3 / K_R3) +
-            alpha_P2_R4 * (R4_competitive * R4 / K_R4) +
-            alpha_P2_R5 * (R5_competitive * R5 / K_R5) +
-            alpha_P2_R6 * (R6_competitive * R6 / K_R6)
+            alpha_P2_R1 * (R1_bind_cat * R1 / K_R1) +
+            alpha_P2_R2 * (R2_bind_cat * R2 / K_R2) +
+            alpha_P2_R3 * (R3_bind_cat * R3 / K_R3) +
+            alpha_P2_R4 * (R4_bind_cat * R4 / K_R4) +
+            alpha_P2_R5 * (R5_bind_cat * R5 / K_R5) +
+            alpha_P2_R6 * (R6_bind_cat * R6 / K_R6)
         ) +
         (P3 / K_P3) * (
-            alpha_P3_R1 * (R1_competitive * R1 / K_R1) +
-            alpha_P3_R2 * (R2_competitive * R2 / K_R2) +
-            alpha_P3_R3 * (R3_competitive * R3 / K_R3) +
-            alpha_P3_R4 * (R4_competitive * R4 / K_R4) +
-            alpha_P3_R5 * (R5_competitive * R5 / K_R5) +
-            alpha_P3_R6 * (R6_competitive * R6 / K_R6)
+            alpha_P3_R1 * (R1_bind_cat * R1 / K_R1) +
+            alpha_P3_R2 * (R2_bind_cat * R2 / K_R2) +
+            alpha_P3_R3 * (R3_bind_cat * R3 / K_R3) +
+            alpha_P3_R4 * (R4_bind_cat * R4 / K_R4) +
+            alpha_P3_R5 * (R5_bind_cat * R5 / K_R5) +
+            alpha_P3_R6 * (R6_bind_cat * R6 / K_R6)
         ) +
-        (R1_competitive * R1 / K_R1) * (
-            alpha_R1_R2 * (R2_competitive * R2 / K_R2) +
-            alpha_R1_R3 * (R3_competitive * R3 / K_R3) +
-            alpha_R1_R4 * (R4_competitive * R4 / K_R4) +
-            alpha_R1_R5 * (R5_competitive * R5 / K_R5) +
-            alpha_R1_R6 * (R6_competitive * R6 / K_R6)
+        (R1_bind_cat * R1 / K_R1) * (
+            alpha_R1_R2 * (R2_bind_cat * R2 / K_R2) +
+            alpha_R1_R3 * (R3_bind_cat * R3 / K_R3) +
+            alpha_R1_R4 * (R4_bind_cat * R4 / K_R4) +
+            alpha_R1_R5 * (R5_bind_cat * R5 / K_R5) +
+            alpha_R1_R6 * (R6_bind_cat * R6 / K_R6)
         ) +
-        (R2_competitive * R2 / K_R2) * (
-            alpha_R2_R3 * (R3_competitive * R3 / K_R3) +
-            alpha_R2_R4 * (R4_competitive * R4 / K_R4) +
-            alpha_R2_R5 * (R5_competitive * R5 / K_R5) +
-            alpha_R2_R6 * (R6_competitive * R6 / K_R6)
+        (R2_bind_cat * R2 / K_R2) * (
+            alpha_R2_R3 * (R3_bind_cat * R3 / K_R3) +
+            alpha_R2_R4 * (R4_bind_cat * R4 / K_R4) +
+            alpha_R2_R5 * (R5_bind_cat * R5 / K_R5) +
+            alpha_R2_R6 * (R6_bind_cat * R6 / K_R6)
         ) +
-        (R3_competitive * R3 / K_R3) * (
-            alpha_R3_R4 * (R4_competitive * R4 / K_R4) +
-            alpha_R3_R5 * (R5_competitive * R5 / K_R5) +
-            alpha_R3_R6 * (R6_competitive * R6 / K_R6)
+        (R3_bind_cat * R3 / K_R3) * (
+            alpha_R3_R4 * (R4_bind_cat * R4 / K_R4) +
+            alpha_R3_R5 * (R5_bind_cat * R5 / K_R5) +
+            alpha_R3_R6 * (R6_bind_cat * R6 / K_R6)
         ) +
-        (R4_competitive * R4 / K_R4) * (
-            alpha_R4_R5 * (R5_competitive * R5 / K_R5) +
-            alpha_R4_R6 * (R6_competitive * R6 / K_R6)
+        (R4_bind_cat * R4 / K_R4) * (
+            alpha_R4_R5 * (R5_bind_cat * R5 / K_R5) +
+            alpha_R4_R6 * (R6_bind_cat * R6 / K_R6)
         ) +
-        alpha_R5_R6 * (R5_competitive * R5 / K_R5) * (R6_competitive * R6 / K_R6)
+        alpha_R5_R6 * (R5_bind_cat * R5 / K_R5) * (R6_bind_cat * R6 / K_R6)
 
     three_metab_bound =
         (S1 / K_S1) * (
@@ -941,341 +961,341 @@ end
                 alpha_S1_P1 * alpha_S2_P1 * (P1 / K_P1) +
                 alpha_S1_P2 * alpha_S2_P2 * (P2 / K_P2) +
                 alpha_S1_P3 * alpha_S2_P3 * (P3 / K_P3) +
-                alpha_S1_R1 * alpha_S2_R1 * (R1_competitive * R1 / K_R1) +
-                alpha_S1_R2 * alpha_S2_R2 * (R2_competitive * R2 / K_R2) +
-                alpha_S1_R3 * alpha_S2_R3 * (R3_competitive * R3 / K_R3) +
-                alpha_S1_R4 * alpha_S2_R4 * (R4_competitive * R4 / K_R4) +
-                alpha_S1_R5 * alpha_S2_R5 * (R5_competitive * R5 / K_R5) +
-                alpha_S1_R6 * alpha_S2_R6 * (R6_competitive * R6 / K_R6)
+                alpha_S1_R1 * alpha_S2_R1 * (R1_bind_cat * R1 / K_R1) +
+                alpha_S1_R2 * alpha_S2_R2 * (R2_bind_cat * R2 / K_R2) +
+                alpha_S1_R3 * alpha_S2_R3 * (R3_bind_cat * R3 / K_R3) +
+                alpha_S1_R4 * alpha_S2_R4 * (R4_bind_cat * R4 / K_R4) +
+                alpha_S1_R5 * alpha_S2_R5 * (R5_bind_cat * R5 / K_R5) +
+                alpha_S1_R6 * alpha_S2_R6 * (R6_bind_cat * R6 / K_R6)
             ) +
             (S3 / K_S3) * (
                 alpha_S1_P1 * alpha_S3_P1 * (P1 / K_P1) +
                 alpha_S1_P2 * alpha_S3_P2 * (P2 / K_P2) +
                 alpha_S1_P3 * alpha_S3_P3 * (P3 / K_P3) +
-                alpha_S1_R1 * alpha_S3_R1 * (R1_competitive * R1 / K_R1) +
-                alpha_S1_R2 * alpha_S3_R2 * (R2_competitive * R2 / K_R2) +
-                alpha_S1_R3 * alpha_S3_R3 * (R3_competitive * R3 / K_R3) +
-                alpha_S1_R4 * alpha_S3_R4 * (R4_competitive * R4 / K_R4) +
-                alpha_S1_R5 * alpha_S3_R5 * (R5_competitive * R5 / K_R5) +
-                alpha_S1_R6 * alpha_S3_R6 * (R6_competitive * R6 / K_R6)
+                alpha_S1_R1 * alpha_S3_R1 * (R1_bind_cat * R1 / K_R1) +
+                alpha_S1_R2 * alpha_S3_R2 * (R2_bind_cat * R2 / K_R2) +
+                alpha_S1_R3 * alpha_S3_R3 * (R3_bind_cat * R3 / K_R3) +
+                alpha_S1_R4 * alpha_S3_R4 * (R4_bind_cat * R4 / K_R4) +
+                alpha_S1_R5 * alpha_S3_R5 * (R5_bind_cat * R5 / K_R5) +
+                alpha_S1_R6 * alpha_S3_R6 * (R6_bind_cat * R6 / K_R6)
             ) +
             (alpha_S1_P1 * (P1 / K_P1)) * (
                 alpha_S1_P2 * (P2 / K_P2) +
                 alpha_S1_P3 * (P3 / K_P3) +
-                alpha_S1_R1 * alpha_P1_R1 * (R1_competitive * R1 / K_R1) +
-                alpha_S1_R2 * alpha_P1_R2 * (R2_competitive * R2 / K_R2) +
-                alpha_S1_R3 * alpha_P1_R3 * (R3_competitive * R3 / K_R3) +
-                alpha_S1_R4 * alpha_P1_R4 * (R4_competitive * R4 / K_R4) +
-                alpha_S1_R5 * alpha_P1_R5 * (R5_competitive * R5 / K_R5) +
-                alpha_S1_R6 * alpha_P1_R6 * (R6_competitive * R6 / K_R6)
+                alpha_S1_R1 * alpha_P1_R1 * (R1_bind_cat * R1 / K_R1) +
+                alpha_S1_R2 * alpha_P1_R2 * (R2_bind_cat * R2 / K_R2) +
+                alpha_S1_R3 * alpha_P1_R3 * (R3_bind_cat * R3 / K_R3) +
+                alpha_S1_R4 * alpha_P1_R4 * (R4_bind_cat * R4 / K_R4) +
+                alpha_S1_R5 * alpha_P1_R5 * (R5_bind_cat * R5 / K_R5) +
+                alpha_S1_R6 * alpha_P1_R6 * (R6_bind_cat * R6 / K_R6)
             ) +
             (alpha_S1_P2 * (P2 / K_P2)) * (
                 alpha_S1_P3 * (P3 / K_P3) +
-                alpha_S1_R1 * alpha_P2_R1 * (R1_competitive * R1 / K_R1) +
-                alpha_S1_R2 * alpha_P2_R2 * (R2_competitive * R2 / K_R2) +
-                alpha_S1_R3 * alpha_P2_R3 * (R3_competitive * R3 / K_R3) +
-                alpha_S1_R4 * alpha_P2_R4 * (R4_competitive * R4 / K_R4) +
-                alpha_S1_R5 * alpha_P2_R5 * (R5_competitive * R5 / K_R5) +
-                alpha_S1_R6 * alpha_P2_R6 * (R6_competitive * R6 / K_R6)
+                alpha_S1_R1 * alpha_P2_R1 * (R1_bind_cat * R1 / K_R1) +
+                alpha_S1_R2 * alpha_P2_R2 * (R2_bind_cat * R2 / K_R2) +
+                alpha_S1_R3 * alpha_P2_R3 * (R3_bind_cat * R3 / K_R3) +
+                alpha_S1_R4 * alpha_P2_R4 * (R4_bind_cat * R4 / K_R4) +
+                alpha_S1_R5 * alpha_P2_R5 * (R5_bind_cat * R5 / K_R5) +
+                alpha_S1_R6 * alpha_P2_R6 * (R6_bind_cat * R6 / K_R6)
             ) +
             (alpha_S1_P3 * (P3 / K_P3)) * (
-                alpha_S1_R1 * alpha_P3_R1 * (R1_competitive * R1 / K_R1) +
-                alpha_S1_R2 * alpha_P3_R2 * (R2_competitive * R2 / K_R2) +
-                alpha_S1_R3 * alpha_P3_R3 * (R3_competitive * R3 / K_R3) +
-                alpha_S1_R4 * alpha_P3_R4 * (R4_competitive * R4 / K_R4) +
-                alpha_S1_R5 * alpha_P3_R5 * (R5_competitive * R5 / K_R5) +
-                alpha_S1_R6 * alpha_P3_R6 * (R6_competitive * R6 / K_R6)
+                alpha_S1_R1 * alpha_P3_R1 * (R1_bind_cat * R1 / K_R1) +
+                alpha_S1_R2 * alpha_P3_R2 * (R2_bind_cat * R2 / K_R2) +
+                alpha_S1_R3 * alpha_P3_R3 * (R3_bind_cat * R3 / K_R3) +
+                alpha_S1_R4 * alpha_P3_R4 * (R4_bind_cat * R4 / K_R4) +
+                alpha_S1_R5 * alpha_P3_R5 * (R5_bind_cat * R5 / K_R5) +
+                alpha_S1_R6 * alpha_P3_R6 * (R6_bind_cat * R6 / K_R6)
             ) +
-            (alpha_S1_R1 * (R1_competitive * R1 / K_R1)) * (
-                alpha_S1_R2 * alpha_R1_R2 * (R2_competitive * R2 / K_R2) +
-                alpha_S1_R3 * alpha_R1_R3 * (R3_competitive * R3 / K_R3) +
-                alpha_S1_R4 * alpha_R1_R4 * (R4_competitive * R4 / K_R4) +
-                alpha_S1_R5 * alpha_R1_R5 * (R5_competitive * R5 / K_R5) +
-                alpha_S1_R6 * alpha_R1_R6 * (R6_competitive * R6 / K_R6)
+            (alpha_S1_R1 * (R1_bind_cat * R1 / K_R1)) * (
+                alpha_S1_R2 * alpha_R1_R2 * (R2_bind_cat * R2 / K_R2) +
+                alpha_S1_R3 * alpha_R1_R3 * (R3_bind_cat * R3 / K_R3) +
+                alpha_S1_R4 * alpha_R1_R4 * (R4_bind_cat * R4 / K_R4) +
+                alpha_S1_R5 * alpha_R1_R5 * (R5_bind_cat * R5 / K_R5) +
+                alpha_S1_R6 * alpha_R1_R6 * (R6_bind_cat * R6 / K_R6)
             ) +
-            (alpha_S1_R2 * (R2_competitive * R2 / K_R2)) * (
-                alpha_S1_R3 * alpha_R2_R3 * (R3_competitive * R3 / K_R3) +
-                alpha_S1_R4 * alpha_R2_R4 * (R4_competitive * R4 / K_R4) +
-                alpha_S1_R5 * alpha_R2_R5 * (R5_competitive * R5 / K_R5) +
-                alpha_S1_R6 * alpha_R2_R6 * (R6_competitive * R6 / K_R6)
+            (alpha_S1_R2 * (R2_bind_cat * R2 / K_R2)) * (
+                alpha_S1_R3 * alpha_R2_R3 * (R3_bind_cat * R3 / K_R3) +
+                alpha_S1_R4 * alpha_R2_R4 * (R4_bind_cat * R4 / K_R4) +
+                alpha_S1_R5 * alpha_R2_R5 * (R5_bind_cat * R5 / K_R5) +
+                alpha_S1_R6 * alpha_R2_R6 * (R6_bind_cat * R6 / K_R6)
             ) +
-            (alpha_S1_R3 * (R3_competitive * R3 / K_R3)) * (
-                alpha_S1_R4 * alpha_R3_R4 * (R4_competitive * R4 / K_R4) +
-                alpha_S1_R5 * alpha_R3_R5 * (R5_competitive * R5 / K_R5) +
-                alpha_S1_R6 * alpha_R3_R6 * (R6_competitive * R6 / K_R6)
+            (alpha_S1_R3 * (R3_bind_cat * R3 / K_R3)) * (
+                alpha_S1_R4 * alpha_R3_R4 * (R4_bind_cat * R4 / K_R4) +
+                alpha_S1_R5 * alpha_R3_R5 * (R5_bind_cat * R5 / K_R5) +
+                alpha_S1_R6 * alpha_R3_R6 * (R6_bind_cat * R6 / K_R6)
             ) +
-            (alpha_S1_R4 * (R4_competitive * R4 / K_R4)) * (
-                alpha_S1_R5 * alpha_R4_R5 * (R5_competitive * R5 / K_R5) +
-                alpha_S1_R6 * alpha_R4_R6 * (R6_competitive * R6 / K_R6)
+            (alpha_S1_R4 * (R4_bind_cat * R4 / K_R4)) * (
+                alpha_S1_R5 * alpha_R4_R5 * (R5_bind_cat * R5 / K_R5) +
+                alpha_S1_R6 * alpha_R4_R6 * (R6_bind_cat * R6 / K_R6)
             ) +
-            (alpha_S1_R5 * (R5_competitive * R5 / K_R5)) *
-            (alpha_S1_R6 * alpha_R5_R6 * (R6_competitive * R6 / K_R6))
+            (alpha_S1_R5 * (R5_bind_cat * R5 / K_R5)) *
+            (alpha_S1_R6 * alpha_R5_R6 * (R6_bind_cat * R6 / K_R6))
         ) +
         (S2 / K_S2) * (
             (S3 / K_S3) * (
                 alpha_S2_P1 * alpha_S3_P1 * (P1 / K_P1) +
                 alpha_S2_P2 * alpha_S3_P2 * (P2 / K_P2) +
                 alpha_S2_P3 * alpha_S3_P3 * (P3 / K_P3) +
-                alpha_S2_R1 * alpha_S3_R1 * (R1_competitive * R1 / K_R1) +
-                alpha_S2_R2 * alpha_S3_R2 * (R2_competitive * R2 / K_R2) +
-                alpha_S2_R3 * alpha_S3_R3 * (R3_competitive * R3 / K_R3) +
-                alpha_S2_R4 * alpha_S3_R4 * (R4_competitive * R4 / K_R4) +
-                alpha_S2_R5 * alpha_S3_R5 * (R5_competitive * R5 / K_R5) +
-                alpha_S2_R6 * alpha_S3_R6 * (R6_competitive * R6 / K_R6)
+                alpha_S2_R1 * alpha_S3_R1 * (R1_bind_cat * R1 / K_R1) +
+                alpha_S2_R2 * alpha_S3_R2 * (R2_bind_cat * R2 / K_R2) +
+                alpha_S2_R3 * alpha_S3_R3 * (R3_bind_cat * R3 / K_R3) +
+                alpha_S2_R4 * alpha_S3_R4 * (R4_bind_cat * R4 / K_R4) +
+                alpha_S2_R5 * alpha_S3_R5 * (R5_bind_cat * R5 / K_R5) +
+                alpha_S2_R6 * alpha_S3_R6 * (R6_bind_cat * R6 / K_R6)
             ) +
             (alpha_S2_P1 * (P1 / K_P1)) * (
                 alpha_S2_P2 * (P2 / K_P2) +
                 alpha_S2_P3 * (P3 / K_P3) +
-                alpha_S2_R1 * alpha_P1_R1 * (R1_competitive * R1 / K_R1) +
-                alpha_S2_R2 * alpha_P1_R2 * (R2_competitive * R2 / K_R2) +
-                alpha_S2_R3 * alpha_P1_R3 * (R3_competitive * R3 / K_R3) +
-                alpha_S2_R4 * alpha_P1_R4 * (R4_competitive * R4 / K_R4) +
-                alpha_S2_R5 * alpha_P1_R5 * (R5_competitive * R5 / K_R5) +
-                alpha_S2_R6 * alpha_P1_R6 * (R6_competitive * R6 / K_R6)
+                alpha_S2_R1 * alpha_P1_R1 * (R1_bind_cat * R1 / K_R1) +
+                alpha_S2_R2 * alpha_P1_R2 * (R2_bind_cat * R2 / K_R2) +
+                alpha_S2_R3 * alpha_P1_R3 * (R3_bind_cat * R3 / K_R3) +
+                alpha_S2_R4 * alpha_P1_R4 * (R4_bind_cat * R4 / K_R4) +
+                alpha_S2_R5 * alpha_P1_R5 * (R5_bind_cat * R5 / K_R5) +
+                alpha_S2_R6 * alpha_P1_R6 * (R6_bind_cat * R6 / K_R6)
             ) +
             (alpha_S2_P2 * (P2 / K_P2)) * (
                 alpha_S2_P3 * (P3 / K_P3) +
-                alpha_S2_R1 * alpha_P2_R1 * (R1_competitive * R1 / K_R1) +
-                alpha_S2_R2 * alpha_P2_R2 * (R2_competitive * R2 / K_R2) +
-                alpha_S2_R3 * alpha_P2_R3 * (R3_competitive * R3 / K_R3) +
-                alpha_S2_R4 * alpha_P2_R4 * (R4_competitive * R4 / K_R4) +
-                alpha_S2_R5 * alpha_P2_R5 * (R5_competitive * R5 / K_R5) +
-                alpha_S2_R6 * alpha_P2_R6 * (R6_competitive * R6 / K_R6)
+                alpha_S2_R1 * alpha_P2_R1 * (R1_bind_cat * R1 / K_R1) +
+                alpha_S2_R2 * alpha_P2_R2 * (R2_bind_cat * R2 / K_R2) +
+                alpha_S2_R3 * alpha_P2_R3 * (R3_bind_cat * R3 / K_R3) +
+                alpha_S2_R4 * alpha_P2_R4 * (R4_bind_cat * R4 / K_R4) +
+                alpha_S2_R5 * alpha_P2_R5 * (R5_bind_cat * R5 / K_R5) +
+                alpha_S2_R6 * alpha_P2_R6 * (R6_bind_cat * R6 / K_R6)
             ) +
             (alpha_S2_P3 * (P3 / K_P3)) * (
-                alpha_S2_R1 * alpha_P3_R1 * (R1_competitive * R1 / K_R1) +
-                alpha_S2_R2 * alpha_P3_R2 * (R2_competitive * R2 / K_R2) +
-                alpha_S2_R3 * alpha_P3_R3 * (R3_competitive * R3 / K_R3) +
-                alpha_S2_R4 * alpha_P3_R4 * (R4_competitive * R4 / K_R4) +
-                alpha_S2_R5 * alpha_P3_R5 * (R5_competitive * R5 / K_R5) +
-                alpha_S2_R6 * alpha_P3_R6 * (R6_competitive * R6 / K_R6)
+                alpha_S2_R1 * alpha_P3_R1 * (R1_bind_cat * R1 / K_R1) +
+                alpha_S2_R2 * alpha_P3_R2 * (R2_bind_cat * R2 / K_R2) +
+                alpha_S2_R3 * alpha_P3_R3 * (R3_bind_cat * R3 / K_R3) +
+                alpha_S2_R4 * alpha_P3_R4 * (R4_bind_cat * R4 / K_R4) +
+                alpha_S2_R5 * alpha_P3_R5 * (R5_bind_cat * R5 / K_R5) +
+                alpha_S2_R6 * alpha_P3_R6 * (R6_bind_cat * R6 / K_R6)
             ) +
-            (alpha_S2_R1 * (R1_competitive * R1 / K_R1)) * (
-                alpha_S2_R2 * alpha_R1_R2 * (R2_competitive * R2 / K_R2) +
-                alpha_S2_R3 * alpha_R1_R3 * (R3_competitive * R3 / K_R3) +
-                alpha_S2_R4 * alpha_R1_R4 * (R4_competitive * R4 / K_R4) +
-                alpha_S2_R5 * alpha_R1_R5 * (R5_competitive * R5 / K_R5) +
-                alpha_S2_R6 * alpha_R1_R6 * (R6_competitive * R6 / K_R6)
+            (alpha_S2_R1 * (R1_bind_cat * R1 / K_R1)) * (
+                alpha_S2_R2 * alpha_R1_R2 * (R2_bind_cat * R2 / K_R2) +
+                alpha_S2_R3 * alpha_R1_R3 * (R3_bind_cat * R3 / K_R3) +
+                alpha_S2_R4 * alpha_R1_R4 * (R4_bind_cat * R4 / K_R4) +
+                alpha_S2_R5 * alpha_R1_R5 * (R5_bind_cat * R5 / K_R5) +
+                alpha_S2_R6 * alpha_R1_R6 * (R6_bind_cat * R6 / K_R6)
             ) +
-            (alpha_S2_R2 * (R2_competitive * R2 / K_R2)) * (
-                alpha_S2_R3 * alpha_R2_R3 * (R3_competitive * R3 / K_R3) +
-                alpha_S2_R4 * alpha_R2_R4 * (R4_competitive * R4 / K_R4) +
-                alpha_S2_R5 * alpha_R2_R5 * (R5_competitive * R5 / K_R5) +
-                alpha_S2_R6 * alpha_R2_R6 * (R6_competitive * R6 / K_R6)
+            (alpha_S2_R2 * (R2_bind_cat * R2 / K_R2)) * (
+                alpha_S2_R3 * alpha_R2_R3 * (R3_bind_cat * R3 / K_R3) +
+                alpha_S2_R4 * alpha_R2_R4 * (R4_bind_cat * R4 / K_R4) +
+                alpha_S2_R5 * alpha_R2_R5 * (R5_bind_cat * R5 / K_R5) +
+                alpha_S2_R6 * alpha_R2_R6 * (R6_bind_cat * R6 / K_R6)
             ) +
-            (alpha_S2_R3 * (R3_competitive * R3 / K_R3)) * (
-                alpha_S2_R4 * alpha_R3_R4 * (R4_competitive * R4 / K_R4) +
-                alpha_S2_R5 * alpha_R3_R5 * (R5_competitive * R5 / K_R5) +
-                alpha_S2_R6 * alpha_R3_R6 * (R6_competitive * R6 / K_R6)
+            (alpha_S2_R3 * (R3_bind_cat * R3 / K_R3)) * (
+                alpha_S2_R4 * alpha_R3_R4 * (R4_bind_cat * R4 / K_R4) +
+                alpha_S2_R5 * alpha_R3_R5 * (R5_bind_cat * R5 / K_R5) +
+                alpha_S2_R6 * alpha_R3_R6 * (R6_bind_cat * R6 / K_R6)
             ) +
-            (alpha_S2_R4 * (R4_competitive * R4 / K_R4)) * (
-                alpha_S2_R5 * alpha_R4_R5 * (R5_competitive * R5 / K_R5) +
-                alpha_S2_R6 * alpha_R4_R6 * (R6_competitive * R6 / K_R6)
+            (alpha_S2_R4 * (R4_bind_cat * R4 / K_R4)) * (
+                alpha_S2_R5 * alpha_R4_R5 * (R5_bind_cat * R5 / K_R5) +
+                alpha_S2_R6 * alpha_R4_R6 * (R6_bind_cat * R6 / K_R6)
             ) +
-            (alpha_S2_R5 * (R5_competitive * R5 / K_R5)) *
-            (alpha_S2_R6 * alpha_R5_R6 * (R6_competitive * R6 / K_R6))
+            (alpha_S2_R5 * (R5_bind_cat * R5 / K_R5)) *
+            (alpha_S2_R6 * alpha_R5_R6 * (R6_bind_cat * R6 / K_R6))
         ) +
         (S3 / K_S3) * (
             (alpha_S3_P1 * (P1 / K_P1)) * (
                 alpha_S3_P2 * (P2 / K_P2) +
                 alpha_S3_P3 * (P3 / K_P3) +
-                alpha_S3_R1 * alpha_P1_R1 * (R1_competitive * R1 / K_R1) +
-                alpha_S3_R2 * alpha_P1_R2 * (R2_competitive * R2 / K_R2) +
-                alpha_S3_R3 * alpha_P1_R3 * (R3_competitive * R3 / K_R3) +
-                alpha_S3_R4 * alpha_P1_R4 * (R4_competitive * R4 / K_R4) +
-                alpha_S3_R5 * alpha_P1_R5 * (R5_competitive * R5 / K_R5) +
-                alpha_S3_R6 * alpha_P1_R6 * (R6_competitive * R6 / K_R6)
+                alpha_S3_R1 * alpha_P1_R1 * (R1_bind_cat * R1 / K_R1) +
+                alpha_S3_R2 * alpha_P1_R2 * (R2_bind_cat * R2 / K_R2) +
+                alpha_S3_R3 * alpha_P1_R3 * (R3_bind_cat * R3 / K_R3) +
+                alpha_S3_R4 * alpha_P1_R4 * (R4_bind_cat * R4 / K_R4) +
+                alpha_S3_R5 * alpha_P1_R5 * (R5_bind_cat * R5 / K_R5) +
+                alpha_S3_R6 * alpha_P1_R6 * (R6_bind_cat * R6 / K_R6)
             ) +
             (alpha_S3_P2 * (P2 / K_P2)) * (
                 alpha_S3_P3 * (P3 / K_P3) +
-                alpha_S3_R1 * alpha_P2_R1 * (R1_competitive * R1 / K_R1) +
-                alpha_S3_R2 * alpha_P2_R2 * (R2_competitive * R2 / K_R2) +
-                alpha_S3_R3 * alpha_P2_R3 * (R3_competitive * R3 / K_R3) +
-                alpha_S3_R4 * alpha_P2_R4 * (R4_competitive * R4 / K_R4) +
-                alpha_S3_R5 * alpha_P2_R5 * (R5_competitive * R5 / K_R5) +
-                alpha_S3_R6 * alpha_P2_R6 * (R6_competitive * R6 / K_R6)
+                alpha_S3_R1 * alpha_P2_R1 * (R1_bind_cat * R1 / K_R1) +
+                alpha_S3_R2 * alpha_P2_R2 * (R2_bind_cat * R2 / K_R2) +
+                alpha_S3_R3 * alpha_P2_R3 * (R3_bind_cat * R3 / K_R3) +
+                alpha_S3_R4 * alpha_P2_R4 * (R4_bind_cat * R4 / K_R4) +
+                alpha_S3_R5 * alpha_P2_R5 * (R5_bind_cat * R5 / K_R5) +
+                alpha_S3_R6 * alpha_P2_R6 * (R6_bind_cat * R6 / K_R6)
             ) +
             (alpha_S3_P3 * (P3 / K_P3)) * (
-                alpha_S3_R1 * alpha_P3_R1 * (R1_competitive * R1 / K_R1) +
-                alpha_S3_R2 * alpha_P3_R2 * (R2_competitive * R2 / K_R2) +
-                alpha_S3_R3 * alpha_P3_R3 * (R3_competitive * R3 / K_R3) +
-                alpha_S3_R4 * alpha_P3_R4 * (R4_competitive * R4 / K_R4) +
-                alpha_S3_R5 * alpha_P3_R5 * (R5_competitive * R5 / K_R5) +
-                alpha_S3_R6 * alpha_P3_R6 * (R6_competitive * R6 / K_R6)
+                alpha_S3_R1 * alpha_P3_R1 * (R1_bind_cat * R1 / K_R1) +
+                alpha_S3_R2 * alpha_P3_R2 * (R2_bind_cat * R2 / K_R2) +
+                alpha_S3_R3 * alpha_P3_R3 * (R3_bind_cat * R3 / K_R3) +
+                alpha_S3_R4 * alpha_P3_R4 * (R4_bind_cat * R4 / K_R4) +
+                alpha_S3_R5 * alpha_P3_R5 * (R5_bind_cat * R5 / K_R5) +
+                alpha_S3_R6 * alpha_P3_R6 * (R6_bind_cat * R6 / K_R6)
             ) +
-            (alpha_S3_R1 * (R1_competitive * R1 / K_R1)) * (
-                alpha_S3_R2 * alpha_S1_R2 * (R2_competitive * R2 / K_R2) +
-                alpha_S3_R3 * alpha_S1_R3 * (R3_competitive * R3 / K_R3) +
-                alpha_S3_R4 * alpha_S1_R4 * (R4_competitive * R4 / K_R4) +
-                alpha_S3_R5 * alpha_S1_R5 * (R5_competitive * R5 / K_R5) +
-                alpha_S3_R6 * alpha_S1_R6 * (R6_competitive * R6 / K_R6)
+            (alpha_S3_R1 * (R1_bind_cat * R1 / K_R1)) * (
+                alpha_S3_R2 * alpha_S1_R2 * (R2_bind_cat * R2 / K_R2) +
+                alpha_S3_R3 * alpha_S1_R3 * (R3_bind_cat * R3 / K_R3) +
+                alpha_S3_R4 * alpha_S1_R4 * (R4_bind_cat * R4 / K_R4) +
+                alpha_S3_R5 * alpha_S1_R5 * (R5_bind_cat * R5 / K_R5) +
+                alpha_S3_R6 * alpha_S1_R6 * (R6_bind_cat * R6 / K_R6)
             ) +
-            (alpha_S3_R2 * (R2_competitive * R2 / K_R2)) * (
-                alpha_S3_R3 * alpha_S1_R3 * (R3_competitive * R3 / K_R3) +
-                alpha_S3_R4 * alpha_S1_R4 * (R4_competitive * R4 / K_R4) +
-                alpha_S3_R5 * alpha_S1_R5 * (R5_competitive * R5 / K_R5) +
-                alpha_S3_R6 * alpha_S1_R6 * (R6_competitive * R6 / K_R6)
+            (alpha_S3_R2 * (R2_bind_cat * R2 / K_R2)) * (
+                alpha_S3_R3 * alpha_S1_R3 * (R3_bind_cat * R3 / K_R3) +
+                alpha_S3_R4 * alpha_S1_R4 * (R4_bind_cat * R4 / K_R4) +
+                alpha_S3_R5 * alpha_S1_R5 * (R5_bind_cat * R5 / K_R5) +
+                alpha_S3_R6 * alpha_S1_R6 * (R6_bind_cat * R6 / K_R6)
             ) +
-            (alpha_S3_R3 * (R3_competitive * R3 / K_R3)) * (
-                alpha_S3_R4 * alpha_S1_R4 * (R4_competitive * R4 / K_R4) +
-                alpha_S3_R5 * alpha_S1_R5 * (R5_competitive * R5 / K_R5) +
-                alpha_S3_R6 * alpha_S1_R6 * (R6_competitive * R6 / K_R6)
+            (alpha_S3_R3 * (R3_bind_cat * R3 / K_R3)) * (
+                alpha_S3_R4 * alpha_S1_R4 * (R4_bind_cat * R4 / K_R4) +
+                alpha_S3_R5 * alpha_S1_R5 * (R5_bind_cat * R5 / K_R5) +
+                alpha_S3_R6 * alpha_S1_R6 * (R6_bind_cat * R6 / K_R6)
             ) +
-            (alpha_S3_R4 * (R4_competitive * R4 / K_R4)) * (
-                alpha_S3_R5 * alpha_S1_R5 * (R5_competitive * R5 / K_R5) +
-                alpha_S3_R6 * alpha_S1_R6 * (R6_competitive * R6 / K_R6)
+            (alpha_S3_R4 * (R4_bind_cat * R4 / K_R4)) * (
+                alpha_S3_R5 * alpha_S1_R5 * (R5_bind_cat * R5 / K_R5) +
+                alpha_S3_R6 * alpha_S1_R6 * (R6_bind_cat * R6 / K_R6)
             ) +
-            (alpha_S3_R5 * (R5_competitive * R5 / K_R5)) *
-            (alpha_S3_R6 * alpha_S1_R6 * (R6_competitive * R6 / K_R6))
+            (alpha_S3_R5 * (R5_bind_cat * R5 / K_R5)) *
+            (alpha_S3_R6 * alpha_S1_R6 * (R6_bind_cat * R6 / K_R6))
         ) +
         (P1 / K_P1) * (
             (P2 / K_P2) * (
                 (P3 / K_P3) +
-                alpha_P1_R1 * alpha_P2_R1 * (R1_competitive * R1 / K_R1) +
-                alpha_P1_R2 * alpha_P2_R2 * (R2_competitive * R2 / K_R2) +
-                alpha_P1_R3 * alpha_P2_R3 * (R3_competitive * R3 / K_R3) +
-                alpha_P1_R4 * alpha_P2_R4 * (R4_competitive * R4 / K_R4) +
-                alpha_P1_R5 * alpha_P2_R5 * (R5_competitive * R5 / K_R5) +
-                alpha_P1_R6 * alpha_P2_R6 * (R6_competitive * R6 / K_R6)
+                alpha_P1_R1 * alpha_P2_R1 * (R1_bind_cat * R1 / K_R1) +
+                alpha_P1_R2 * alpha_P2_R2 * (R2_bind_cat * R2 / K_R2) +
+                alpha_P1_R3 * alpha_P2_R3 * (R3_bind_cat * R3 / K_R3) +
+                alpha_P1_R4 * alpha_P2_R4 * (R4_bind_cat * R4 / K_R4) +
+                alpha_P1_R5 * alpha_P2_R5 * (R5_bind_cat * R5 / K_R5) +
+                alpha_P1_R6 * alpha_P2_R6 * (R6_bind_cat * R6 / K_R6)
             ) +
             (P3 / K_P3) * (
-                alpha_P1_R1 * alpha_P3_R1 * (R1_competitive * R1 / K_R1) +
-                alpha_P1_R2 * alpha_P3_R2 * (R2_competitive * R2 / K_R2) +
-                alpha_P1_R3 * alpha_P3_R3 * (R3_competitive * R3 / K_R3) +
-                alpha_P1_R4 * alpha_P3_R4 * (R4_competitive * R4 / K_R4) +
-                alpha_P1_R5 * alpha_P3_R5 * (R5_competitive * R5 / K_R5) +
-                alpha_P1_R6 * alpha_P3_R6 * (R6_competitive * R6 / K_R6)
+                alpha_P1_R1 * alpha_P3_R1 * (R1_bind_cat * R1 / K_R1) +
+                alpha_P1_R2 * alpha_P3_R2 * (R2_bind_cat * R2 / K_R2) +
+                alpha_P1_R3 * alpha_P3_R3 * (R3_bind_cat * R3 / K_R3) +
+                alpha_P1_R4 * alpha_P3_R4 * (R4_bind_cat * R4 / K_R4) +
+                alpha_P1_R5 * alpha_P3_R5 * (R5_bind_cat * R5 / K_R5) +
+                alpha_P1_R6 * alpha_P3_R6 * (R6_bind_cat * R6 / K_R6)
             ) +
-            (alpha_P1_R1 * (R1_competitive * R1 / K_R1)) * (
-                alpha_P2_R1 * alpha_R1_R2 * (R2_competitive * R2 / K_R2) +
-                alpha_P2_R2 * alpha_R1_R3 * (R3_competitive * R3 / K_R3) +
-                alpha_P2_R3 * alpha_R1_R4 * (R4_competitive * R4 / K_R4) +
-                alpha_P2_R4 * alpha_R1_R5 * (R5_competitive * R5 / K_R5) +
-                alpha_P2_R5 * alpha_R1_R6 * (R6_competitive * R6 / K_R6)
+            (alpha_P1_R1 * (R1_bind_cat * R1 / K_R1)) * (
+                alpha_P2_R1 * alpha_R1_R2 * (R2_bind_cat * R2 / K_R2) +
+                alpha_P2_R2 * alpha_R1_R3 * (R3_bind_cat * R3 / K_R3) +
+                alpha_P2_R3 * alpha_R1_R4 * (R4_bind_cat * R4 / K_R4) +
+                alpha_P2_R4 * alpha_R1_R5 * (R5_bind_cat * R5 / K_R5) +
+                alpha_P2_R5 * alpha_R1_R6 * (R6_bind_cat * R6 / K_R6)
             ) +
-            (alpha_P1_R2 * (R2_competitive * R2 / K_R2)) * (
-                alpha_P2_R1 * alpha_R2_R3 * (R3_competitive * R3 / K_R3) +
-                alpha_P2_R2 * alpha_R2_R4 * (R4_competitive * R4 / K_R4) +
-                alpha_P2_R3 * alpha_R2_R5 * (R5_competitive * R5 / K_R5) +
-                alpha_P2_R4 * alpha_R2_R6 * (R6_competitive * R6 / K_R6)
+            (alpha_P1_R2 * (R2_bind_cat * R2 / K_R2)) * (
+                alpha_P2_R1 * alpha_R2_R3 * (R3_bind_cat * R3 / K_R3) +
+                alpha_P2_R2 * alpha_R2_R4 * (R4_bind_cat * R4 / K_R4) +
+                alpha_P2_R3 * alpha_R2_R5 * (R5_bind_cat * R5 / K_R5) +
+                alpha_P2_R4 * alpha_R2_R6 * (R6_bind_cat * R6 / K_R6)
             ) +
-            (alpha_P1_R3 * (R3_competitive * R3 / K_R3)) * (
-                alpha_P2_R1 * alpha_R3_R4 * (R4_competitive * R4 / K_R4) +
-                alpha_P2_R2 * alpha_R3_R5 * (R5_competitive * R5 / K_R5) +
-                alpha_P2_R3 * alpha_R3_R6 * (R6_competitive * R6 / K_R6)
+            (alpha_P1_R3 * (R3_bind_cat * R3 / K_R3)) * (
+                alpha_P2_R1 * alpha_R3_R4 * (R4_bind_cat * R4 / K_R4) +
+                alpha_P2_R2 * alpha_R3_R5 * (R5_bind_cat * R5 / K_R5) +
+                alpha_P2_R3 * alpha_R3_R6 * (R6_bind_cat * R6 / K_R6)
             ) +
-            (alpha_P1_R4 * (R4_competitive * R4 / K_R4)) * (
-                alpha_P2_R1 * alpha_R4_R5 * (R5_competitive * R5 / K_R5) +
-                alpha_P2_R2 * alpha_R4_R6 * (R6_competitive * R6 / K_R6)
+            (alpha_P1_R4 * (R4_bind_cat * R4 / K_R4)) * (
+                alpha_P2_R1 * alpha_R4_R5 * (R5_bind_cat * R5 / K_R5) +
+                alpha_P2_R2 * alpha_R4_R6 * (R6_bind_cat * R6 / K_R6)
             ) +
-            (alpha_P1_R5 * (R5_competitive * R5 / K_R5)) *
-            (alpha_P2_R1 * alpha_R5_R6 * (R6_competitive * R6 / K_R6))
+            (alpha_P1_R5 * (R5_bind_cat * R5 / K_R5)) *
+            (alpha_P2_R1 * alpha_R5_R6 * (R6_bind_cat * R6 / K_R6))
         ) +
         (P2 / K_P2) * (
             (P3 / K_P3) * (
-                alpha_P2_R1 * alpha_P3_R1 * (R1_competitive * R1 / K_R1) +
-                alpha_P2_R2 * alpha_P3_R2 * (R2_competitive * R2 / K_R2) +
-                alpha_P2_R3 * alpha_P3_R3 * (R3_competitive * R3 / K_R3) +
-                alpha_P2_R4 * alpha_P3_R4 * (R4_competitive * R4 / K_R4) +
-                alpha_P2_R5 * alpha_P3_R5 * (R5_competitive * R5 / K_R5) +
-                alpha_P2_R6 * alpha_P3_R6 * (R6_competitive * R6 / K_R6)
+                alpha_P2_R1 * alpha_P3_R1 * (R1_bind_cat * R1 / K_R1) +
+                alpha_P2_R2 * alpha_P3_R2 * (R2_bind_cat * R2 / K_R2) +
+                alpha_P2_R3 * alpha_P3_R3 * (R3_bind_cat * R3 / K_R3) +
+                alpha_P2_R4 * alpha_P3_R4 * (R4_bind_cat * R4 / K_R4) +
+                alpha_P2_R5 * alpha_P3_R5 * (R5_bind_cat * R5 / K_R5) +
+                alpha_P2_R6 * alpha_P3_R6 * (R6_bind_cat * R6 / K_R6)
             ) +
-            (alpha_P2_R1 * (R1_competitive * R1 / K_R1)) * (
-                alpha_P2_R2 * alpha_R1_R2 * (R2_competitive * R2 / K_R2) +
-                alpha_P2_R3 * alpha_R1_R3 * (R3_competitive * R3 / K_R3) +
-                alpha_P2_R4 * alpha_R1_R4 * (R4_competitive * R4 / K_R4) +
-                alpha_P2_R5 * alpha_R1_R5 * (R5_competitive * R5 / K_R5) +
-                alpha_P2_R6 * alpha_R1_R6 * (R6_competitive * R6 / K_R6)
+            (alpha_P2_R1 * (R1_bind_cat * R1 / K_R1)) * (
+                alpha_P2_R2 * alpha_R1_R2 * (R2_bind_cat * R2 / K_R2) +
+                alpha_P2_R3 * alpha_R1_R3 * (R3_bind_cat * R3 / K_R3) +
+                alpha_P2_R4 * alpha_R1_R4 * (R4_bind_cat * R4 / K_R4) +
+                alpha_P2_R5 * alpha_R1_R5 * (R5_bind_cat * R5 / K_R5) +
+                alpha_P2_R6 * alpha_R1_R6 * (R6_bind_cat * R6 / K_R6)
             ) +
-            (alpha_P2_R2 * (R2_competitive * R2 / K_R2)) * (
-                alpha_P2_R3 * alpha_R2_R3 * (R3_competitive * R3 / K_R3) +
-                alpha_P2_R4 * alpha_R2_R4 * (R4_competitive * R4 / K_R4) +
-                alpha_P2_R5 * alpha_R2_R5 * (R5_competitive * R5 / K_R5) +
-                alpha_P2_R6 * alpha_R2_R6 * (R6_competitive * R6 / K_R6)
+            (alpha_P2_R2 * (R2_bind_cat * R2 / K_R2)) * (
+                alpha_P2_R3 * alpha_R2_R3 * (R3_bind_cat * R3 / K_R3) +
+                alpha_P2_R4 * alpha_R2_R4 * (R4_bind_cat * R4 / K_R4) +
+                alpha_P2_R5 * alpha_R2_R5 * (R5_bind_cat * R5 / K_R5) +
+                alpha_P2_R6 * alpha_R2_R6 * (R6_bind_cat * R6 / K_R6)
             ) +
-            (alpha_P2_R3 * (R3_competitive * R3 / K_R3)) * (
-                alpha_P2_R4 * alpha_R3_R4 * (R4_competitive * R4 / K_R4) +
-                alpha_P2_R5 * alpha_R3_R5 * (R5_competitive * R5 / K_R5) +
-                alpha_P2_R6 * alpha_R3_R6 * (R6_competitive * R6 / K_R6)
+            (alpha_P2_R3 * (R3_bind_cat * R3 / K_R3)) * (
+                alpha_P2_R4 * alpha_R3_R4 * (R4_bind_cat * R4 / K_R4) +
+                alpha_P2_R5 * alpha_R3_R5 * (R5_bind_cat * R5 / K_R5) +
+                alpha_P2_R6 * alpha_R3_R6 * (R6_bind_cat * R6 / K_R6)
             ) +
-            (alpha_P2_R4 * (R4_competitive * R4 / K_R4)) * (
-                alpha_P2_R5 * alpha_R4_R5 * (R5_competitive * R5 / K_R5) +
-                alpha_P2_R6 * alpha_R4_R6 * (R6_competitive * R6 / K_R6)
+            (alpha_P2_R4 * (R4_bind_cat * R4 / K_R4)) * (
+                alpha_P2_R5 * alpha_R4_R5 * (R5_bind_cat * R5 / K_R5) +
+                alpha_P2_R6 * alpha_R4_R6 * (R6_bind_cat * R6 / K_R6)
             ) +
-            (alpha_P2_R5 * (R5_competitive * R5 / K_R5)) *
-            (alpha_P2_R6 * alpha_R5_R6 * (R6_competitive * R6 / K_R6))
+            (alpha_P2_R5 * (R5_bind_cat * R5 / K_R5)) *
+            (alpha_P2_R6 * alpha_R5_R6 * (R6_bind_cat * R6 / K_R6))
         ) +
         (P3 / K_P3) * (
-            (alpha_P3_R1 * (R1_competitive * R1 / K_R1)) * (
-                alpha_P3_R2 * alpha_R1_R2 * (R2_competitive * R2 / K_R2) +
-                alpha_P3_R3 * alpha_R1_R3 * (R3_competitive * R3 / K_R3) +
-                alpha_P3_R4 * alpha_R1_R4 * (R4_competitive * R4 / K_R4) +
-                alpha_P3_R5 * alpha_R1_R5 * (R5_competitive * R5 / K_R5) +
-                alpha_P3_R6 * alpha_R1_R6 * (R6_competitive * R6 / K_R6)
+            (alpha_P3_R1 * (R1_bind_cat * R1 / K_R1)) * (
+                alpha_P3_R2 * alpha_R1_R2 * (R2_bind_cat * R2 / K_R2) +
+                alpha_P3_R3 * alpha_R1_R3 * (R3_bind_cat * R3 / K_R3) +
+                alpha_P3_R4 * alpha_R1_R4 * (R4_bind_cat * R4 / K_R4) +
+                alpha_P3_R5 * alpha_R1_R5 * (R5_bind_cat * R5 / K_R5) +
+                alpha_P3_R6 * alpha_R1_R6 * (R6_bind_cat * R6 / K_R6)
             ) +
-            (alpha_P3_R2 * (R2_competitive * R2 / K_R2)) * (
-                alpha_P3_R3 * alpha_R2_R3 * (R3_competitive * R3 / K_R3) +
-                alpha_P3_R4 * alpha_R2_R4 * (R4_competitive * R4 / K_R4) +
-                alpha_P3_R5 * alpha_R2_R5 * (R5_competitive * R5 / K_R5) +
-                alpha_P3_R6 * alpha_R2_R6 * (R6_competitive * R6 / K_R6)
+            (alpha_P3_R2 * (R2_bind_cat * R2 / K_R2)) * (
+                alpha_P3_R3 * alpha_R2_R3 * (R3_bind_cat * R3 / K_R3) +
+                alpha_P3_R4 * alpha_R2_R4 * (R4_bind_cat * R4 / K_R4) +
+                alpha_P3_R5 * alpha_R2_R5 * (R5_bind_cat * R5 / K_R5) +
+                alpha_P3_R6 * alpha_R2_R6 * (R6_bind_cat * R6 / K_R6)
             ) +
-            (alpha_P3_R3 * (R3_competitive * R3 / K_R3)) * (
-                alpha_P3_R4 * alpha_R3_R4 * (R4_competitive * R4 / K_R4) +
-                alpha_P3_R5 * alpha_R3_R5 * (R5_competitive * R5 / K_R5) +
-                alpha_P3_R6 * alpha_R3_R6 * (R6_competitive * R6 / K_R6)
+            (alpha_P3_R3 * (R3_bind_cat * R3 / K_R3)) * (
+                alpha_P3_R4 * alpha_R3_R4 * (R4_bind_cat * R4 / K_R4) +
+                alpha_P3_R5 * alpha_R3_R5 * (R5_bind_cat * R5 / K_R5) +
+                alpha_P3_R6 * alpha_R3_R6 * (R6_bind_cat * R6 / K_R6)
             ) +
-            (alpha_P3_R4 * (R4_competitive * R4 / K_R4)) * (
-                alpha_P3_R5 * alpha_R4_R5 * (R5_competitive * R5 / K_R5) +
-                alpha_P3_R6 * alpha_R4_R6 * (R6_competitive * R6 / K_R6)
+            (alpha_P3_R4 * (R4_bind_cat * R4 / K_R4)) * (
+                alpha_P3_R5 * alpha_R4_R5 * (R5_bind_cat * R5 / K_R5) +
+                alpha_P3_R6 * alpha_R4_R6 * (R6_bind_cat * R6 / K_R6)
             ) +
-            (alpha_P3_R5 * (R5_competitive * R5 / K_R5)) *
-            (alpha_P3_R6 * alpha_R5_R6 * (R6_competitive * R6 / K_R6))
+            (alpha_P3_R5 * (R5_bind_cat * R5 / K_R5)) *
+            (alpha_P3_R6 * alpha_R5_R6 * (R6_bind_cat * R6 / K_R6))
         ) +
-        (R1_competitive * R1 / K_R1) * (
-            (alpha_R1_R2 * (R2_competitive * R2 / K_R2)) * (
-                alpha_R1_R3 * alpha_R2_R3 * (R3_competitive * R3 / K_R3) +
-                alpha_R1_R4 * alpha_R2_R4 * (R4_competitive * R4 / K_R4) +
-                alpha_R1_R5 * alpha_R2_R5 * (R5_competitive * R5 / K_R5) +
-                alpha_R1_R6 * alpha_R2_R6 * (R6_competitive * R6 / K_R6)
+        (R1_bind_cat * R1 / K_R1) * (
+            (alpha_R1_R2 * (R2_bind_cat * R2 / K_R2)) * (
+                alpha_R1_R3 * alpha_R2_R3 * (R3_bind_cat * R3 / K_R3) +
+                alpha_R1_R4 * alpha_R2_R4 * (R4_bind_cat * R4 / K_R4) +
+                alpha_R1_R5 * alpha_R2_R5 * (R5_bind_cat * R5 / K_R5) +
+                alpha_R1_R6 * alpha_R2_R6 * (R6_bind_cat * R6 / K_R6)
             ) +
-            (alpha_R1_R3 * (R3_competitive * R3 / K_R3)) * (
-                alpha_R1_R4 * alpha_R3_R4 * (R4_competitive * R4 / K_R4) +
-                alpha_R1_R5 * alpha_R3_R5 * (R5_competitive * R5 / K_R5) +
-                alpha_R1_R6 * alpha_R3_R6 * (R6_competitive * R6 / K_R6)
+            (alpha_R1_R3 * (R3_bind_cat * R3 / K_R3)) * (
+                alpha_R1_R4 * alpha_R3_R4 * (R4_bind_cat * R4 / K_R4) +
+                alpha_R1_R5 * alpha_R3_R5 * (R5_bind_cat * R5 / K_R5) +
+                alpha_R1_R6 * alpha_R3_R6 * (R6_bind_cat * R6 / K_R6)
             ) +
-            (alpha_R1_R4 * (R4_competitive * R4 / K_R4)) * (
-                alpha_R1_R5 * alpha_R4_R5 * (R5_competitive * R5 / K_R5) +
-                alpha_R1_R6 * alpha_R4_R6 * (R6_competitive * R6 / K_R6)
+            (alpha_R1_R4 * (R4_bind_cat * R4 / K_R4)) * (
+                alpha_R1_R5 * alpha_R4_R5 * (R5_bind_cat * R5 / K_R5) +
+                alpha_R1_R6 * alpha_R4_R6 * (R6_bind_cat * R6 / K_R6)
             ) +
-            (alpha_R1_R5 * (R5_competitive * R5 / K_R5)) *
-            (alpha_R1_R6 * alpha_R5_R6 * (R6_competitive * R6 / K_R6))
+            (alpha_R1_R5 * (R5_bind_cat * R5 / K_R5)) *
+            (alpha_R1_R6 * alpha_R5_R6 * (R6_bind_cat * R6 / K_R6))
         ) +
-        (R2_competitive * R2 / K_R2) * (
-            (alpha_R2_R3 * (R3_competitive * R3 / K_R3)) * (
-                alpha_R2_R4 * alpha_R3_R4 * (R4_competitive * R4 / K_R4) +
-                alpha_R2_R5 * alpha_R3_R5 * (R5_competitive * R5 / K_R5) +
-                alpha_R2_R6 * alpha_R3_R6 * (R6_competitive * R6 / K_R6)
+        (R2_bind_cat * R2 / K_R2) * (
+            (alpha_R2_R3 * (R3_bind_cat * R3 / K_R3)) * (
+                alpha_R2_R4 * alpha_R3_R4 * (R4_bind_cat * R4 / K_R4) +
+                alpha_R2_R5 * alpha_R3_R5 * (R5_bind_cat * R5 / K_R5) +
+                alpha_R2_R6 * alpha_R3_R6 * (R6_bind_cat * R6 / K_R6)
             ) +
             alpha_R2_R4 *
-            (R4_competitive * R4 / K_R4) *
+            (R4_bind_cat * R4 / K_R4) *
             (
-                alpha_R2_R5 * alpha_R4_R5 * (R5_competitive * R5 / K_R5) +
-                alpha_R2_R6 * alpha_R4_R6 * (R6_competitive * R6 / K_R6)
+                alpha_R2_R5 * alpha_R4_R5 * (R5_bind_cat * R5 / K_R5) +
+                alpha_R2_R6 * alpha_R4_R6 * (R6_bind_cat * R6 / K_R6)
             ) +
             alpha_R2_R5 *
-            (R5_competitive * R5 / K_R5) *
-            (alpha_R2_R6 * alpha_R5_R6 * (R6_competitive * R6 / K_R6))
+            (R5_bind_cat * R5 / K_R5) *
+            (alpha_R2_R6 * alpha_R5_R6 * (R6_bind_cat * R6 / K_R6))
         ) +
-        (R3_competitive * R3 / K_R3) * (
-            (alpha_R3_R4 * (R4_competitive * R4 / K_R4)) * (
-                alpha_R3_R5 * alpha_R4_R5 * (R5_competitive * R5 / K_R5) +
-                alpha_R3_R6 * alpha_R4_R6 * (R6_competitive * R6 / K_R6)
+        (R3_bind_cat * R3 / K_R3) * (
+            (alpha_R3_R4 * (R4_bind_cat * R4 / K_R4)) * (
+                alpha_R3_R5 * alpha_R4_R5 * (R5_bind_cat * R5 / K_R5) +
+                alpha_R3_R6 * alpha_R4_R6 * (R6_bind_cat * R6 / K_R6)
             ) +
-            (alpha_R3_R5 * (R5_competitive * R5 / K_R5)) *
-            (alpha_R3_R6 * alpha_R5_R6 * (R6_competitive * R6 / K_R6))
+            (alpha_R3_R5 * (R5_bind_cat * R5 / K_R5)) *
+            (alpha_R3_R6 * alpha_R5_R6 * (R6_bind_cat * R6 / K_R6))
         ) +
-        (alpha_R4_R5 * (R4_competitive * R4 / K_R4)) *
-        (alpha_R4_R6 * alpha_R5_R6 * (R6_competitive * R6 / K_R6))
+        (alpha_R4_R5 * (R4_bind_cat * R4 / K_R4)) *
+        (alpha_R4_R6 * alpha_R5_R6 * (R6_bind_cat * R6 / K_R6))
 
     return 1 + one_metab_bound + two_metab_bound + three_metab_bound
 end
@@ -1345,145 +1365,163 @@ end
     alpha_R4_R6,
     alpha_R5_R6,
 )
-    R1_allostery =
-        alpha_S1_R1 * alpha_S2_R1 * alpha_S3_R1 * alpha_P1_R1 * alpha_P2_R1 * alpha_P3_R1
-    R2_allostery =
-        alpha_S1_R2 * alpha_S2_R2 * alpha_S3_R2 * alpha_P1_R2 * alpha_P2_R2 * alpha_P3_R2
-    R3_allostery =
-        alpha_S1_R3 * alpha_S2_R3 * alpha_S3_R3 * alpha_P1_R3 * alpha_P2_R3 * alpha_P3_R3
-    R4_allostery =
-        alpha_S1_R4 * alpha_S2_R4 * alpha_S3_R4 * alpha_P1_R4 * alpha_P2_R4 * alpha_P3_R4
-    R5_allostery =
-        alpha_S1_R5 * alpha_S2_R5 * alpha_S3_R5 * alpha_P1_R5 * alpha_P2_R5 * alpha_P3_R5
-    R6_allostery =
-        alpha_S1_R6 * alpha_S2_R6 * alpha_S3_R6 * alpha_P1_R6 * alpha_P2_R6 * alpha_P3_R6
+    R1_bind_allo = ifelse(
+        alpha_S1_R1 * alpha_S2_R1 * alpha_S3_R1 * alpha_P1_R1 * alpha_P2_R1 * alpha_P3_R1 != 0.0,
+        1.0,
+        0.0,
+    )
+    R2_bind_allo = ifelse(
+        alpha_S1_R2 * alpha_S2_R2 * alpha_S3_R2 * alpha_P1_R2 * alpha_P2_R2 * alpha_P3_R2 != 0.0,
+        1.0,
+        0.0,
+    )
+    R3_bind_allo = ifelse(
+        alpha_S1_R3 * alpha_S2_R3 * alpha_S3_R3 * alpha_P1_R3 * alpha_P2_R3 * alpha_P3_R3 != 0.0,
+        1.0,
+        0.0,
+    )
+    R4_bind_allo = ifelse(
+        alpha_S1_R4 * alpha_S2_R4 * alpha_S3_R4 * alpha_P1_R4 * alpha_P2_R4 * alpha_P3_R4 != 0.0,
+        1.0,
+        0.0,
+    )
+    R5_bind_allo = ifelse(
+        alpha_S1_R5 * alpha_S2_R5 * alpha_S3_R5 * alpha_P1_R5 * alpha_P2_R5 * alpha_P3_R5 != 0.0,
+        1.0,
+        0.0,
+    )
+    R6_bind_allo = ifelse(
+        alpha_S1_R6 * alpha_S2_R6 * alpha_S3_R6 * alpha_P1_R6 * alpha_P2_R6 * alpha_P3_R6 != 0.0,
+        1.0,
+        0.0,
+    )
 
     one_metab_bound =
-        (R1 * R1_allostery / K_R1) +
-        (R2 * R2_allostery / K_R2) +
-        (R3 * R3_allostery / K_R3) +
-        (R4 * R4_allostery / K_R4) +
-        (R5 * R5_allostery / K_R5) +
-        (R6 * R6_allostery / K_R6)
+        (R1 * R1_bind_allo / K_R1) +
+        (R2 * R2_bind_allo / K_R2) +
+        (R3 * R3_bind_allo / K_R3) +
+        (R4 * R4_bind_allo / K_R4) +
+        (R5 * R5_bind_allo / K_R5) +
+        (R6 * R6_bind_allo / K_R6)
     two_metab_bound =
-        (R1 * R1_allostery / K_R1) * (
-            alpha_R1_R2 * (R2 * R2_allostery / K_R2) +
-            alpha_R1_R3 * (R3 * R3_allostery / K_R3) +
-            alpha_R1_R4 * (R4 * R4_allostery / K_R4) +
-            alpha_R1_R5 * (R5 * R5_allostery / K_R5) +
-            alpha_R1_R6 * (R6 * R6_allostery / K_R6)
+        (R1 * R1_bind_allo / K_R1) * (
+            alpha_R1_R2 * (R2 * R2_bind_allo / K_R2) +
+            alpha_R1_R3 * (R3 * R3_bind_allo / K_R3) +
+            alpha_R1_R4 * (R4 * R4_bind_allo / K_R4) +
+            alpha_R1_R5 * (R5 * R5_bind_allo / K_R5) +
+            alpha_R1_R6 * (R6 * R6_bind_allo / K_R6)
         ) +
-        (R2 * R2_allostery / K_R2) * (
-            alpha_R2_R3 * (R3 * R3_allostery / K_R3) +
-            alpha_R2_R4 * (R4 * R4_allostery / K_R4) +
-            alpha_R2_R5 * (R5 * R5_allostery / K_R5) +
-            alpha_R2_R6 * (R6 * R6_allostery / K_R6)
+        (R2 * R2_bind_allo / K_R2) * (
+            alpha_R2_R3 * (R3 * R3_bind_allo / K_R3) +
+            alpha_R2_R4 * (R4 * R4_bind_allo / K_R4) +
+            alpha_R2_R5 * (R5 * R5_bind_allo / K_R5) +
+            alpha_R2_R6 * (R6 * R6_bind_allo / K_R6)
         ) +
-        (R3 * R3_allostery / K_R3) * (
-            alpha_R3_R4 * (R4 * R4_allostery / K_R4) +
-            alpha_R3_R5 * (R3 * R3_allostery / K_R3) * (R5 * R5_allostery / K_R5) +
-            alpha_R3_R6 * (R3 * R3_allostery / K_R3) * (R6 * R6_allostery / K_R6)
+        (R3 * R3_bind_allo / K_R3) * (
+            alpha_R3_R4 * (R4 * R4_bind_allo / K_R4) +
+            alpha_R3_R5 * (R3 * R3_bind_allo / K_R3) * (R5 * R5_bind_allo / K_R5) +
+            alpha_R3_R6 * (R3 * R3_bind_allo / K_R3) * (R6 * R6_bind_allo / K_R6)
         ) +
-        (R4 * R4_allostery / K_R4) * (
-            alpha_R4_R5 * (R5 * R5_allostery / K_R5) +
-            alpha_R4_R6 * (R4 * R4_allostery / K_R4) * (R6 * R6_allostery / K_R6)
+        (R4 * R4_bind_allo / K_R4) * (
+            alpha_R4_R5 * (R5 * R5_bind_allo / K_R5) +
+            alpha_R4_R6 * (R4 * R4_bind_allo / K_R4) * (R6 * R6_bind_allo / K_R6)
         ) +
-        (R5 * R5_allostery / K_R5) * (alpha_R5_R6 * (R6 * R6_allostery / K_R6))
+        (R5 * R5_bind_allo / K_R5) * (alpha_R5_R6 * (R6 * R6_bind_allo / K_R6))
 
     three_metab_bound =
-        (R1 * R1_allostery / K_R1) * (
-            (alpha_R1_R2 * (R2 * R2_allostery / K_R2)) * (
-                alpha_R1_R3 * alpha_R2_R3 * (R3 * R3_allostery / K_R3) +
-                alpha_R1_R4 * alpha_R2_R4 * (R4 * R4_allostery / K_R4) +
-                alpha_R1_R5 * alpha_R2_R5 * (R5 * R5_allostery / K_R5) +
-                alpha_R1_R6 * alpha_R2_R6 * (R6 * R6_allostery / K_R6)
+        (R1 * R1_bind_allo / K_R1) * (
+            (alpha_R1_R2 * (R2 * R2_bind_allo / K_R2)) * (
+                alpha_R1_R3 * alpha_R2_R3 * (R3 * R3_bind_allo / K_R3) +
+                alpha_R1_R4 * alpha_R2_R4 * (R4 * R4_bind_allo / K_R4) +
+                alpha_R1_R5 * alpha_R2_R5 * (R5 * R5_bind_allo / K_R5) +
+                alpha_R1_R6 * alpha_R2_R6 * (R6 * R6_bind_allo / K_R6)
             ) +
-            (alpha_R1_R3 * (R3 * R3_allostery / K_R3)) * (
-                alpha_R1_R4 * alpha_R3_R4 * (R4 * R4_allostery / K_R4) +
-                alpha_R1_R5 * alpha_R3_R5 * (R5 * R5_allostery / K_R5) +
-                alpha_R1_R6 * alpha_R3_R6 * (R6 * R6_allostery / K_R6)
+            (alpha_R1_R3 * (R3 * R3_bind_allo / K_R3)) * (
+                alpha_R1_R4 * alpha_R3_R4 * (R4 * R4_bind_allo / K_R4) +
+                alpha_R1_R5 * alpha_R3_R5 * (R5 * R5_bind_allo / K_R5) +
+                alpha_R1_R6 * alpha_R3_R6 * (R6 * R6_bind_allo / K_R6)
             ) +
-            (alpha_R1_R4 * (R4 * R4_allostery / K_R4)) * (
-                alpha_R1_R5 * alpha_R4_R5 * (R5 * R5_allostery / K_R5) +
-                alpha_R1_R6 * alpha_R4_R6 * (R6 * R6_allostery / K_R6)
+            (alpha_R1_R4 * (R4 * R4_bind_allo / K_R4)) * (
+                alpha_R1_R5 * alpha_R4_R5 * (R5 * R5_bind_allo / K_R5) +
+                alpha_R1_R6 * alpha_R4_R6 * (R6 * R6_bind_allo / K_R6)
             ) +
-            (alpha_R1_R5 * (R5 * R5_allostery / K_R5)) *
-            (alpha_R1_R6 * alpha_R5_R6 * (R6 * R6_allostery / K_R6))
+            (alpha_R1_R5 * (R5 * R5_bind_allo / K_R5)) *
+            (alpha_R1_R6 * alpha_R5_R6 * (R6 * R6_bind_allo / K_R6))
         ) +
-        (R2 * R2_allostery / K_R2) * (
-            (alpha_R2_R3 * (R3 * R3_allostery / K_R3)) * (
-                alpha_R2_R4 * alpha_R3_R4 * (R4 * R4_allostery / K_R4) +
-                alpha_R2_R5 * alpha_R3_R5 * (R5 * R5_allostery / K_R5) +
-                alpha_R2_R6 * alpha_R3_R6 * (R6 * R6_allostery / K_R6)
+        (R2 * R2_bind_allo / K_R2) * (
+            (alpha_R2_R3 * (R3 * R3_bind_allo / K_R3)) * (
+                alpha_R2_R4 * alpha_R3_R4 * (R4 * R4_bind_allo / K_R4) +
+                alpha_R2_R5 * alpha_R3_R5 * (R5 * R5_bind_allo / K_R5) +
+                alpha_R2_R6 * alpha_R3_R6 * (R6 * R6_bind_allo / K_R6)
             ) +
-            (alpha_R2_R4 * (R4 * R4_allostery / K_R4)) * (
-                alpha_R2_R5 * alpha_R4_R5 * (R5 * R5_allostery / K_R5) +
-                alpha_R2_R6 * alpha_R4_R6 * (R6 * R6_allostery / K_R6)
+            (alpha_R2_R4 * (R4 * R4_bind_allo / K_R4)) * (
+                alpha_R2_R5 * alpha_R4_R5 * (R5 * R5_bind_allo / K_R5) +
+                alpha_R2_R6 * alpha_R4_R6 * (R6 * R6_bind_allo / K_R6)
             ) +
-            (alpha_R2_R5 * (R5 * R5_allostery / K_R5)) *
-            (alpha_R2_R6 * alpha_R5_R6 * (R6 * R6_allostery / K_R6))
+            (alpha_R2_R5 * (R5 * R5_bind_allo / K_R5)) *
+            (alpha_R2_R6 * alpha_R5_R6 * (R6 * R6_bind_allo / K_R6))
         ) +
-        (R3 * R3_allostery / K_R3) * (
-            (alpha_R3_R4 * (R4 * R4_allostery / K_R4)) * (
-                alpha_R3_R5 * alpha_R4_R5 * (R5 * R5_allostery / K_R5) +
-                alpha_R3_R6 * alpha_R4_R6 * (R6 * R6_allostery / K_R6)
+        (R3 * R3_bind_allo / K_R3) * (
+            (alpha_R3_R4 * (R4 * R4_bind_allo / K_R4)) * (
+                alpha_R3_R5 * alpha_R4_R5 * (R5 * R5_bind_allo / K_R5) +
+                alpha_R3_R6 * alpha_R4_R6 * (R6 * R6_bind_allo / K_R6)
             ) +
-            (alpha_R3_R5 * (R5 * R5_allostery / K_R5)) *
-            (alpha_R3_R6 * alpha_R5_R6 * (R6 * R6_allostery / K_R6))
+            (alpha_R3_R5 * (R5 * R5_bind_allo / K_R5)) *
+            (alpha_R3_R6 * alpha_R5_R6 * (R6 * R6_bind_allo / K_R6))
         ) +
-        (R4 * R4_allostery / K_R4) * (
-            (alpha_R4_R5 * (R5 * R5_allostery / K_R5)) *
-            (alpha_R4_R6 * alpha_R5_R6 * (R6 * R6_allostery / K_R6))
+        (R4 * R4_bind_allo / K_R4) * (
+            (alpha_R4_R5 * (R5 * R5_bind_allo / K_R5)) *
+            (alpha_R4_R6 * alpha_R5_R6 * (R6 * R6_bind_allo / K_R6))
         )
 
     four_metab_bound =
-        (R1 * R1_allostery / K_R1) * (
-            (alpha_R1_R2 * (R2 * R2_allostery / K_R2)) * (
-                (alpha_R1_R3 * alpha_R2_R3 * (R3 * R3_allostery / K_R3)) * (
-                    alpha_R1_R4 * alpha_R2_R4 * alpha_R3_R4 * (R4 * R4_allostery / K_R4) +
-                    alpha_R1_R5 * alpha_R2_R5 * alpha_R3_R5 * (R5 * R5_allostery / K_R5) +
-                    alpha_R1_R6 * alpha_R2_R6 * alpha_R3_R6 * (R6 * R6_allostery / K_R6)
+        (R1 * R1_bind_allo / K_R1) * (
+            (alpha_R1_R2 * (R2 * R2_bind_allo / K_R2)) * (
+                (alpha_R1_R3 * alpha_R2_R3 * (R3 * R3_bind_allo / K_R3)) * (
+                    alpha_R1_R4 * alpha_R2_R4 * alpha_R3_R4 * (R4 * R4_bind_allo / K_R4) +
+                    alpha_R1_R5 * alpha_R2_R5 * alpha_R3_R5 * (R5 * R5_bind_allo / K_R5) +
+                    alpha_R1_R6 * alpha_R2_R6 * alpha_R3_R6 * (R6 * R6_bind_allo / K_R6)
                 ) +
-                (alpha_R1_R4 * alpha_R2_R4 * (R4 * R4_allostery / K_R4)) * (
-                    alpha_R1_R5 * alpha_R2_R5 * alpha_R4_R5 * (R5 * R5_allostery / K_R5) +
-                    alpha_R1_R6 * alpha_R2_R6 * alpha_R4_R6 * (R6 * R6_allostery / K_R6)
+                (alpha_R1_R4 * alpha_R2_R4 * (R4 * R4_bind_allo / K_R4)) * (
+                    alpha_R1_R5 * alpha_R2_R5 * alpha_R4_R5 * (R5 * R5_bind_allo / K_R5) +
+                    alpha_R1_R6 * alpha_R2_R6 * alpha_R4_R6 * (R6 * R6_bind_allo / K_R6)
                 ) +
-                (alpha_R1_R5 * alpha_R2_R5 * (R5 * R5_allostery / K_R5)) *
-                (alpha_R1_R6 * alpha_R2_R6 * alpha_R5_R6 * (R6 * R6_allostery / K_R6))
+                (alpha_R1_R5 * alpha_R2_R5 * (R5 * R5_bind_allo / K_R5)) *
+                (alpha_R1_R6 * alpha_R2_R6 * alpha_R5_R6 * (R6 * R6_bind_allo / K_R6))
             ) +
-            (alpha_R1_R3 * (R3 * R3_allostery / K_R3)) * (
-                (alpha_R1_R4 * alpha_R3_R4 * (R4 * R4_allostery / K_R4)) * (
-                    alpha_R1_R5 * alpha_R3_R5 * alpha_R4_R5 * (R5 * R5_allostery / K_R5) +
-                    alpha_R1_R6 * alpha_R3_R6 * alpha_R4_R6 * (R6 * R6_allostery / K_R6)
+            (alpha_R1_R3 * (R3 * R3_bind_allo / K_R3)) * (
+                (alpha_R1_R4 * alpha_R3_R4 * (R4 * R4_bind_allo / K_R4)) * (
+                    alpha_R1_R5 * alpha_R3_R5 * alpha_R4_R5 * (R5 * R5_bind_allo / K_R5) +
+                    alpha_R1_R6 * alpha_R3_R6 * alpha_R4_R6 * (R6 * R6_bind_allo / K_R6)
                 ) +
-                (alpha_R1_R5 * alpha_R3_R5 * (R5 * R5_allostery / K_R5)) *
-                (alpha_R1_R6 * alpha_R3_R6 * alpha_R5_R6 * (R6 * R6_allostery / K_R6))
+                (alpha_R1_R5 * alpha_R3_R5 * (R5 * R5_bind_allo / K_R5)) *
+                (alpha_R1_R6 * alpha_R3_R6 * alpha_R5_R6 * (R6 * R6_bind_allo / K_R6))
             ) +
-            (alpha_R1_R4 * (R4 * R4_allostery / K_R4)) * (
-                (alpha_R1_R5 * alpha_R4_R5 * (R5 * R5_allostery / K_R5)) *
-                (alpha_R1_R6 * alpha_R4_R6 * alpha_R5_R6 * (R6 * R6_allostery / K_R6))
+            (alpha_R1_R4 * (R4 * R4_bind_allo / K_R4)) * (
+                (alpha_R1_R5 * alpha_R4_R5 * (R5 * R5_bind_allo / K_R5)) *
+                (alpha_R1_R6 * alpha_R4_R6 * alpha_R5_R6 * (R6 * R6_bind_allo / K_R6))
             )
         ) +
-        (R2 * R2_allostery / K_R2) * (
-            (alpha_R2_R3 * (R3 * R3_allostery / K_R3)) * (
-                (alpha_R2_R4 * alpha_R3_R4 * (R4 * R4_allostery / K_R4)) * (
-                    alpha_R2_R5 * alpha_R3_R5 * alpha_R4_R5 * (R5 * R5_allostery / K_R5) +
-                    alpha_R2_R6 * alpha_R3_R6 * alpha_R4_R6 * (R6 * R6_allostery / K_R6)
+        (R2 * R2_bind_allo / K_R2) * (
+            (alpha_R2_R3 * (R3 * R3_bind_allo / K_R3)) * (
+                (alpha_R2_R4 * alpha_R3_R4 * (R4 * R4_bind_allo / K_R4)) * (
+                    alpha_R2_R5 * alpha_R3_R5 * alpha_R4_R5 * (R5 * R5_bind_allo / K_R5) +
+                    alpha_R2_R6 * alpha_R3_R6 * alpha_R4_R6 * (R6 * R6_bind_allo / K_R6)
                 ) +
-                (alpha_R2_R5 * alpha_R3_R5 * (R5 * R5_allostery / K_R5)) *
-                (alpha_R2_R6 * alpha_R3_R6 * alpha_R5_R6 * (R6 * R6_allostery / K_R6))
+                (alpha_R2_R5 * alpha_R3_R5 * (R5 * R5_bind_allo / K_R5)) *
+                (alpha_R2_R6 * alpha_R3_R6 * alpha_R5_R6 * (R6 * R6_bind_allo / K_R6))
             ) +
-            (alpha_R2_R4 * (R4 * R4_allostery / K_R4)) * (
-                (alpha_R2_R5 * alpha_R4_R5 * (R5 * R5_allostery / K_R5)) *
-                (alpha_R2_R6 * alpha_R4_R6 * alpha_R5_R6 * (R6 * R6_allostery / K_R6))
+            (alpha_R2_R4 * (R4 * R4_bind_allo / K_R4)) * (
+                (alpha_R2_R5 * alpha_R4_R5 * (R5 * R5_bind_allo / K_R5)) *
+                (alpha_R2_R6 * alpha_R4_R6 * alpha_R5_R6 * (R6 * R6_bind_allo / K_R6))
             )
         ) +
-        (R3 * R3_allostery / K_R3) * (
+        (R3 * R3_bind_allo / K_R3) * (
             alpha_R3_R4 *
-            (R4 * R4_allostery / K_R4) *
+            (R4 * R4_bind_allo / K_R4) *
             (
-                (alpha_R3_R5 * alpha_R4_R5 * (R5 * R5_allostery / K_R5)) *
-                (alpha_R3_R6 * alpha_R4_R6 * alpha_R5_R6 * (R6 * R6_allostery / K_R6))
+                (alpha_R3_R5 * alpha_R4_R5 * (R5 * R5_bind_allo / K_R5)) *
+                (alpha_R3_R6 * alpha_R4_R6 * alpha_R5_R6 * (R6 * R6_bind_allo / K_R6))
             )
         )
 
@@ -1498,11 +1536,11 @@ end
         alpha_R3_R4 *
         alpha_R3_R5 *
         alpha_R4_R5 *
-        (R1 * R1_allostery / K_R1) *
-        (R2 * R2_allostery / K_R2) *
-        (R3 * R3_allostery / K_R3) *
-        (R4 * R4_allostery / K_R4) *
-        (R5 * R5_allostery / K_R5) +
+        (R1 * R1_bind_allo / K_R1) *
+        (R2 * R2_bind_allo / K_R2) *
+        (R3 * R3_bind_allo / K_R3) *
+        (R4 * R4_bind_allo / K_R4) *
+        (R5 * R5_bind_allo / K_R5) +
         alpha_R1_R2 *
         alpha_R1_R3 *
         alpha_R1_R4 *
@@ -1513,11 +1551,11 @@ end
         alpha_R3_R4 *
         alpha_R3_R6 *
         alpha_R4_R6 *
-        (R1 * R1_allostery / K_R1) *
-        (R2 * R2_allostery / K_R2) *
-        (R3 * R3_allostery / K_R3) *
-        (R4 * R4_allostery / K_R4) *
-        (R6 * R6_allostery / K_R6) +
+        (R1 * R1_bind_allo / K_R1) *
+        (R2 * R2_bind_allo / K_R2) *
+        (R3 * R3_bind_allo / K_R3) *
+        (R4 * R4_bind_allo / K_R4) *
+        (R6 * R6_bind_allo / K_R6) +
         alpha_R1_R2 *
         alpha_R1_R3 *
         alpha_R1_R5 *
@@ -1528,11 +1566,11 @@ end
         alpha_R3_R5 *
         alpha_R3_R6 *
         alpha_R5_R6 *
-        (R1 * R1_allostery / K_R1) *
-        (R2 * R2_allostery / K_R2) *
-        (R3 * R3_allostery / K_R3) *
-        (R5 * R5_allostery / K_R5) *
-        (R6 * R6_allostery / K_R6) +
+        (R1 * R1_bind_allo / K_R1) *
+        (R2 * R2_bind_allo / K_R2) *
+        (R3 * R3_bind_allo / K_R3) *
+        (R5 * R5_bind_allo / K_R5) *
+        (R6 * R6_bind_allo / K_R6) +
         alpha_R1_R2 *
         alpha_R1_R4 *
         alpha_R1_R5 *
@@ -1543,11 +1581,11 @@ end
         alpha_R4_R5 *
         alpha_R4_R6 *
         alpha_R5_R6 *
-        (R1 * R1_allostery / K_R1) *
-        (R2 * R2_allostery / K_R2) *
-        (R4 * R4_allostery / K_R4) *
-        (R5 * R5_allostery / K_R5) *
-        (R6 * R6_allostery / K_R6) +
+        (R1 * R1_bind_allo / K_R1) *
+        (R2 * R2_bind_allo / K_R2) *
+        (R4 * R4_bind_allo / K_R4) *
+        (R5 * R5_bind_allo / K_R5) *
+        (R6 * R6_bind_allo / K_R6) +
         alpha_R1_R3 *
         alpha_R1_R4 *
         alpha_R1_R5 *
@@ -1558,11 +1596,11 @@ end
         alpha_R4_R5 *
         alpha_R4_R6 *
         alpha_R5_R6 *
-        (R1 * R1_allostery / K_R1) *
-        (R3 * R3_allostery / K_R3) *
-        (R4 * R4_allostery / K_R4) *
-        (R5 * R5_allostery / K_R5) *
-        (R6 * R6_allostery / K_R6) +
+        (R1 * R1_bind_allo / K_R1) *
+        (R3 * R3_bind_allo / K_R3) *
+        (R4 * R4_bind_allo / K_R4) *
+        (R5 * R5_bind_allo / K_R5) *
+        (R6 * R6_bind_allo / K_R6) +
         alpha_R2_R3 *
         alpha_R2_R4 *
         alpha_R2_R5 *
@@ -1573,11 +1611,11 @@ end
         alpha_R4_R5 *
         alpha_R4_R6 *
         alpha_R5_R6 *
-        (R2 * R2_allostery / K_R2) *
-        (R3 * R3_allostery / K_R3) *
-        (R4 * R4_allostery / K_R4) *
-        (R5 * R5_allostery / K_R5) *
-        (R6 * R6_allostery / K_R6)
+        (R2 * R2_bind_allo / K_R2) *
+        (R3 * R3_bind_allo / K_R3) *
+        (R4 * R4_bind_allo / K_R4) *
+        (R5 * R5_bind_allo / K_R5) *
+        (R6 * R6_bind_allo / K_R6)
 
     six_metab_bound =
         alpha_R1_R2 *
@@ -1595,12 +1633,12 @@ end
         alpha_R4_R5 *
         alpha_R4_R6 *
         alpha_R5_R6 *
-        (R1 * R1_allostery / K_R1) *
-        (R2 * R2_allostery / K_R2) *
-        (R3 * R3_allostery / K_R3) *
-        (R4 * R4_allostery / K_R4) *
-        (R5 * R5_allostery / K_R5) *
-        (R6 * R6_allostery / K_R6)
+        (R1 * R1_bind_allo / K_R1) *
+        (R2 * R2_bind_allo / K_R2) *
+        (R3 * R3_bind_allo / K_R3) *
+        (R4 * R4_bind_allo / K_R4) *
+        (R5 * R5_bind_allo / K_R5) *
+        (R6 * R6_bind_allo / K_R6)
 
     return 1 +
            one_metab_bound +
