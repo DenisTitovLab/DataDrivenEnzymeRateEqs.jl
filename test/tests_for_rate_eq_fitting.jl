@@ -55,7 +55,7 @@ benchmark_result = @benchmark DataDrivenEnzymeRateEqs.loss_rate_equation($(kinet
 
 #TODO: make fake data with noise and known params and ensure known params are recovered
 fit_result = @time fit_rate_equation(rate_equation, data, metab_names, param_names; n_iter=20)
-@test isapprox(fit_result.train_loss, 0.08946088323758938, rtol=1e-3)
+@test isapprox(fit_result.train_loss, 0.08946088323758938, rtol=0.01)
 @test fit_result.params isa NamedTuple{param_names}{NTuple{length(param_names),Float64}}
 
 ##

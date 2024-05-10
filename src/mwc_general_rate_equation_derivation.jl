@@ -42,6 +42,9 @@ macro derive_general_mwc_rate_eq(metabs_and_regulators_kwargs)
     processed_input = getfield(__module__, Symbol(metabs_and_regulators_kwargs))
     expected_input_kwargs =
         [:substrates, :products, :regulators, :Keq, :oligomeric_state, :rate_equation_name]
+    if !haskey(processed_input, :regulators)
+        processed_input.regulators = []
+    end
     for kwarg in keys(processed_input)
         kwarg ∈ expected_input_kwargs || error(
             "invalid keyword: ",
@@ -49,12 +52,12 @@ macro derive_general_mwc_rate_eq(metabs_and_regulators_kwargs)
             ". The only supported keywords are: ",
             expected_input_kwargs,
         )
+        @assert haskey(processed_input, kwarg) "missing keyword: $kwarg"
     end
+
     @assert 0 < length(processed_input.substrates) <= 3 "At least 1 and no more that 3 substrates are supported"
     @assert 0 < length(processed_input.products) <= 3 "At least 1 and no more that 3 products are supported"
-    if haskey(processed_input, :regulators)
-        @assert 0 < length(processed_input.regulators) <= 6 "no more that 6 regulators are supported"
-    end
+    @assert 0 <= length(processed_input.regulators) <= 6 "no more that 6 regulators are supported"
 
     metab_names = generate_metab_names(processed_input)
     param_names = generate_param_names(processed_input)

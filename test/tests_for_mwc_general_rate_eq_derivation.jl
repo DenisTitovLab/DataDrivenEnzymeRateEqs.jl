@@ -20,6 +20,8 @@ benchmark_result = @benchmark rand_enz_rate_equation(metabs_nt, params_nt, 20000
 @test mean(benchmark_result.times) <= 450 #ns
 @test benchmark_result.allocs <= 1
 
+
+#TODO: instead of PKM2 use a generic random enzyme for the tests for Vmax etc
 PKM2_enzyme = (;
     substrates=[:PEP, :ADP],
     products=[:Pyruvate, :ATP],
