@@ -121,7 +121,6 @@ function data_driven_rate_equation_selection(
         previous_param_removal_codes = values.(df_results.nt_param_removal_codes)
 
         #calculate loocv test loss for top subset for each `num_params`
-        #TODO: change to pmap
         best_nt_param_removal_code =
             df_results.nt_param_removal_codes[argmin(df_results.train_loss)]
         test_results = pmap(

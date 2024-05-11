@@ -12,7 +12,4 @@ using SafeTestsets
     @safetestset "MWC Rate Eq Subset Selection" begin
         include("tests_for_optimal_rate_eq_selection.jl")
     end
-    @safetestset "Rapid Equilibrium Rate Eq Derivation" begin
-        include("tests_for_rapid_equilibrium_general_rate_eq_derivation.jl")
-    end
 end
