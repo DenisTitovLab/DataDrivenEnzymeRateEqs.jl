@@ -6,17 +6,6 @@ using DataDrivenEnzymeRateEqs, Test
 using CMAEvolutionStrategy, DataFrames, CSV, Statistics
 using BenchmarkTools
 
-# PKM2_enzyme = (;
-#     substrates = [:PEP, :ADP],
-#     products = [:Pyruvate, :ATP],
-#     cat1 = [:ATP, :ADP],
-#     cat2 = [:PEP, :Pyruvate],
-#     reg1 = [:F16BP],
-#     reg2 = [:Phenylalanine],
-#     Keq = 20_000.0,
-#     oligomeric_state = 4,
-#     rate_equation_name = :rate_equation,
-# )
 PKM2_enzyme = (;
     substrates=[:PEP, :ADP],
     products=[:Pyruvate, :ATP],
