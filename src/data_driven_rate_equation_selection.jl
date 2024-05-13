@@ -32,6 +32,7 @@ function data_driven_rate_equation_selection(
     forward_model_selection::Bool,
 )
     #check that range_number_params within bounds of minimal and maximal number of parameters
+    #TODO: move to after the removal code generation to make more general
     @assert range_number_params[1] >=
             (1 + sum([occursin("K_a_", string(param_name)) for param_name in param_names]))
     @assert range_number_params[2] <= length(param_names)
@@ -120,7 +121,6 @@ function data_driven_rate_equation_selection(
         previous_param_removal_codes = values.(df_results.nt_param_removal_codes)
 
         #calculate loocv test loss for top subset for each `num_params`
-        #TODO: change to pmap
         best_nt_param_removal_code =
             df_results.nt_param_removal_codes[argmin(df_results.train_loss)]
         test_results = pmap(
