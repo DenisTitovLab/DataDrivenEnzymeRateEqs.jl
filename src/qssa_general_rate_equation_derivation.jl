@@ -166,8 +166,6 @@ macro derive_general_qssa_rate_eq(metabs_and_regulators_kwargs)
                     params.$(Symbol("K_", enz.P3, "_", enz.R2)) : Inf,
                     $(enz.R1 isa Symbol && enz.R2 isa Symbol) ?
                     params.$(Symbol("K_", enz.R1, "_", enz.R2)) : Inf,
-                    $(enz.R1 isa Symbol && enz.R2 isa Symbol) ?
-                    params.$(Symbol("K_", enz.R1, "_", enz.R2)) : Inf,
                     $(enz.S1 isa Symbol && enz.S2 isa Symbol && enz.S3 isa Symbol) ?
                     params.$(Symbol("K_", enz.S1, "_", enz.S2, "_", enz.S3)) : Inf,
                     $(enz.S1 isa Symbol && enz.S2 isa Symbol && enz.P1 isa Symbol) ?
@@ -573,205 +571,273 @@ macro derive_general_qssa_rate_eq(metabs_and_regulators_kwargs)
                         enz.S3 isa Symbol &&
                         enz.P1 isa Symbol &&
                         enz.P3 isa Symbol
-                    ) ? params.$(Symbol("K_", enz.S2, "_", enz.S3, "_", enz.P1, "_", enz.P3)) : Inf,
+                    ) ?
+                    params.$(Symbol("K_", enz.S2, "_", enz.S3, "_", enz.P1, "_", enz.P3)) :
+                    Inf,
                     $(
                         enz.S2 isa Symbol &&
                         enz.S3 isa Symbol &&
                         enz.P1 isa Symbol &&
                         enz.R1 isa Symbol
-                    ) ? params.$(Symbol("K_", enz.S2, "_", enz.S3, "_", enz.P1, "_", enz.R1)) : Inf,
+                    ) ?
+                    params.$(Symbol("K_", enz.S2, "_", enz.S3, "_", enz.P1, "_", enz.R1)) :
+                    Inf,
                     $(
                         enz.S2 isa Symbol &&
                         enz.S3 isa Symbol &&
                         enz.P1 isa Symbol &&
                         enz.R2 isa Symbol
-                    ) ? params.$(Symbol("K_", enz.S2, "_", enz.S3, "_", enz.P1, "_", enz.R2)) : Inf,
+                    ) ?
+                    params.$(Symbol("K_", enz.S2, "_", enz.S3, "_", enz.P1, "_", enz.R2)) :
+                    Inf,
                     $(
                         enz.S2 isa Symbol &&
                         enz.S3 isa Symbol &&
                         enz.P2 isa Symbol &&
                         enz.P3 isa Symbol
-                    ) ? params.$(Symbol("K_", enz.S2, "_", enz.S3, "_", enz.P2, "_", enz.P3)) : Inf,
+                    ) ?
+                    params.$(Symbol("K_", enz.S2, "_", enz.S3, "_", enz.P2, "_", enz.P3)) :
+                    Inf,
                     $(
                         enz.S2 isa Symbol &&
                         enz.S3 isa Symbol &&
                         enz.P2 isa Symbol &&
                         enz.R1 isa Symbol
-                    ) ? params.$(Symbol("K_", enz.S2, "_", enz.S3, "_", enz.P2, "_", enz.R1)) : Inf,
+                    ) ?
+                    params.$(Symbol("K_", enz.S2, "_", enz.S3, "_", enz.P2, "_", enz.R1)) :
+                    Inf,
                     $(
                         enz.S2 isa Symbol &&
                         enz.S3 isa Symbol &&
                         enz.P2 isa Symbol &&
                         enz.R2 isa Symbol
-                    ) ? params.$(Symbol("K_", enz.S2, "_", enz.S3, "_", enz.P2, "_", enz.R2)) : Inf,
+                    ) ?
+                    params.$(Symbol("K_", enz.S2, "_", enz.S3, "_", enz.P2, "_", enz.R2)) :
+                    Inf,
                     $(
                         enz.S2 isa Symbol &&
                         enz.S3 isa Symbol &&
                         enz.P3 isa Symbol &&
                         enz.R1 isa Symbol
-                    ) ? params.$(Symbol("K_", enz.S2, "_", enz.S3, "_", enz.P3, "_", enz.R1)) : Inf,
+                    ) ?
+                    params.$(Symbol("K_", enz.S2, "_", enz.S3, "_", enz.P3, "_", enz.R1)) :
+                    Inf,
                     $(
                         enz.S2 isa Symbol &&
                         enz.S3 isa Symbol &&
                         enz.P3 isa Symbol &&
                         enz.R2 isa Symbol
-                    ) ? params.$(Symbol("K_", enz.S2, "_", enz.S3, "_", enz.P3, "_", enz.R2)) : Inf,
+                    ) ?
+                    params.$(Symbol("K_", enz.S2, "_", enz.S3, "_", enz.P3, "_", enz.R2)) :
+                    Inf,
                     $(
                         enz.S2 isa Symbol &&
                         enz.S3 isa Symbol &&
                         enz.R1 isa Symbol &&
                         enz.R2 isa Symbol
-                    ) ? params.$(Symbol("K_", enz.S2, "_", enz.S3, "_", enz.R1, "_", enz.R2)) : Inf,
+                    ) ?
+                    params.$(Symbol("K_", enz.S2, "_", enz.S3, "_", enz.R1, "_", enz.R2)) :
+                    Inf,
                     $(
                         enz.S2 isa Symbol &&
                         enz.P1 isa Symbol &&
                         enz.P2 isa Symbol &&
                         enz.P3 isa Symbol
-                    ) ? params.$(Symbol("K_", enz.S2, "_", enz.P1, "_", enz.P2, "_", enz.P3)) : Inf,
+                    ) ?
+                    params.$(Symbol("K_", enz.S2, "_", enz.P1, "_", enz.P2, "_", enz.P3)) :
+                    Inf,
                     $(
                         enz.S2 isa Symbol &&
                         enz.P1 isa Symbol &&
                         enz.P2 isa Symbol &&
                         enz.R1 isa Symbol
-                    ) ? params.$(Symbol("K_", enz.S2, "_", enz.P1, "_", enz.P2, "_", enz.R1)) : Inf,
+                    ) ?
+                    params.$(Symbol("K_", enz.S2, "_", enz.P1, "_", enz.P2, "_", enz.R1)) :
+                    Inf,
                     $(
                         enz.S2 isa Symbol &&
                         enz.P1 isa Symbol &&
                         enz.P2 isa Symbol &&
                         enz.R2 isa Symbol
-                    ) ? params.$(Symbol("K_", enz.S2, "_", enz.P1, "_", enz.P2, "_", enz.R2)) : Inf,
+                    ) ?
+                    params.$(Symbol("K_", enz.S2, "_", enz.P1, "_", enz.P2, "_", enz.R2)) :
+                    Inf,
                     $(
                         enz.S2 isa Symbol &&
                         enz.P1 isa Symbol &&
                         enz.P3 isa Symbol &&
                         enz.R1 isa Symbol
-                    ) ? params.$(Symbol("K_", enz.S2, "_", enz.P1, "_", enz.P3, "_", enz.R1)) : Inf,
+                    ) ?
+                    params.$(Symbol("K_", enz.S2, "_", enz.P1, "_", enz.P3, "_", enz.R1)) :
+                    Inf,
                     $(
                         enz.S2 isa Symbol &&
                         enz.P1 isa Symbol &&
                         enz.P3 isa Symbol &&
                         enz.R2 isa Symbol
-                    ) ? params.$(Symbol("K_", enz.S2, "_", enz.P1, "_", enz.P3, "_", enz.R2)) : Inf,
+                    ) ?
+                    params.$(Symbol("K_", enz.S2, "_", enz.P1, "_", enz.P3, "_", enz.R2)) :
+                    Inf,
                     $(
                         enz.S2 isa Symbol &&
                         enz.P1 isa Symbol &&
                         enz.R1 isa Symbol &&
                         enz.R2 isa Symbol
-                    ) ? params.$(Symbol("K_", enz.S2, "_", enz.P1, "_", enz.R1, "_", enz.R2)) : Inf,
+                    ) ?
+                    params.$(Symbol("K_", enz.S2, "_", enz.P1, "_", enz.R1, "_", enz.R2)) :
+                    Inf,
                     $(
                         enz.S2 isa Symbol &&
                         enz.P2 isa Symbol &&
                         enz.P3 isa Symbol &&
                         enz.R1 isa Symbol
-                    ) ? params.$(Symbol("K_", enz.S2, "_", enz.P2, "_", enz.P3, "_", enz.R1)) : Inf,
+                    ) ?
+                    params.$(Symbol("K_", enz.S2, "_", enz.P2, "_", enz.P3, "_", enz.R1)) :
+                    Inf,
                     $(
                         enz.S2 isa Symbol &&
                         enz.P2 isa Symbol &&
                         enz.P3 isa Symbol &&
                         enz.R2 isa Symbol
-                    ) ? params.$(Symbol("K_", enz.S2, "_", enz.P2, "_", enz.P3, "_", enz.R2)) : Inf,
+                    ) ?
+                    params.$(Symbol("K_", enz.S2, "_", enz.P2, "_", enz.P3, "_", enz.R2)) :
+                    Inf,
                     $(
                         enz.S2 isa Symbol &&
                         enz.P2 isa Symbol &&
                         enz.R1 isa Symbol &&
                         enz.R2 isa Symbol
-                    ) ? params.$(Symbol("K_", enz.S2, "_", enz.P2, "_", enz.R1, "_", enz.R2)) : Inf,
+                    ) ?
+                    params.$(Symbol("K_", enz.S2, "_", enz.P2, "_", enz.R1, "_", enz.R2)) :
+                    Inf,
                     $(
                         enz.S2 isa Symbol &&
                         enz.P3 isa Symbol &&
                         enz.R1 isa Symbol &&
                         enz.R2 isa Symbol
-                    ) ? params.$(Symbol("K_", enz.S2, "_", enz.P3, "_", enz.R1, "_", enz.R2)) : Inf,
+                    ) ?
+                    params.$(Symbol("K_", enz.S2, "_", enz.P3, "_", enz.R1, "_", enz.R2)) :
+                    Inf,
                     $(
                         enz.S3 isa Symbol &&
                         enz.P1 isa Symbol &&
                         enz.P2 isa Symbol &&
                         enz.P3 isa Symbol
-                    ) ? params.$(Symbol("K_", enz.S3, "_", enz.P1, "_", enz.P2, "_", enz.P3)) : Inf,
+                    ) ?
+                    params.$(Symbol("K_", enz.S3, "_", enz.P1, "_", enz.P2, "_", enz.P3)) :
+                    Inf,
                     $(
                         enz.S3 isa Symbol &&
                         enz.P1 isa Symbol &&
                         enz.P2 isa Symbol &&
                         enz.R1 isa Symbol
-                    ) ? params.$(Symbol("K_", enz.S3, "_", enz.P1, "_", enz.P2, "_", enz.R1)) : Inf,
+                    ) ?
+                    params.$(Symbol("K_", enz.S3, "_", enz.P1, "_", enz.P2, "_", enz.R1)) :
+                    Inf,
                     $(
                         enz.S3 isa Symbol &&
                         enz.P1 isa Symbol &&
                         enz.P2 isa Symbol &&
                         enz.R2 isa Symbol
-                    ) ? params.$(Symbol("K_", enz.S3, "_", enz.P1, "_", enz.P2, "_", enz.R2)) : Inf,
+                    ) ?
+                    params.$(Symbol("K_", enz.S3, "_", enz.P1, "_", enz.P2, "_", enz.R2)) :
+                    Inf,
                     $(
                         enz.S3 isa Symbol &&
                         enz.P1 isa Symbol &&
                         enz.P3 isa Symbol &&
                         enz.R1 isa Symbol
-                    ) ? params.$(Symbol("K_", enz.S3, "_", enz.P1, "_", enz.P3, "_", enz.R1)) : Inf,
+                    ) ?
+                    params.$(Symbol("K_", enz.S3, "_", enz.P1, "_", enz.P3, "_", enz.R1)) :
+                    Inf,
                     $(
                         enz.S3 isa Symbol &&
                         enz.P1 isa Symbol &&
                         enz.P3 isa Symbol &&
                         enz.R2 isa Symbol
-                    ) ? params.$(Symbol("K_", enz.S3, "_", enz.P1, "_", enz.P3, "_", enz.R2)) : Inf,
+                    ) ?
+                    params.$(Symbol("K_", enz.S3, "_", enz.P1, "_", enz.P3, "_", enz.R2)) :
+                    Inf,
                     $(
                         enz.S3 isa Symbol &&
                         enz.P1 isa Symbol &&
                         enz.R1 isa Symbol &&
                         enz.R2 isa Symbol
-                    ) ? params.$(Symbol("K_", enz.S3, "_", enz.P1, "_", enz.R1, "_", enz.R2)) : Inf,
+                    ) ?
+                    params.$(Symbol("K_", enz.S3, "_", enz.P1, "_", enz.R1, "_", enz.R2)) :
+                    Inf,
                     $(
                         enz.S3 isa Symbol &&
                         enz.P2 isa Symbol &&
                         enz.P3 isa Symbol &&
                         enz.R1 isa Symbol
-                    ) ? params.$(Symbol("K_", enz.S3, "_", enz.P2, "_", enz.P3, "_", enz.R1)) : Inf,
+                    ) ?
+                    params.$(Symbol("K_", enz.S3, "_", enz.P2, "_", enz.P3, "_", enz.R1)) :
+                    Inf,
                     $(
                         enz.S3 isa Symbol &&
                         enz.P2 isa Symbol &&
                         enz.P3 isa Symbol &&
                         enz.R2 isa Symbol
-                    ) ? params.$(Symbol("K_", enz.S3, "_", enz.P2, "_", enz.P3, "_", enz.R2)) : Inf,
+                    ) ?
+                    params.$(Symbol("K_", enz.S3, "_", enz.P2, "_", enz.P3, "_", enz.R2)) :
+                    Inf,
                     $(
                         enz.S3 isa Symbol &&
                         enz.P2 isa Symbol &&
                         enz.R1 isa Symbol &&
                         enz.R2 isa Symbol
-                    ) ? params.$(Symbol("K_", enz.S3, "_", enz.P2, "_", enz.R1, "_", enz.R2)) : Inf,
+                    ) ?
+                    params.$(Symbol("K_", enz.S3, "_", enz.P2, "_", enz.R1, "_", enz.R2)) :
+                    Inf,
                     $(
                         enz.S3 isa Symbol &&
                         enz.P3 isa Symbol &&
                         enz.R1 isa Symbol &&
                         enz.R2 isa Symbol
-                    ) ? params.$(Symbol("K_", enz.S3, "_", enz.P3, "_", enz.R1, "_", enz.R2)) : Inf,
+                    ) ?
+                    params.$(Symbol("K_", enz.S3, "_", enz.P3, "_", enz.R1, "_", enz.R2)) :
+                    Inf,
                     $(
                         enz.P1 isa Symbol &&
                         enz.P2 isa Symbol &&
                         enz.P3 isa Symbol &&
                         enz.R1 isa Symbol
-                    ) ? params.$(Symbol("K_", enz.P1, "_", enz.P2, "_", enz.P3, "_", enz.R1)) : Inf,
+                    ) ?
+                    params.$(Symbol("K_", enz.P1, "_", enz.P2, "_", enz.P3, "_", enz.R1)) :
+                    Inf,
                     $(
                         enz.P1 isa Symbol &&
                         enz.P2 isa Symbol &&
                         enz.P3 isa Symbol &&
                         enz.R2 isa Symbol
-                    ) ? params.$(Symbol("K_", enz.P1, "_", enz.P2, "_", enz.P3, "_", enz.R2)) : Inf,
+                    ) ?
+                    params.$(Symbol("K_", enz.P1, "_", enz.P2, "_", enz.P3, "_", enz.R2)) :
+                    Inf,
                     $(
                         enz.P1 isa Symbol &&
                         enz.P2 isa Symbol &&
                         enz.R1 isa Symbol &&
                         enz.R2 isa Symbol
-                    ) ? params.$(Symbol("K_", enz.P1, "_", enz.P2, "_", enz.R1, "_", enz.R2)) : Inf,
+                    ) ?
+                    params.$(Symbol("K_", enz.P1, "_", enz.P2, "_", enz.R1, "_", enz.R2)) :
+                    Inf,
                     $(
                         enz.P1 isa Symbol &&
                         enz.P3 isa Symbol &&
                         enz.R1 isa Symbol &&
                         enz.R2 isa Symbol
-                    ) ? params.$(Symbol("K_", enz.P1, "_", enz.P3, "_", enz.R1, "_", enz.R2)) : Inf,
+                    ) ?
+                    params.$(Symbol("K_", enz.P1, "_", enz.P3, "_", enz.R1, "_", enz.R2)) :
+                    Inf,
                     $(
                         enz.P2 isa Symbol &&
                         enz.P3 isa Symbol &&
                         enz.R1 isa Symbol &&
                         enz.R2 isa Symbol
-                    ) ? params.$(Symbol("K_", enz.P2, "_", enz.P3, "_", enz.R1, "_", enz.R2)) : Inf,
+                    ) ?
+                    params.$(Symbol("K_", enz.P2, "_", enz.P3, "_", enz.R1, "_", enz.R2)) :
+                    Inf,
                     $(
                         enz.S1 isa Symbol &&
                         enz.S2 isa Symbol &&
@@ -1343,6 +1409,99 @@ macro derive_general_qssa_rate_eq(metabs_and_regulators_kwargs)
                         enz.R2,
                     )) : Inf,
                     $(
+                        enz.S1 isa Symbol &&
+                        enz.P1 isa Symbol &&
+                        enz.P2 isa Symbol &&
+                        enz.P3 isa Symbol &&
+                        enz.R1 isa Symbol
+                    ) ?
+                    params.$(Symbol(
+                        "K_",
+                        enz.S1,
+                        "_",
+                        enz.P1,
+                        "_",
+                        enz.P2,
+                        "_",
+                        enz.P3,
+                        "_",
+                        enz.R1,
+                    )) : Inf,
+                    $(
+                        enz.S1 isa Symbol &&
+                        enz.P1 isa Symbol &&
+                        enz.P2 isa Symbol &&
+                        enz.P3 isa Symbol &&
+                        enz.R2 isa Symbol
+                    ) ?
+                    params.$(Symbol(
+                        "K_",
+                        enz.S1,
+                        "_",
+                        enz.P1,
+                        "_",
+                        enz.P2,
+                        "_",
+                        enz.P3,
+                        "_",
+                        enz.R2,
+                    )) : Inf,
+                    $(
+                        enz.S1 isa Symbol &&
+                        enz.P1 isa Symbol &&
+                        enz.P2 isa Symbol &&
+                        enz.R1 isa Symbol &&
+                        enz.R2 isa Symbol
+                    ) ?
+                    params.$(Symbol(
+                        "K_",
+                        enz.S1,
+                        "_",
+                        enz.P1,
+                        "_",
+                        enz.P2,
+                        "_",
+                        enz.R1,
+                        "_",
+                        enz.R2,
+                    )) : Inf,
+                    $(
+                        enz.S1 isa Symbol &&
+                        enz.P1 isa Symbol &&
+                        enz.P3 isa Symbol &&
+                        enz.R1 isa Symbol &&
+                        enz.R2 isa Symbol
+                    ) ? params.$(Symbol(
+                        "K_",
+                        enz.S1,
+                        "_",
+                        enz.P1,
+                        "_",
+                        enz.P3,
+                        "_",
+                        enz.R1,
+                        "_",
+                        enz.R2,
+                    )) : Inf,
+                    $(
+                        enz.S1 isa Symbol &&
+                        enz.P2 isa Symbol &&
+                        enz.P3 isa Symbol &&
+                        enz.R1 isa Symbol &&
+                        enz.R2 isa Symbol
+                    ) ? params.$(Symbol(
+                        "K_",
+                        enz.S1,
+                        "_",
+                        enz.P2,
+                        "_",
+                        enz.P3,
+                        "_",
+                        enz.R1,
+                        "_",
+                        enz.R2,
+                    )) : Inf,
+                    $(
                         enz.S2 isa Symbol &&
                         enz.S3 isa Symbol &&
                         enz.P1 isa Symbol &&
@@ -1533,6 +1692,96 @@ macro derive_general_qssa_rate_eq(metabs_and_regulators_kwargs)
                         enz.R2,
                     )) : Inf,
                     $(
+                        enz.S2 isa Symbol &&
+                        enz.P1 isa Symbol &&
+                        enz.P2 isa Symbol &&
+                        enz.P3 isa Symbol &&
+                        enz.R1 isa Symbol
+                    ) ? params.$(Symbol(
+                        "K_",
+                        enz.S2,
+                        "_",
+                        enz.P1,
+                        "_",
+                        enz.P2,
+                        "_",
+                        enz.P3,
+                        "_",
+                        enz.R1,
+                    )) : Inf,
+                    $(
+                        enz.S2 isa Symbol &&
+                        enz.P1 isa Symbol &&
+                        enz.P2 isa Symbol &&
+                        enz.P3 isa Symbol &&
+                        enz.R2 isa Symbol
+                    ) ? params.$(Symbol(
+                        "K_",
+                        enz.S2,
+                        "_",
+                        enz.P1,
+                        "_",
+                        enz.P2,
+                        "_",
+                        enz.P3,
+                        "_",
+                        enz.R2,
+                    )) : Inf,
+                    $(
+                        enz.S2 isa Symbol &&
+                        enz.P1 isa Symbol &&
+                        enz.P2 isa Symbol &&
+                        enz.R1 isa Symbol &&
+                        enz.R2 isa Symbol
+                    ) ? params.$(Symbol(
+                        "K_",
+                        enz.S2,
+                        "_",
+                        enz.P1,
+                        "_",
+                        enz.P2,
+                        "_",
+                        enz.R1,
+                        "_",
+                        enz.R2,
+                    )) : Inf,
+                    $(
+                        enz.S2 isa Symbol &&
+                        enz.P1 isa Symbol &&
+                        enz.P3 isa Symbol &&
+                        enz.R1 isa Symbol &&
+                        enz.R2 isa Symbol
+                    ) ? params.$(Symbol(
+                        "K_",
+                        enz.S2,
+                        "_",
+                        enz.P1,
+                        "_",
+                        enz.P3,
+                        "_",
+                        enz.R1,
+                        "_",
+                        enz.R2,
+                    )) : Inf,
+                    $(
+                        enz.S2 isa Symbol &&
+                        enz.P2 isa Symbol &&
+                        enz.P3 isa Symbol &&
+                        enz.R1 isa Symbol &&
+                        enz.R2 isa Symbol
+                    ) ? params.$(Symbol(
+                        "K_",
+                        enz.S2,
+                        "_",
+                        enz.P2,
+                        "_",
+                        enz.P3,
+                        "_",
+                        enz.R1,
+                        "_",
+                        enz.R2,
+                    )) : Inf,
+                    $(
                         enz.S3 isa Symbol &&
                         enz.P1 isa Symbol &&
                         enz.P2 isa Symbol &&
@@ -1869,31 +2118,329 @@ macro derive_general_qssa_rate_eq(metabs_and_regulators_kwargs)
                     $(
                         enz.S1 isa Symbol &&
                         enz.S2 isa Symbol &&
-                        enz.S3 isa Symbol &&
-                        enz.R1 isa Symbol &&
-                        enz.R2 isa Symbol
-                    ) ?
-                    params.$(Symbol(
+                        enz.P1 isa Symbol &&
+                        enz.P2 isa Symbol &&
+                        enz.P3 isa Symbol &&
+                        enz.R1 isa Symbol
+                    ) ? params.$(Symbol(
                         "K_",
                         enz.S1,
                         "_",
                         enz.S2,
                         "_",
-                        enz.S3,
+                        enz.P1,
+                        "_",
+                        enz.P2,
+                        "_",
+                        enz.P3,
+                        "_",
+                        enz.R1,
+                    )) : Inf,
+                    $(
+                        enz.S1 isa Symbol &&
+                        enz.S2 isa Symbol &&
+                        enz.P1 isa Symbol &&
+                        enz.P2 isa Symbol &&
+                        enz.P3 isa Symbol &&
+                        enz.R2 isa Symbol
+                    ) ? params.$(Symbol(
+                        "K_",
+                        enz.S1,
+                        "_",
+                        enz.S2,
+                        "_",
+                        enz.P1,
+                        "_",
+                        enz.P2,
+                        "_",
+                        enz.P3,
+                        "_",
+                        enz.R2,
+                    )) : Inf,
+                    $(
+                        enz.S1 isa Symbol &&
+                        enz.S2 isa Symbol &&
+                        enz.P1 isa Symbol &&
+                        enz.P2 isa Symbol &&
+                        enz.R1 isa Symbol &&
+                        enz.R2 isa Symbol
+                    ) ? params.$(Symbol(
+                        "K_",
+                        enz.S1,
+                        "_",
+                        enz.S2,
+                        "_",
+                        enz.P1,
+                        "_",
+                        enz.P2,
                         "_",
                         enz.R1,
                         "_",
                         enz.R2,
                     )) : Inf,
                     $(
+                        enz.S1 isa Symbol &&
+                        enz.S2 isa Symbol &&
+                        enz.P1 isa Symbol &&
+                        enz.P3 isa Symbol &&
+                        enz.R1 isa Symbol &&
+                        enz.R2 isa Symbol
+                    ) ? params.$(Symbol(
+                        "K_",
+                        enz.S1,
+                        "_",
+                        enz.S2,
+                        "_",
+                        enz.P1,
+                        "_",
+                        enz.P3,
+                        "_",
+                        enz.R1,
+                        "_",
+                        enz.R2,
+                    )) : Inf,
+                    $(
+                        enz.S1 isa Symbol &&
+                        enz.S2 isa Symbol &&
+                        enz.P2 isa Symbol &&
+                        enz.P3 isa Symbol &&
+                        enz.R1 isa Symbol &&
+                        enz.R2 isa Symbol
+                    ) ? params.$(Symbol(
+                        "K_",
+                        enz.S1,
+                        "_",
+                        enz.S2,
+                        "_",
+                        enz.P2,
+                        "_",
+                        enz.P3,
+                        "_",
+                        enz.R1,
+                        "_",
+                        enz.R2,
+                    )) : Inf,
+                    $(
+                        enz.S1 isa Symbol &&
+                        enz.S3 isa Symbol &&
+                        enz.P1 isa Symbol &&
+                        enz.P2 isa Symbol &&
+                        enz.P3 isa Symbol &&
+                        enz.R1 isa Symbol
+                    ) ? params.$(Symbol(
+                        "K_",
+                        enz.S1,
+                        "_",
+                        enz.S3,
+                        "_",
+                        enz.P1,
+                        "_",
+                        enz.P2,
+                        "_",
+                        enz.P3,
+                        "_",
+                        enz.R1,
+                    )) : Inf,
+                    $(
+                        enz.S1 isa Symbol &&
+                        enz.S3 isa Symbol &&
+                        enz.P1 isa Symbol &&
+                        enz.P2 isa Symbol &&
+                        enz.P3 isa Symbol &&
+                        enz.R2 isa Symbol
+                    ) ? params.$(Symbol(
+                        "K_",
+                        enz.S1,
+                        "_",
+                        enz.S3,
+                        "_",
+                        enz.P1,
+                        "_",
+                        enz.P2,
+                        "_",
+                        enz.P3,
+                        "_",
+                        enz.R2,
+                    )) : Inf,
+                    $(
+                        enz.S1 isa Symbol &&
+                        enz.S3 isa Symbol &&
+                        enz.P1 isa Symbol &&
+                        enz.P2 isa Symbol &&
+                        enz.R1 isa Symbol &&
+                        enz.R2 isa Symbol
+                    ) ? params.$(Symbol(
+                        "K_",
+                        enz.S1,
+                        "_",
+                        enz.S3,
+                        "_",
+                        enz.P1,
+                        "_",
+                        enz.P2,
+                        "_",
+                        enz.R1,
+                        "_",
+                        enz.R2,
+                    )) : Inf,
+                    $(
+                        enz.S1 isa Symbol &&
+                        enz.S3 isa Symbol &&
+                        enz.P1 isa Symbol &&
+                        enz.P3 isa Symbol &&
+                        enz.R1 isa Symbol &&
+                        enz.R2 isa Symbol
+                    ) ? params.$(Symbol(
+                        "K_",
+                        enz.S1,
+                        "_",
+                        enz.S3,
+                        "_",
+                        enz.P1,
+                        "_",
+                        enz.P3,
+                        "_",
+                        enz.R1,
+                        "_",
+                        enz.R2,
+                    )) : Inf,
+                    $(
+                        enz.S1 isa Symbol &&
                         enz.P1 isa Symbol &&
                         enz.P2 isa Symbol &&
                         enz.P3 isa Symbol &&
                         enz.R1 isa Symbol &&
                         enz.R2 isa Symbol
-                    ) ?
-                    params.$(Symbol(
+                    ) ? params.$(Symbol(
                         "K_",
+                        enz.S1,
+                        "_",
+                        enz.P1,
+                        "_",
+                        enz.P2,
+                        "_",
+                        enz.P3,
+                        "_",
+                        enz.R1,
+                        "_",
+                        enz.R2,
+                    )) : Inf,
+                    $(
+                        enz.S2 isa Symbol &&
+                        enz.S3 isa Symbol &&
+                        enz.P1 isa Symbol &&
+                        enz.P2 isa Symbol &&
+                        enz.P3 isa Symbol &&
+                        enz.R1 isa Symbol
+                    ) ? params.$(Symbol(
+                        "K_",
+                        enz.S2,
+                        "_",
+                        enz.S3,
+                        "_",
+                        enz.P1,
+                        "_",
+                        enz.P2,
+                        "_",
+                        enz.P3,
+                        "_",
+                        enz.R1,
+                    )) : Inf,
+                    $(
+                        enz.S2 isa Symbol &&
+                        enz.S3 isa Symbol &&
+                        enz.P1 isa Symbol &&
+                        enz.P2 isa Symbol &&
+                        enz.P3 isa Symbol &&
+                        enz.R2 isa Symbol
+                    ) ? params.$(Symbol(
+                        "K_",
+                        enz.S2,
+                        "_",
+                        enz.S3,
+                        "_",
+                        enz.P1,
+                        "_",
+                        enz.P2,
+                        "_",
+                        enz.P3,
+                        "_",
+                        enz.R2,
+                    )) : Inf,
+                    $(
+                        enz.S2 isa Symbol &&
+                        enz.S3 isa Symbol &&
+                        enz.P1 isa Symbol &&
+                        enz.P2 isa Symbol &&
+                        enz.R1 isa Symbol &&
+                        enz.R2 isa Symbol
+                    ) ? params.$(Symbol(
+                        "K_",
+                        enz.S2,
+                        "_",
+                        enz.S3,
+                        "_",
+                        enz.P1,
+                        "_",
+                        enz.P2,
+                        "_",
+                        enz.R1,
+                        "_",
+                        enz.R2,
+                    )) : Inf,
+                    $(
+                        enz.S2 isa Symbol &&
+                        enz.S3 isa Symbol &&
+                        enz.P1 isa Symbol &&
+                        enz.P3 isa Symbol &&
+                        enz.R1 isa Symbol &&
+                        enz.R2 isa Symbol
+                    ) ? params.$(Symbol(
+                        "K_",
+                        enz.S2,
+                        "_",
+                        enz.S3,
+                        "_",
+                        enz.P1,
+                        "_",
+                        enz.P3,
+                        "_",
+                        enz.R1,
+                        "_",
+                        enz.R2,
+                    )) : Inf,
+                    $(
+                        enz.S2 isa Symbol &&
+                        enz.S3 isa Symbol &&
+                        enz.P2 isa Symbol &&
+                        enz.P3 isa Symbol &&
+                        enz.R1 isa Symbol &&
+                        enz.R2 isa Symbol
+                    ) ? params.$(Symbol(
+                        "K_",
+                        enz.S2,
+                        "_",
+                        enz.S3,
+                        "_",
+                        enz.P2,
+                        "_",
+                        enz.P3,
+                        "_",
+                        enz.R1,
+                        "_",
+                        enz.R2,
+                    )) : Inf,
+                    $(
+                        enz.S3 isa Symbol &&
+                        enz.P1 isa Symbol &&
+                        enz.P2 isa Symbol &&
+                        enz.P3 isa Symbol &&
+                        enz.R1 isa Symbol &&
+                        enz.R2 isa Symbol
+                    ) ? params.$(Symbol(
+                        "K_",
+                        enz.S3,
+                        "_",
                         enz.P1,
                         "_",
                         enz.P2,
@@ -2354,6 +2901,7 @@ end
     K_S1_S2_P2_P3_R2,
     K_S1_S2_P2_R1_R2,
     K_S1_S2_P3_R1_R2,
+    K_S1_S3_P1_P2_P3,
     K_S1_S3_P1_P2_R1,
     K_S1_S3_P1_P2_R2,
     K_S1_S3_P1_P3_R1,
@@ -2368,6 +2916,7 @@ end
     K_S1_P1_P2_R1_R2,
     K_S1_P1_P3_R1_R2,
     K_S1_P2_P3_R1_R2,
+    K_S2_S3_P1_P2_P3,
     K_S2_S3_P1_P2_R1,
     K_S2_S3_P1_P2_R2,
     K_S2_S3_P1_P3_R1,
@@ -2388,6 +2937,7 @@ end
     K_S3_P1_P3_R1_R2,
     K_S3_P2_P3_R1_R2,
     K_P1_P2_P3_R1_R2,
+    K_S1_S2_S3_P1_P2_P3,
     K_S1_S2_S3_P1_P2_R1,
     K_S1_S2_S3_P1_P2_R2,
     K_S1_S2_S3_P1_P3_R1,
@@ -2420,6 +2970,7 @@ end
     K_S1_S2_S3_P1_P2_R1_R2,
     K_S1_S2_S3_P1_P3_R1_R2,
     K_S1_S2_S3_P2_P3_R1_R2,
+    K_S1_S2_P1_P2_P3_R1_R2,
     K_S1_S3_P1_P2_P3_R1_R2,
     K_S2_S3_P1_P2_P3_R1_R2,
     K_S1_S2_S3_P1_P2_P3_R1_R2,
