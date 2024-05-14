@@ -380,10 +380,10 @@ function param_subset_select_may(params, param_names, nt_param_removal_code)
             
         elseif name_str == "Vmax"
             if choice == 1
-                params_dict[Symbol(name_str , "_i")] = 1.0
+                params_dict[Symbol(name_str , "_i")] =  params_dict[Symbol(name_str , "_a")]
             elseif choice == 2
                 #TODO: check why it's appear with global in denis's code
-                params_dict[Symbol(name_str)] = 0.0
+                params_dict[Symbol(name_str , "_i")] = 0.0
             end
 
         elseif name_str == "L"
