@@ -37,68 +37,15 @@ metabs_nt = NamedTuple{metab_names}((zeros(length(substrates))..., rand(length(p
 metabs_nt = NamedTuple{metab_names}((rand(length(substrates))..., zeros(length(products))..., rand(length(regulators))...))
 @test rand_enz_rate_equation(metabs_nt, params_nt, Keq) > 0.0
 
-#test Rate = Vmax_a when [Substrates] and [Activators] -> Inf and Vmax_a_rev when [Products] and [Activators] -> Inf
-Vmax_a = 1.0
-Vmax_i = rand()
-params_vec = []
-for param_name in propertynames(params_nt)
-    if startswith(string(param_name), "K_a")
-        push!(params_vec, 1e-3)
-    elseif startswith(string(param_name), "alpha_")
-        push!(params_vec, rand([0.0, 1.0]))
-    else
-        push!(params_vec, 1.0)
-    end
-end
-params_nt = NamedTuple{param_names}(params_vec)
-metabs_nt = NamedTuple{metab_names}(((1e12 .* ones(length(substrates)))..., zeros(length(products))..., 1e12 .* ones(length(regulators))...))
-rand_enz_rate_equation(metabs_nt, params_nt, Keq)
-@test isapprox(rand_enz_rate_equation(metabs_nt, params_nt, Keq), Vmax_a, rtol=1e-6)
+#test Rate = Vmax when [Substrates] -> Inf and Vmax_rev when [Products] -> Inf
+Vmax = 1.0
+params_nt = NamedTuple{param_names}(rand(length(param_names)))
+metabs_nt = NamedTuple{metab_names}(((1e12 .* ones(length(substrates)))..., zeros(length(products))..., zeros(length(regulators))...))
+@test isapprox(rand_enz_rate_equation(metabs_nt, params_nt, Keq), Vmax, rtol=1e-6)
 global substrate_Ks = 1.0
 global product_Ks = 1.0
-substrate_params = [Symbol("K_a_", Symbol(:S, i)) for i in 1:length(substrates)]
-product_params = [Symbol("K_a_", Symbol(:P, i)) for i in 1:length(products)]
-for param in propertynames(params_nt)
-    if param ∈ substrate_params
-        global substrate_Ks *= params_nt[param]
-    elseif param ∈ product_params
-        global product_Ks *= params_nt[param]
-    end
-end
-Vmax_a_rev = Vmax_a * product_Ks / (Keq * substrate_Ks)
-metabs_nt = NamedTuple{metab_names}(((zeros(length(substrates)))..., 1e12 .* ones(length(products))..., 1e12 .* ones(length(regulators))...))
-@test isapprox(rand_enz_rate_equation(metabs_nt, params_nt, Keq), -Vmax_a_rev, rtol=1e-6)
-
-#test Rate = Vmax_i when [Substrates] and [Inhibitors] -> Inf and Vmax_i_rev when [Products] and [Inhibitors] -> Inf
-Vmax_a = 1.0
-Vmax_i = rand()
-params_vec = []
-for param_name in propertynames(params_nt)
-    if startswith(string(param_name), "K_i")
-        push!(params_vec, 1e-3)
-    elseif param_name == :Vmax_i
-        push!(params_vec, Vmax_i)
-    elseif startswith(string(param_name), "alpha_")
-        push!(params_vec, rand([0.0, 1.0]))
-    else
-        push!(params_vec, 1.0)
-    end
-end
-params_nt = NamedTuple{param_names}(params_vec)
-metabs_nt = NamedTuple{metab_names}(((1e12 .* ones(length(substrates)))..., zeros(length(products))..., 1e12 .* ones(length(regulators))...))
-rand_enz_rate_equation(metabs_nt, params_nt, Keq)
-@test isapprox(rand_enz_rate_equation(metabs_nt, params_nt, Keq), Vmax_i, rtol=1e-6)
-global substrate_Ks = 1.0
-global product_Ks = 1.0
-substrate_params = [Symbol("K_i_", Symbol(:S, i)) for i in 1:length(substrates)]
-product_params = [Symbol("K_i_", Symbol(:P, i)) for i in 1:length(products)]
-for param in propertynames(params_nt)
-    if param ∈ substrate_params
-        global substrate_Ks *= params_nt[param]
-    elseif param ∈ product_params
-        global product_Ks *= params_nt[param]
-    end
-end
-Vmax_i_rev = Vmax_i * product_Ks / (Keq * substrate_Ks)
-metabs_nt = NamedTuple{metab_names}(((zeros(length(substrates)))..., 1e12 .* ones(length(products))..., 1e12 .* ones(length(regulators))...))
-@test isapprox(rand_enz_rate_equation(metabs_nt, params_nt, Keq), -Vmax_i_rev, rtol=1e-6)
+substrate_Ks_names = Symbol("K", (Symbol("_", :S, i) for i in 1:length(substrates))...)
+product_Ks_names = Symbol("K", (Symbol("_", :P, i) for i in 1:length(products))...)
+Vmax_rev = Vmax * params_nt[product_Ks_names] / (Keq * params_nt[substrate_Ks_names] )
+metabs_nt = NamedTuple{metab_names}(((zeros(length(substrates)))..., 1e12 .* ones(length(products))..., zeros(length(regulators))...))
+@test isapprox(rand_enz_rate_equation(metabs_nt, params_nt, Keq), -Vmax_rev, rtol=1e-6)

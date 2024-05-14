@@ -88,10 +88,22 @@ macro derive_general_qssa_rate_eq(metabs_and_regulators_kwargs)
                 $(enz.P2 isa Symbol) ? metabs.$(enz.P2) : 1.0,
                 $(enz.P3 isa Symbol) ? metabs.$(enz.P3) : 1.0,
                 params.Vmax,
-                $(enz.S1 isa Symbol && enz.S2 isa Symbol && enz.S3 isa Symbol) ?
-                params.$(Symbol("K_", enz.S1, "_", enz.S2, "_", enz.S3)) : 1.0,
-                $(enz.P1 isa Symbol && enz.P2 isa Symbol && enz.P3 isa Symbol) ?
-                params.$(Symbol("K_", enz.P1, "_", enz.P2, "_", enz.P3)) : 1.0,
+                # $(enz.S1 isa Symbol && enz.S2 isa Symbol && enz.S3 isa Symbol) ?
+                # params.$(Symbol("K_", enz.S1, "_", enz.S2, "_", enz.S3)) : 1.0,
+                # $(enz.P1 isa Symbol && enz.P2 isa Symbol && enz.P3 isa Symbol) ?
+                # params.$(Symbol("K_", enz.P1, "_", enz.P2, "_", enz.P3)) : 1.0,
+                params.$(Symbol(
+                    "K",
+                    (enz.S1 isa Symbol) ? Symbol("_", enz.S1) : "",
+                    (enz.S2 isa Symbol) ? Symbol("_", enz.S2) : "",
+                    (enz.S3 isa Symbol) ? Symbol("_", enz.S3) : "",
+                )),
+                params.$(Symbol(
+                    "K",
+                    (enz.P1 isa Symbol) ? Symbol("_", enz.P1) : "",
+                    (enz.P2 isa Symbol) ? Symbol("_", enz.P2) : "",
+                    (enz.P3 isa Symbol) ? Symbol("_", enz.P3) : "",
+                )),
                 #Z
                 calculate_qssa_z(
                     $(enz.S1 isa Symbol) ? metabs.$(enz.S1) : 0.0,
@@ -1471,7 +1483,8 @@ macro derive_general_qssa_rate_eq(metabs_and_regulators_kwargs)
                         enz.P3 isa Symbol &&
                         enz.R1 isa Symbol &&
                         enz.R2 isa Symbol
-                    ) ? params.$(Symbol(
+                    ) ?
+                    params.$(Symbol(
                         "K_",
                         enz.S1,
                         "_",
@@ -1489,7 +1502,8 @@ macro derive_general_qssa_rate_eq(metabs_and_regulators_kwargs)
                         enz.P3 isa Symbol &&
                         enz.R1 isa Symbol &&
                         enz.R2 isa Symbol
-                    ) ? params.$(Symbol(
+                    ) ?
+                    params.$(Symbol(
                         "K_",
                         enz.S1,
                         "_",
@@ -1697,7 +1711,8 @@ macro derive_general_qssa_rate_eq(metabs_and_regulators_kwargs)
                         enz.P2 isa Symbol &&
                         enz.P3 isa Symbol &&
                         enz.R1 isa Symbol
-                    ) ? params.$(Symbol(
+                    ) ?
+                    params.$(Symbol(
                         "K_",
                         enz.S2,
                         "_",
@@ -1715,7 +1730,8 @@ macro derive_general_qssa_rate_eq(metabs_and_regulators_kwargs)
                         enz.P2 isa Symbol &&
                         enz.P3 isa Symbol &&
                         enz.R2 isa Symbol
-                    ) ? params.$(Symbol(
+                    ) ?
+                    params.$(Symbol(
                         "K_",
                         enz.S2,
                         "_",
@@ -1733,7 +1749,8 @@ macro derive_general_qssa_rate_eq(metabs_and_regulators_kwargs)
                         enz.P2 isa Symbol &&
                         enz.R1 isa Symbol &&
                         enz.R2 isa Symbol
-                    ) ? params.$(Symbol(
+                    ) ?
+                    params.$(Symbol(
                         "K_",
                         enz.S2,
                         "_",
@@ -1751,7 +1768,8 @@ macro derive_general_qssa_rate_eq(metabs_and_regulators_kwargs)
                         enz.P3 isa Symbol &&
                         enz.R1 isa Symbol &&
                         enz.R2 isa Symbol
-                    ) ? params.$(Symbol(
+                    ) ?
+                    params.$(Symbol(
                         "K_",
                         enz.S2,
                         "_",
@@ -1769,7 +1787,8 @@ macro derive_general_qssa_rate_eq(metabs_and_regulators_kwargs)
                         enz.P3 isa Symbol &&
                         enz.R1 isa Symbol &&
                         enz.R2 isa Symbol
-                    ) ? params.$(Symbol(
+                    ) ?
+                    params.$(Symbol(
                         "K_",
                         enz.S2,
                         "_",
@@ -2122,7 +2141,8 @@ macro derive_general_qssa_rate_eq(metabs_and_regulators_kwargs)
                         enz.P2 isa Symbol &&
                         enz.P3 isa Symbol &&
                         enz.R1 isa Symbol
-                    ) ? params.$(Symbol(
+                    ) ?
+                    params.$(Symbol(
                         "K_",
                         enz.S1,
                         "_",
@@ -2143,7 +2163,8 @@ macro derive_general_qssa_rate_eq(metabs_and_regulators_kwargs)
                         enz.P2 isa Symbol &&
                         enz.P3 isa Symbol &&
                         enz.R2 isa Symbol
-                    ) ? params.$(Symbol(
+                    ) ?
+                    params.$(Symbol(
                         "K_",
                         enz.S1,
                         "_",
@@ -2164,7 +2185,8 @@ macro derive_general_qssa_rate_eq(metabs_and_regulators_kwargs)
                         enz.P2 isa Symbol &&
                         enz.R1 isa Symbol &&
                         enz.R2 isa Symbol
-                    ) ? params.$(Symbol(
+                    ) ?
+                    params.$(Symbol(
                         "K_",
                         enz.S1,
                         "_",
@@ -2185,7 +2207,8 @@ macro derive_general_qssa_rate_eq(metabs_and_regulators_kwargs)
                         enz.P3 isa Symbol &&
                         enz.R1 isa Symbol &&
                         enz.R2 isa Symbol
-                    ) ? params.$(Symbol(
+                    ) ?
+                    params.$(Symbol(
                         "K_",
                         enz.S1,
                         "_",
@@ -2206,7 +2229,8 @@ macro derive_general_qssa_rate_eq(metabs_and_regulators_kwargs)
                         enz.P3 isa Symbol &&
                         enz.R1 isa Symbol &&
                         enz.R2 isa Symbol
-                    ) ? params.$(Symbol(
+                    ) ?
+                    params.$(Symbol(
                         "K_",
                         enz.S1,
                         "_",
@@ -2227,7 +2251,8 @@ macro derive_general_qssa_rate_eq(metabs_and_regulators_kwargs)
                         enz.P2 isa Symbol &&
                         enz.P3 isa Symbol &&
                         enz.R1 isa Symbol
-                    ) ? params.$(Symbol(
+                    ) ?
+                    params.$(Symbol(
                         "K_",
                         enz.S1,
                         "_",
@@ -2248,7 +2273,8 @@ macro derive_general_qssa_rate_eq(metabs_and_regulators_kwargs)
                         enz.P2 isa Symbol &&
                         enz.P3 isa Symbol &&
                         enz.R2 isa Symbol
-                    ) ? params.$(Symbol(
+                    ) ?
+                    params.$(Symbol(
                         "K_",
                         enz.S1,
                         "_",
@@ -2269,7 +2295,8 @@ macro derive_general_qssa_rate_eq(metabs_and_regulators_kwargs)
                         enz.P2 isa Symbol &&
                         enz.R1 isa Symbol &&
                         enz.R2 isa Symbol
-                    ) ? params.$(Symbol(
+                    ) ?
+                    params.$(Symbol(
                         "K_",
                         enz.S1,
                         "_",
@@ -2290,7 +2317,8 @@ macro derive_general_qssa_rate_eq(metabs_and_regulators_kwargs)
                         enz.P3 isa Symbol &&
                         enz.R1 isa Symbol &&
                         enz.R2 isa Symbol
-                    ) ? params.$(Symbol(
+                    ) ?
+                    params.$(Symbol(
                         "K_",
                         enz.S1,
                         "_",
@@ -2306,12 +2334,35 @@ macro derive_general_qssa_rate_eq(metabs_and_regulators_kwargs)
                     )) : Inf,
                     $(
                         enz.S1 isa Symbol &&
+                        enz.S3 isa Symbol &&
+                        enz.P2 isa Symbol &&
+                        enz.P3 isa Symbol &&
+                        enz.R1 isa Symbol &&
+                        enz.R2 isa Symbol
+                    ) ?
+                    params.$(Symbol(
+                        "K_",
+                        enz.S1,
+                        "_",
+                        enz.S3,
+                        "_",
+                        enz.P2,
+                        "_",
+                        enz.P3,
+                        "_",
+                        enz.R1,
+                        "_",
+                        enz.R2,
+                    )) : Inf,
+                    $(
+                        enz.S1 isa Symbol &&
                         enz.P1 isa Symbol &&
                         enz.P2 isa Symbol &&
                         enz.P3 isa Symbol &&
                         enz.R1 isa Symbol &&
                         enz.R2 isa Symbol
-                    ) ? params.$(Symbol(
+                    ) ?
+                    params.$(Symbol(
                         "K_",
                         enz.S1,
                         "_",
@@ -2332,7 +2383,8 @@ macro derive_general_qssa_rate_eq(metabs_and_regulators_kwargs)
                         enz.P2 isa Symbol &&
                         enz.P3 isa Symbol &&
                         enz.R1 isa Symbol
-                    ) ? params.$(Symbol(
+                    ) ?
+                    params.$(Symbol(
                         "K_",
                         enz.S2,
                         "_",
@@ -2353,7 +2405,8 @@ macro derive_general_qssa_rate_eq(metabs_and_regulators_kwargs)
                         enz.P2 isa Symbol &&
                         enz.P3 isa Symbol &&
                         enz.R2 isa Symbol
-                    ) ? params.$(Symbol(
+                    ) ?
+                    params.$(Symbol(
                         "K_",
                         enz.S2,
                         "_",
@@ -2374,7 +2427,8 @@ macro derive_general_qssa_rate_eq(metabs_and_regulators_kwargs)
                         enz.P2 isa Symbol &&
                         enz.R1 isa Symbol &&
                         enz.R2 isa Symbol
-                    ) ? params.$(Symbol(
+                    ) ?
+                    params.$(Symbol(
                         "K_",
                         enz.S2,
                         "_",
@@ -2395,7 +2449,8 @@ macro derive_general_qssa_rate_eq(metabs_and_regulators_kwargs)
                         enz.P3 isa Symbol &&
                         enz.R1 isa Symbol &&
                         enz.R2 isa Symbol
-                    ) ? params.$(Symbol(
+                    ) ?
+                    params.$(Symbol(
                         "K_",
                         enz.S2,
                         "_",
@@ -2416,11 +2471,34 @@ macro derive_general_qssa_rate_eq(metabs_and_regulators_kwargs)
                         enz.P3 isa Symbol &&
                         enz.R1 isa Symbol &&
                         enz.R2 isa Symbol
-                    ) ? params.$(Symbol(
+                    ) ?
+                    params.$(Symbol(
                         "K_",
                         enz.S2,
                         "_",
                         enz.S3,
+                        "_",
+                        enz.P2,
+                        "_",
+                        enz.P3,
+                        "_",
+                        enz.R1,
+                        "_",
+                        enz.R2,
+                    )) : Inf,
+                    $(
+                        enz.S2 isa Symbol &&
+                        enz.P1 isa Symbol &&
+                        enz.P2 isa Symbol &&
+                        enz.P3 isa Symbol &&
+                        enz.R1 isa Symbol &&
+                        enz.R2 isa Symbol
+                    ) ?
+                    params.$(Symbol(
+                        "K_",
+                        enz.S2,
+                        "_",
+                        enz.P1,
                         "_",
                         enz.P2,
                         "_",
@@ -2437,7 +2515,8 @@ macro derive_general_qssa_rate_eq(metabs_and_regulators_kwargs)
                         enz.P3 isa Symbol &&
                         enz.R1 isa Symbol &&
                         enz.R2 isa Symbol
-                    ) ? params.$(Symbol(
+                    ) ?
+                    params.$(Symbol(
                         "K_",
                         enz.S3,
                         "_",
@@ -2986,254 +3065,326 @@ end
         R2 / K_R2
     )
     two_metab_bound =
-        (S1 * S2 / K_S1_S2) +
-        (S1 * S3 / K_S1_S3) +
-        (S1 * P1 / K_S1_P1) +
-        (S1 * P2 / K_S1_P2) +
-        (S1 * P3 / K_S1_P3) +
-        (S1 * R1 / K_S1_R1) +
-        (S1 * R2 / K_S1_R2) +
-        (S2 * S3 / K_S2_S3) +
-        (S2 * P1 / K_S2_P1) +
-        (S2 * P2 / K_S2_P2) +
-        (S2 * P3 / K_S2_P3) +
-        (S2 * R1 / K_S2_R1) +
-        (S2 * R2 / K_S2_R2) +
-        (S3 * P1 / K_S3_P1) +
-        (S3 * P2 / K_S3_P2) +
-        (S3 * P3 / K_S3_P3) +
-        (S3 * R1 / K_S3_R1) +
-        (S3 * R2 / K_S3_R2) +
-        (P1 * P2 / K_P1_P2) +
-        (P1 * P3 / K_P1_P3) +
-        (P1 * R1 / K_P1_R1) +
-        (P1 * R2 / K_P1_R2) +
-        (P2 * P3 / K_P2_P3) +
-        (P2 * R1 / K_P2_R1) +
-        (P2 * R2 / K_P2_R2) +
-        (P3 * R1 / K_P3_R1) +
-        (P3 * R2 / K_P3_R2) +
-        (R1 * R2 / K_R1_R2) +
+        S1 * (
+            (S2 / K_S1_S2) +
+            (S3 / K_S1_S3) +
+            (P1 / K_S1_P1) +
+            (P2 / K_S1_P2) +
+            (P3 / K_S1_P3) +
+            (R1 / K_S1_R1) +
+            (R2 / K_S1_R2)
+        ) +
+        S2 * (
+            (S3 / K_S2_S3) +
+            (P1 / K_S2_P1) +
+            (P2 / K_S2_P2) +
+            (P3 / K_S2_P3) +
+            (R1 / K_S2_R1) +
+            (R2 / K_S2_R2)
+        ) +
+        S3 * (
+            (P1 / K_S3_P1) +
+            (P2 / K_S3_P2) +
+            (P3 / K_S3_P3) +
+            (R1 / K_S3_R1) +
+            (R2 / K_S3_R2)
+        ) +
+        P1 * ((P2 / K_P1_P2) + (P3 / K_P1_P3) + (R1 / K_P1_R1) + (R2 / K_P1_R2)) +
+        P2 * ((P3 / K_P2_P3) + (R1 / K_P2_R1) + (R2 / K_P2_R2)) +
+        P3 * ((R1 / K_P3_R1) + (R2 / K_P3_R2)) +
         (R1 * R2 / K_R1_R2)
 
     three_metab_bound =
-        (S1 * S2 * S3 / K_S1_S2_S3) +
-        (S1 * S2 * P1 / K_S1_S2_P1) +
-        (S1 * S2 * P2 / K_S1_S2_P2) +
-        (S1 * S2 * P3 / K_S1_S2_P3) +
-        (S1 * S2 * R1 / K_S1_S2_R1) +
-        (S1 * S2 * R2 / K_S1_S2_R2) +
-        (S1 * S3 * P1 / K_S1_S3_P1) +
-        (S1 * S3 * P2 / K_S1_S3_P2) +
-        (S1 * S3 * P3 / K_S1_S3_P3) +
-        (S1 * S3 * R1 / K_S1_S3_R1) +
-        (S1 * S3 * R2 / K_S1_S3_R2) +
-        (S1 * P1 * P2 / K_S1_P1_P2) +
-        (S1 * P1 * P3 / K_S1_P1_P3) +
-        (S1 * P1 * R1 / K_S1_P1_R1) +
-        (S1 * P1 * R2 / K_S1_P1_R2) +
-        (S1 * P2 * P3 / K_S1_P2_P3) +
-        (S1 * P2 * R1 / K_S1_P2_R1) +
-        (S1 * P2 * R2 / K_S1_P2_R2) +
-        (S1 * P3 * R1 / K_S1_P3_R1) +
-        (S1 * P3 * R2 / K_S1_P3_R2) +
-        (S1 * R1 * R2 / K_S1_R1_R2) +
-        (S2 * S3 * P1 / K_S2_S3_P1) +
-        (S2 * S3 * P2 / K_S2_S3_P2) +
-        (S2 * S3 * P3 / K_S2_S3_P3) +
-        (S2 * S3 * R1 / K_S2_S3_R1) +
-        (S2 * S3 * R2 / K_S2_S3_R2) +
-        (S2 * P1 * P2 / K_S2_P1_P2) +
-        (S2 * P1 * P3 / K_S2_P1_P3) +
-        (S2 * P1 * R1 / K_S2_P1_R1) +
-        (S2 * P1 * R2 / K_S2_P1_R2) +
-        (S2 * P2 * P3 / K_S2_P2_P3) +
-        (S2 * P2 * R1 / K_S2_P2_R1) +
-        (S2 * P2 * R2 / K_S2_P2_R2) +
-        (S2 * P3 * R1 / K_S2_P3_R1) +
-        (S2 * P3 * R2 / K_S2_P3_R2) +
-        (S2 * R1 * R2 / K_S2_R1_R2) +
-        (S3 * P1 * P2 / K_S3_P1_P2) +
-        (S3 * P1 * P3 / K_S3_P1_P3) +
-        (S3 * P1 * R1 / K_S3_P1_R1) +
-        (S3 * P1 * R2 / K_S3_P1_R2) +
-        (S3 * P2 * P3 / K_S3_P2_P3) +
-        (S3 * P2 * R1 / K_S3_P2_R1) +
-        (S3 * P2 * R2 / K_S3_P2_R2) +
-        (S3 * P3 * R1 / K_S3_P3_R1) +
-        (S3 * P3 * R2 / K_S3_P3_R2) +
-        (S3 * R1 * R2 / K_S3_R1_R2) +
-        (P1 * P2 * P3 / K_P1_P2_P3) +
-        (P1 * P2 * R1 / K_P1_P2_R1) +
-        (P1 * P2 * R2 / K_P1_P2_R2) +
-        (P1 * P3 * R1 / K_P1_P3_R1) +
-        (P1 * P3 * R2 / K_P1_P3_R2) +
-        (P1 * R1 * R2 / K_P1_R1_R2) +
-        (P2 * P3 * R1 / K_P2_P3_R1) +
-        (P2 * P3 * R2 / K_P2_P3_R2) +
-        (P2 * R1 * R2 / K_P2_R1_R2) +
-        (P3 * R1 * R2 / K_P3_R1_R2)
+        S1 * (
+            S2 * (
+                (S3 / K_S1_S2_S3) +
+                (P1 / K_S1_S2_P1) +
+                (P2 / K_S1_S2_P2) +
+                (P3 / K_S1_S2_P3) +
+                (R1 / K_S1_S2_R1) +
+                (R2 / K_S1_S2_R2)
+            ) +
+            S3 * (
+                (P1 / K_S1_S3_P1) +
+                (P2 / K_S1_S3_P2) +
+                (P3 / K_S1_S3_P3) +
+                (R1 / K_S1_S3_R1) +
+                (R2 / K_S1_S3_R2)
+            ) +
+            P1 * (
+                (P2 / K_S1_P1_P2) +
+                (P3 / K_S1_P1_P3) +
+                (R1 / K_S1_P1_R1) +
+                (R2 / K_S1_P1_R2)
+            ) +
+            P2 * ((P3 / K_S1_P2_P3) + (R1 / K_S1_P2_R1) + (R2 / K_S1_P2_R2)) +
+            P3 * ((R1 / K_S1_P3_R1) + (R2 / K_S1_P3_R2)) +
+            (R1 * R2 / K_S1_R1_R2)
+        ) +
+        S2 * (
+            S3 * (
+                (P1 / K_S2_S3_P1) +
+                (P2 / K_S2_S3_P2) +
+                (P3 / K_S2_S3_P3) +
+                (R1 / K_S2_S3_R1) +
+                (R2 / K_S2_S3_R2)
+            ) +
+            P1 * (
+                (P2 / K_S2_P1_P2) +
+                (P3 / K_S2_P1_P3) +
+                (R1 / K_S2_P1_R1) +
+                (R2 / K_S2_P1_R2)
+            ) +
+            P2 * ((P3 / K_S2_P2_P3) + (R1 / K_S2_P2_R1) + (R2 / K_S2_P2_R2)) +
+            P3 * ((R1 / K_S2_P3_R1) + (R2 / K_S2_P3_R2)) +
+            (R1 * R2 / K_S2_R1_R2)
+        ) +
+        S3 * (
+            P1 * (
+                (P2 / K_S3_P1_P2) +
+                (P3 / K_S3_P1_P3) +
+                (R1 / K_S3_P1_R1) +
+                (R2 / K_S3_P1_R2)
+            ) +
+            P2 * ((P3 / K_S3_P2_P3) + (R1 / K_S3_P2_R1) + (R2 / K_S3_P2_R2)) +
+            P3 * ((R1 / K_S3_P3_R1) + (R2 / K_S3_P3_R2)) +
+            (R1 * R2 / K_S3_R1_R2)
+        ) +
+        P1 * (
+            P2 * ((P3 / K_P1_P2_P3) + (R1 / K_P1_P2_R1) + (R2 / K_P1_P2_R2)) +
+            P3 * ((R1 / K_P1_P3_R1) + (R2 / K_P1_P3_R2)) +
+            (R1 * R2 / K_P1_R1_R2)
+        ) +
+        P2 * (P3 * ((R1 / K_P2_P3_R1) + (R2 / K_P2_P3_R2)) + (R1 * R2 / K_P2_R1_R2)) +
+        P3 * (R1 * R2 / K_P3_R1_R2)
 
     four_metab_bound =
-        (S1 * S2 * S3 * P1 / K_S1_S2_S3_P1) +
-        (S1 * S2 * S3 * P2 / K_S1_S2_S3_P2) +
-        (S1 * S2 * S3 * P3 / K_S1_S2_S3_P3) +
-        (S1 * S2 * S3 * R1 / K_S1_S2_S3_R1) +
-        (S1 * S2 * S3 * R2 / K_S1_S2_S3_R2) +
-        (S1 * S2 * P1 * P2 / K_S1_S2_P1_P2) +
-        (S1 * S2 * P1 * P3 / K_S1_S2_P1_P3) +
-        (S1 * S2 * P1 * R1 / K_S1_S2_P1_R1) +
-        (S1 * S2 * P1 * R2 / K_S1_S2_P1_R2) +
-        (S1 * S2 * P2 * P3 / K_S1_S2_P2_P3) +
-        (S1 * S2 * P2 * R1 / K_S1_S2_P2_R1) +
-        (S1 * S2 * P2 * R2 / K_S1_S2_P2_R2) +
-        (S1 * S2 * P3 * R1 / K_S1_S2_P3_R1) +
-        (S1 * S2 * P3 * R2 / K_S1_S2_P3_R2) +
-        (S1 * S2 * R1 * R2 / K_S1_S2_R1_R2) +
-        (S1 * S3 * P1 * P2 / K_S1_S3_P1_P2) +
-        (S1 * S3 * P1 * P3 / K_S1_S3_P1_P3) +
-        (S1 * S3 * P1 * R1 / K_S1_S3_P1_R1) +
-        (S1 * S3 * P1 * R2 / K_S1_S3_P1_R2) +
-        (S1 * S3 * P2 * P3 / K_S1_S3_P2_P3) +
-        (S1 * S3 * P2 * R1 / K_S1_S3_P2_R1) +
-        (S1 * S3 * P2 * R2 / K_S1_S3_P2_R2) +
-        (S1 * S3 * P3 * R1 / K_S1_S3_P3_R1) +
-        (S1 * S3 * P3 * R2 / K_S1_S3_P3_R2) +
-        (S1 * S3 * R1 * R2 / K_S1_S3_R1_R2) +
-        (S1 * P1 * P2 * P3 / K_S1_P1_P2_P3) +
-        (S1 * P1 * P2 * R1 / K_S1_P1_P2_R1) +
-        (S1 * P1 * P2 * R2 / K_S1_P1_P2_R2) +
-        (S1 * P1 * P3 * R1 / K_S1_P1_P3_R1) +
-        (S1 * P1 * P3 * R2 / K_S1_P1_P3_R2) +
-        (S1 * P1 * R1 * R2 / K_S1_P1_R1_R2) +
-        (S1 * P2 * P3 * R1 / K_S1_P2_P3_R1) +
-        (S1 * P2 * P3 * R2 / K_S1_P2_P3_R2) +
-        (S1 * P2 * R1 * R2 / K_S1_P2_R1_R2) +
-        (S1 * P3 * R1 * R2 / K_S1_P3_R1_R2) +
-        (S2 * S3 * P1 * P2 / K_S2_S3_P1_P2) +
-        (S2 * S3 * P1 * P3 / K_S2_S3_P1_P3) +
-        (S2 * S3 * P1 * R1 / K_S2_S3_P1_R1) +
-        (S2 * S3 * P1 * R2 / K_S2_S3_P1_R2) +
-        (S2 * S3 * P2 * P3 / K_S2_S3_P2_P3) +
-        (S2 * S3 * P2 * R1 / K_S2_S3_P2_R1) +
-        (S2 * S3 * P2 * R2 / K_S2_S3_P2_R2) +
-        (S2 * S3 * P3 * R1 / K_S2_S3_P3_R1) +
-        (S2 * S3 * P3 * R2 / K_S2_S3_P3_R2) +
-        (S2 * S3 * R1 * R2 / K_S2_S3_R1_R2) +
-        (S2 * P1 * P2 * P3 / K_S2_P1_P2_P3) +
-        (S2 * P1 * P2 * R1 / K_S2_P1_P2_R1) +
-        (S2 * P1 * P2 * R2 / K_S2_P1_P2_R2) +
-        (S2 * P1 * P3 * R1 / K_S2_P1_P3_R1) +
-        (S2 * P1 * P3 * R2 / K_S2_P1_P3_R2) +
-        (S2 * P1 * R1 * R2 / K_S2_P1_R1_R2) +
-        (S2 * P2 * P3 * R1 / K_S2_P2_P3_R1) +
-        (S2 * P2 * P3 * R2 / K_S2_P2_P3_R2) +
-        (S2 * P2 * R1 * R2 / K_S2_P2_R1_R2) +
-        (S2 * P3 * R1 * R2 / K_S2_P3_R1_R2) +
-        (S3 * P1 * P2 * P3 / K_S3_P1_P2_P3) +
-        (S3 * P1 * P2 * R1 / K_S3_P1_P2_R1) +
-        (S3 * P1 * P2 * R2 / K_S3_P1_P2_R2) +
-        (S3 * P1 * P3 * R1 / K_S3_P1_P3_R1) +
-        (S3 * P1 * P3 * R2 / K_S3_P1_P3_R2) +
-        (S3 * P1 * R1 * R2 / K_S3_P1_R1_R2) +
-        (S3 * P2 * P3 * R1 / K_S3_P2_P3_R1) +
-        (S3 * P2 * P3 * R2 / K_S3_P2_P3_R2) +
-        (S3 * P2 * R1 * R2 / K_S3_P2_R1_R2) +
-        (S3 * P3 * R1 * R2 / K_S3_P3_R1_R2) +
-        (P1 * P2 * P3 * R1 / K_P1_P2_P3_R1) +
-        (P1 * P2 * P3 * R2 / K_P1_P2_P3_R2) +
-        (P1 * P2 * R1 * R2 / K_P1_P2_R1_R2) +
-        (P1 * P3 * R1 * R2 / K_P1_P3_R1_R2) +
-        (P2 * P3 * R1 * R2 / K_P2_P3_R1_R2)
+        S1 * (
+            S2 * (
+                S3 * (
+                    (P1 / K_S1_S2_S3_P1) +
+                    (P2 / K_S1_S2_S3_P2) +
+                    (P3 / K_S1_S2_S3_P3) +
+                    (R1 / K_S1_S2_S3_R1) +
+                    (R2 / K_S1_S2_S3_R2)
+                ) +
+                P1 * (
+                    (P2 / K_S1_S2_P1_P2) +
+                    (P3 / K_S1_S2_P1_P3) +
+                    (R1 / K_S1_S2_P1_R1) +
+                    (R2 / K_S1_S2_P1_R2)
+                ) +
+                P2 * ((P3 / K_S1_S2_P2_P3) + (R1 / K_S1_S2_P2_R1) + (R2 / K_S1_S2_P2_R2)) +
+                P3 * ((R1 / K_S1_S2_P3_R1) + (R2 / K_S1_S2_P3_R2)) +
+                (R1 * R2 / K_S1_S2_R1_R2)
+            ) +
+            S3 * (
+                P1 * (
+                    (P2 / K_S1_S3_P1_P2) +
+                    (P3 / K_S1_S3_P1_P3) +
+                    (R1 / K_S1_S3_P1_R1) +
+                    (R2 / K_S1_S3_P1_R2)
+                ) +
+                P2 * ((P3 / K_S1_S3_P2_P3) + (R1 / K_S1_S3_P2_R1) + (R2 / K_S1_S3_P2_R2)) +
+                P3 * ((R1 / K_S1_S3_P3_R1) + (R2 / K_S1_S3_P3_R2)) +
+                (R1 * R2 / K_S1_S3_R1_R2)
+            ) +
+            P1 * (
+                P2 * ((P3 / K_S1_P1_P2_P3) + (R1 / K_S1_P1_P2_R1) + (R2 / K_S1_P1_P2_R2)) +
+                P3 * ((R1 / K_S1_P1_P3_R1) + (R2 / K_S1_P1_P3_R2)) +
+                (R1 * R2 / K_S1_P1_R1_R2)
+            ) +
+            P2 * (
+                P3 * ((R1 / K_S1_P2_P3_R1) + (R2 / K_S1_P2_P3_R2)) +
+                (R1 * R2 / K_S1_P2_R1_R2)
+            ) +
+            P3 * (R1 * R2 / K_S1_P3_R1_R2)
+        ) +
+        S2 * (
+            S3 * (
+                P1 * (
+                    (P2 / K_S2_S3_P1_P2) +
+                    (P3 / K_S2_S3_P1_P3) +
+                    (R1 / K_S2_S3_P1_R1) +
+                    (R2 / K_S2_S3_P1_R2)
+                ) +
+                P2 * ((P3 / K_S2_S3_P2_P3) + (R1 / K_S2_S3_P2_R1) + (R2 / K_S2_S3_P2_R2)) +
+                P3 * ((R1 / K_S2_S3_P3_R1) + (R2 / K_S2_S3_P3_R2)) +
+                (R1 * R2 / K_S2_S3_R1_R2)
+            ) +
+            P1 * (
+                P2 * ((P3 / K_S2_P1_P2_P3) + (R1 / K_S2_P1_P2_R1) + (R2 / K_S2_P1_P2_R2)) +
+                P3 * ((R1 / K_S2_P1_P3_R1) + (R2 / K_S2_P1_P3_R2)) +
+                (R1 * R2 / K_S2_P1_R1_R2)
+            ) +
+            P2 * (
+                P3 * ((R1 / K_S2_P2_P3_R1) + (R2 / K_S2_P2_P3_R2)) +
+                (R1 * R2 / K_S2_P2_R1_R2)
+            ) +
+            P3 * (R1 * R2 / K_S2_P3_R1_R2)
+        ) +
+        S3 * (
+            P1 * (
+                P2 * ((P3 / K_S3_P1_P2_P3) + (R1 / K_S3_P1_P2_R1) + (R2 / K_S3_P1_P2_R2)) +
+                P3 * ((R1 / K_S3_P1_P3_R1) + (R2 / K_S3_P1_P3_R2)) +
+                (R1 * R2 / K_S3_P1_R1_R2)
+            ) +
+            P2 * (
+                P3 * ((R1 / K_S3_P2_P3_R1) + (R2 / K_S3_P2_P3_R2)) +
+                (R1 * R2 / K_S3_P2_R1_R2)
+            ) +
+            P3 * (R1 * R2 / K_S3_P3_R1_R2)
+        ) +
+        P1 * (
+            P2 * (
+                P3 * ((R1 / K_P1_P2_P3_R1) + (R2 / K_P1_P2_P3_R2)) +
+                (R1 * R2 / K_P1_P2_R1_R2)
+            ) + P3 * (R1 * R2 / K_P1_P3_R1_R2)
+        ) +
+        P2 * (P3 * (R1 * R2 / K_P2_P3_R1_R2))
 
 
     five_metab_bound = (
-        (S1 * S2 * S3 * P1 * P2 / K_S1_S2_S3_P1_P2) +
-        (S1 * S2 * S3 * P1 * P3 / K_S1_S2_S3_P1_P3) +
-        (S1 * S2 * S3 * P1 * R1 / K_S1_S2_S3_P1_R1) +
-        (S1 * S2 * S3 * P1 * R2 / K_S1_S2_S3_P1_R2) +
-        (S1 * S2 * S3 * P2 * P3 / K_S1_S2_S3_P2_P3) +
-        (S1 * S2 * S3 * P2 * R1 / K_S1_S2_S3_P2_R1) +
-        (S1 * S2 * S3 * P2 * R2 / K_S1_S2_S3_P2_R2) +
-        (S1 * S2 * S3 * P3 * R1 / K_S1_S2_S3_P3_R1) +
-        (S1 * S2 * S3 * P3 * R2 / K_S1_S2_S3_P3_R2) +
-        (S1 * S2 * S3 * R1 * R2 / K_S1_S2_S3_R1_R2) +
-        (S1 * S2 * P1 * P2 * P3 / K_S1_S2_P1_P2_P3) +
-        (S1 * S2 * P1 * P2 * R1 / K_S1_S2_P1_P2_R1) +
-        (S1 * S2 * P1 * P2 * R2 / K_S1_S2_P1_P2_R2) +
-        (S1 * S2 * P1 * P3 * R1 / K_S1_S2_P1_P3_R1) +
-        (S1 * S2 * P1 * P3 * R2 / K_S1_S2_P1_P3_R2) +
-        (S1 * S2 * P1 * R1 * R2 / K_S1_S2_P1_R1_R2) +
-        (S1 * S2 * P2 * P3 * R1 / K_S1_S2_P2_P3_R1) +
-        (S1 * S2 * P2 * P3 * R2 / K_S1_S2_P2_P3_R2) +
-        (S1 * S2 * P2 * R1 * R2 / K_S1_S2_P2_R1_R2) +
-        (S1 * S2 * P3 * R1 * R2 / K_S1_S2_P3_R1_R2) +
-        (S1 * S3 * P1 * P2 * P3 / K_S1_S3_P1_P2_P3) +
-        (S1 * S3 * P1 * P2 * R1 / K_S1_S3_P1_P2_R1) +
-        (S1 * S3 * P1 * P2 * R2 / K_S1_S3_P1_P2_R2) +
-        (S1 * S3 * P1 * P3 * R1 / K_S1_S3_P1_P3_R1) +
-        (S1 * S3 * P1 * P3 * R2 / K_S1_S3_P1_P3_R2) +
-        (S1 * S3 * P1 * R1 * R2 / K_S1_S3_P1_R1_R2) +
-        (S1 * S3 * P2 * P3 * R1 / K_S1_S3_P2_P3_R1) +
-        (S1 * S3 * P2 * P3 * R2 / K_S1_S3_P2_P3_R2) +
-        (S1 * S3 * P2 * R1 * R2 / K_S1_S3_P2_R1_R2) +
-        (S1 * S3 * P3 * R1 * R2 / K_S1_S3_P3_R1_R2) +
-        (S1 * P1 * P2 * P3 * R1 / K_S1_P1_P2_P3_R1) +
-        (S1 * P1 * P2 * P3 * R2 / K_S1_P1_P2_P3_R2) +
-        (S1 * P1 * P2 * R1 * R2 / K_S1_P1_P2_R1_R2) +
-        (S1 * P1 * P3 * R1 * R2 / K_S1_P1_P3_R1_R2) +
-        (S1 * P2 * P3 * R1 * R2 / K_S1_P2_P3_R1_R2) +
-        (S2 * S3 * P1 * P2 * P3 / K_S2_S3_P1_P2_P3) +
-        (S2 * S3 * P1 * P2 * R1 / K_S2_S3_P1_P2_R1) +
-        (S2 * S3 * P1 * P2 * R2 / K_S2_S3_P1_P2_R2) +
-        (S2 * S3 * P1 * P3 * R1 / K_S2_S3_P1_P3_R1) +
-        (S2 * S3 * P1 * P3 * R2 / K_S2_S3_P1_P3_R2) +
-        (S2 * S3 * P1 * R1 * R2 / K_S2_S3_P1_R1_R2) +
-        (S2 * S3 * P2 * P3 * R1 / K_S2_S3_P2_P3_R1) +
-        (S2 * S3 * P2 * P3 * R2 / K_S2_S3_P2_P3_R2) +
-        (S2 * S3 * P2 * R1 * R2 / K_S2_S3_P2_R1_R2) +
-        (S2 * S3 * P3 * R1 * R2 / K_S2_S3_P3_R1_R2) +
-        (S2 * P1 * P2 * P3 * R1 / K_S2_P1_P2_P3_R1) +
-        (S2 * P1 * P2 * P3 * R2 / K_S2_P1_P2_P3_R2) +
-        (S2 * P1 * P2 * R1 * R2 / K_S2_P1_P2_R1_R2) +
-        (S2 * P1 * P3 * R1 * R2 / K_S2_P1_P3_R1_R2) +
-        (S2 * P2 * P3 * R1 * R2 / K_S2_P2_P3_R1_R2) +
-        (S3 * P1 * P2 * P3 * R1 / K_S3_P1_P2_P3_R1) +
-        (S3 * P1 * P2 * P3 * R2 / K_S3_P1_P2_P3_R2) +
-        (S3 * P1 * P2 * R1 * R2 / K_S3_P1_P2_R1_R2) +
-        (S3 * P1 * P3 * R1 * R2 / K_S3_P1_P3_R1_R2) +
-        (S3 * P2 * P3 * R1 * R2 / K_S3_P2_P3_R1_R2) +
-        (P1 * P2 * P3 * R1 * R2 / K_P1_P2_P3_R1_R2)
+        S1 * (
+            S2 * (
+                S3 * (
+                    P1 * (
+                        (P2 / K_S1_S2_S3_P1_P2) +
+                        (P3 / K_S1_S2_S3_P1_P3) +
+                        (R1 / K_S1_S2_S3_P1_R1) +
+                        (R2 / K_S1_S2_S3_P1_R2)
+                    ) +
+                    P2 * (
+                        (P3 / K_S1_S2_S3_P2_P3) +
+                        (R1 / K_S1_S2_S3_P2_R1) +
+                        (R2 / K_S1_S2_S3_P2_R2)
+                    ) +
+                    P3 * ((R1 / K_S1_S2_S3_P3_R1) + (R2 / K_S1_S2_S3_P3_R2)) +
+                    (R1 * R2 / K_S1_S2_S3_R1_R2)
+                ) +
+                P1 * (
+                    P2 * (
+                        (P3 / K_S1_S2_P1_P2_P3) +
+                        (R1 / K_S1_S2_P1_P2_R1) +
+                        (R2 / K_S1_S2_P1_P2_R2)
+                    ) +
+                    P3 * ((R1 / K_S1_S2_P1_P3_R1) + (R2 / K_S1_S2_P1_P3_R2)) +
+                    (R1 * R2 / K_S1_S2_P1_R1_R2)
+                ) +
+                P2 * (
+                    P3 * ((R1 / K_S1_S2_P2_P3_R1) + (R2 / K_S1_S2_P2_P3_R2)) +
+                    (R1 * R2 / K_S1_S2_P2_R1_R2)
+                ) +
+                P3 * (R1 * R2 / K_S1_S2_P3_R1_R2)
+            ) +
+            S3 * (
+                P1 * (
+                    P2 * (
+                        (P3 / K_S1_S3_P1_P2_P3) +
+                        (R1 / K_S1_S3_P1_P2_R1) +
+                        (R2 / K_S1_S3_P1_P2_R2)
+                    ) +
+                    P3 * ((R1 / K_S1_S3_P1_P3_R1) + (R2 / K_S1_S3_P1_P3_R2)) +
+                    (R1 * R2 / K_S1_S3_P1_R1_R2)
+                ) +
+                P2 * (
+                    P3 * ((R1 / K_S1_S3_P2_P3_R1) + (R2 / K_S1_S3_P2_P3_R2)) +
+                    (R1 * R2 / K_S1_S3_P2_R1_R2)
+                ) +
+                P3 * (R1 * R2 / K_S1_S3_P3_R1_R2)
+            ) +
+            P1 * (
+                P2 * (
+                    P3 * ((R1 / K_S1_P1_P2_P3_R1) + (R2 / K_S1_P1_P2_P3_R2)) +
+                    (R1 * R2 / K_S1_P1_P2_R1_R2)
+                ) + P3 * (R1 * R2 / K_S1_P1_P3_R1_R2)
+            ) +
+            P2 * (P3 * (R1 * R2 / K_S1_P2_P3_R1_R2))
+        ) +
+        S2 * (
+            S3 * (
+                P1 * (
+                    P2 * (
+                        (P3 / K_S2_S3_P1_P2_P3) +
+                        (R1 / K_S2_S3_P1_P2_R1) +
+                        (R2 / K_S2_S3_P1_P2_R2)
+                    ) +
+                    P3 * ((R1 / K_S2_S3_P1_P3_R1) + (R2 / K_S2_S3_P1_P3_R2)) +
+                    (R1 * R2 / K_S2_S3_P1_R1_R2)
+                ) +
+                P2 * (
+                    P3 * ((R1 / K_S2_S3_P2_P3_R1) + (R2 / K_S2_S3_P2_P3_R2)) +
+                    (R1 * R2 / K_S2_S3_P2_R1_R2)
+                ) +
+                P3 * (R1 * R2 / K_S2_S3_P3_R1_R2)
+            ) +
+            P1 * (
+                P2 * (
+                    P3 * ((R1 / K_S2_P1_P2_P3_R1) + (R2 / K_S2_P1_P2_P3_R2)) +
+                    (R1 * R2 / K_S2_P1_P2_R1_R2)
+                ) + P3 * (R1 * R2 / K_S2_P1_P3_R1_R2)
+            ) +
+            P2 * (P3 * (R1 * R2 / K_S2_P2_P3_R1_R2))
+        ) +
+        S3 * (
+            P1 * (
+                P2 * (
+                    P3 * ((R1 / K_S3_P1_P2_P3_R1) + (R2 / K_S3_P1_P2_P3_R2)) +
+                    (R1 * R2 / K_S3_P1_P2_R1_R2)
+                ) + P3 * (R1 * R2 / K_S3_P1_P3_R1_R2)
+            ) + P2 * (P3 * (R1 * R2 / K_S3_P2_P3_R1_R2))
+        ) +
+        P1 * (P2 * (P3 * (R1 * R2 / K_P1_P2_P3_R1_R2)))
     )
 
     six_metab_bound = (
-        (S1 * S2 * S3 * P1 * P2 * P3 / K_S1_S2_S3_P1_P2_P3) +
-        (S1 * S2 * S3 * P1 * P2 * R1 / K_S1_S2_S3_P1_P2_R1) +
-        (S1 * S2 * S3 * P1 * P2 * R2 / K_S1_S2_S3_P1_P2_R2) +
-        (S1 * S2 * S3 * P1 * P3 * R1 / K_S1_S2_S3_P1_P3_R1) +
-        (S1 * S2 * S3 * P1 * P3 * R2 / K_S1_S2_S3_P1_P3_R2) +
-        (S1 * S2 * S3 * P1 * R1 * R2 / K_S1_S2_S3_P1_R1_R2) +
-        (S1 * S2 * S3 * P2 * P3 * R1 / K_S1_S2_S3_P2_P3_R1) +
-        (S1 * S2 * S3 * P2 * P3 * R2 / K_S1_S2_S3_P2_P3_R2) +
-        (S1 * S2 * S3 * P2 * R1 * R2 / K_S1_S2_S3_P2_R1_R2) +
-        (S1 * S2 * S3 * P3 * R1 * R2 / K_S1_S2_S3_P3_R1_R2) +
-        (S1 * S2 * P1 * P2 * P3 * R1 / K_S1_S2_P1_P2_P3_R1) +
-        (S1 * S2 * P1 * P2 * P3 * R2 / K_S1_S2_P1_P2_P3_R2) +
-        (S1 * S2 * P1 * P2 * R1 * R2 / K_S1_S2_P1_P2_R1_R2) +
-        (S1 * S2 * P1 * P3 * R1 * R2 / K_S1_S2_P1_P3_R1_R2) +
-        (S1 * S2 * P2 * P3 * R1 * R2 / K_S1_S2_P2_P3_R1_R2) +
-        (S1 * S3 * P1 * P2 * P3 * R1 / K_S1_S3_P1_P2_P3_R1) +
-        (S1 * S3 * P1 * P2 * P3 * R2 / K_S1_S3_P1_P2_P3_R2) +
-        (S1 * S3 * P1 * P2 * R1 * R2 / K_S1_S3_P1_P2_R1_R2) +
-        (S1 * S3 * P1 * P3 * R1 * R2 / K_S1_S3_P1_P3_R1_R2) +
-        (S1 * S3 * P2 * P3 * R1 * R2 / K_S1_S3_P2_P3_R1_R2) +
-        (S1 * P1 * P2 * P3 * R1 * R2 / K_S1_P1_P2_P3_R1_R2) +
-        (S2 * S3 * P1 * P2 * P3 * R1 / K_S2_S3_P1_P2_P3_R1) +
-        (S2 * S3 * P1 * P2 * P3 * R2 / K_S2_S3_P1_P2_P3_R2) +
-        (S2 * S3 * P1 * P2 * R1 * R2 / K_S2_S3_P1_P2_R1_R2) +
-        (S2 * S3 * P1 * P3 * R1 * R2 / K_S2_S3_P1_P3_R1_R2) +
-        (S2 * S3 * P2 * P3 * R1 * R2 / K_S2_S3_P2_P3_R1_R2) +
-        (S2 * P1 * P2 * P3 * R1 * R2 / K_S2_P1_P2_P3_R1_R2) +
+        S1 * (
+            S2 * (
+                S3 * (
+                    P1 * (
+                        P2 * (
+                            (P3 / K_S1_S2_S3_P1_P2_P3) +
+                            (R1 / K_S1_S2_S3_P1_P2_R1) +
+                            (R2 / K_S1_S2_S3_P1_P2_R2)
+                        ) +
+                        P3 * ((R1 / K_S1_S2_S3_P1_P3_R1) + (R2 / K_S1_S2_S3_P1_P3_R2)) +
+                        (R1 * R2 / K_S1_S2_S3_P1_R1_R2)
+                    ) +
+                    P2 * (
+                        P3 * ((R1 / K_S1_S2_S3_P2_P3_R1) + (R2 / K_S1_S2_S3_P2_P3_R2)) +
+                        (R1 * R2 / K_S1_S2_S3_P2_R1_R2)
+                    ) +
+                    P3 * (R1 * R2 / K_S1_S2_S3_P3_R1_R2)
+                ) +
+                P1 * (
+                    (P2 * P3 * R1 / K_S1_S2_P1_P2_P3_R1) +
+                    (P2 * P3 * R2 / K_S1_S2_P1_P2_P3_R2) +
+                    (P2 * R1 * R2 / K_S1_S2_P1_P2_R1_R2) +
+                    (P3 * R1 * R2 / K_S1_S2_P1_P3_R1_R2)
+                ) +
+                (P2 * P3 * R1 * R2 / K_S1_S2_P2_P3_R1_R2)
+            ) +
+            S3 * (
+                P1 * (
+                    P2 * (
+                        P3 * ((R1 / K_S1_S3_P1_P2_P3_R1) + (R2 / K_S1_S3_P1_P2_P3_R2)) +
+                        (R1 * R2 / K_S1_S3_P1_P2_R1_R2)
+                    ) + (P3 * R1 * R2 / K_S1_S3_P1_P3_R1_R2)
+                ) + (P2 * P3 * R1 * R2 / K_S1_S3_P2_P3_R1_R2)
+            ) +
+            (P1 * P2 * P3 * R1 * R2 / K_S1_P1_P2_P3_R1_R2)
+        ) +
+        S2 * (
+            S3 * (
+                P1 * (
+                    P2 * (
+                        (P3 * R1 / K_S2_S3_P1_P2_P3_R1) +
+                        (P3 * R2 / K_S2_S3_P1_P2_P3_R2) +
+                        (R1 * R2 / K_S2_S3_P1_P2_R1_R2)
+                    ) + (P3 * R1 * R2 / K_S2_S3_P1_P3_R1_R2)
+                ) + (P2 * P3 * R1 * R2 / K_S2_S3_P2_P3_R1_R2)
+            ) + (P1 * P2 * P3 * R1 * R2 / K_S2_P1_P2_P3_R1_R2)
+        ) +
         (S3 * P1 * P2 * P3 * R1 * R2 / K_S3_P1_P2_P3_R1_R2)
     )
 
