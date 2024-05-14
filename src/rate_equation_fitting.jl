@@ -77,8 +77,7 @@ function train_rate_equation(
         ]...,
     )
     # Add a column containing indexes of points corresponding to each figure
-    fig_point_indexes =
-        [findall(data.fig_num .== i) for i in unique(data.fig_num)]
+    fig_point_indexes = [findall(data.fig_num .== i) for i in unique(data.fig_num)]
     # Convert DF to NamedTuple for better type stability / speed
     rate_data_nt = Tables.columntable(data)
 
@@ -90,7 +89,7 @@ function train_rate_equation(
             rate_equation,
             rate_data_nt,
             param_names,
-            fig_ponint_indexes;
+            fig_point_indexes;
             rescale_params_from_0_10_scale = true,
             nt_param_removal_code = nt_param_removal_code,
         ),

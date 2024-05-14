@@ -9,7 +9,6 @@ include("rate_equation_selection.jl")
 
 file_path = joinpath(package_path, "test/Data_for_tests/PKM2_data.csv")
 data = CSV.read(file_path, DataFrame)
-println("bluz")
 
 enzyme_parameters = (; 
 substrates=[:PEP,:ADP], 
@@ -28,4 +27,4 @@ selection_result = @time data_driven_rate_equation_selection(derived_rate_equati
   (7, 15), 
   true,
   1,
-  500)
+  10)
