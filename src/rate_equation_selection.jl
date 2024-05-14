@@ -1,5 +1,5 @@
 using Dates, CSV, DataFrames, Distributed
-
+include("rate_equation_fitting.jl")
 
 
 function prepare_data(data::DataFrame)
@@ -27,10 +27,10 @@ function data_driven_rate_equation_selection(
     metab_names::Tuple{Symbol,Vararg{Symbol}},
     param_names::Tuple{Symbol,Vararg{Symbol}},
     range_number_params::Tuple{Int,Int},
-    forward_model_selection::Bool;
+    forward_model_selection::Bool,
     n_repetiotions_opt::Int,
     maxiter_opt::Int;
-    model_selection_method = "denis"
+    model_selection_method = "denis",
 )
     
     data = prepare_data(data)
@@ -55,7 +55,7 @@ function data_driven_rate_equation_selection(
     num_alpha_params = count(occursin.("alpha", string.([param_names...])))
 
     # keep for each number of params: all the subsets with this number
-    param_subsets_tuple = [(length(param_names) - num_alpha_params -  sum(values(x[1:(end-num_alpha_params)]) .> 0) , values(param_subset)) 
+    param_subsets_tuple = [(length(param_names) - num_alpha_params -  sum(values(x[1:(end-num_alpha_params)]) .> 0) , values(x)) 
        for x in all_param_removal_codes]
     param_subsets_per_n_params = Dict{Int, Vector}()
     for (key, value) in param_subsets_tuple
@@ -72,8 +72,9 @@ function data_driven_rate_equation_selection(
             data,
             metab_names,
             param_names,
+            param_removal_code_names, 
             range_number_params,
-            forward_model_selection;
+            forward_model_selection,
             n_repetiotions_opt,
             maxiter_opt,
             param_subsets_per_n_params,
@@ -90,8 +91,9 @@ function fit_rate_equation_selection_per_fig(
         data::DataFrame,
         metab_names::Tuple{Symbol,Vararg{Symbol}},
         param_names::Tuple{Symbol,Vararg{Symbol}},
+        param_removal_code_names, 
         range_number_params::Tuple{Int,Int},
-        forward_model_selection::Bool;
+        forward_model_selection::Bool,
         n_repetiotions_opt::Int,
         maxiter_opt::Int,
         param_subsets_per_n_params,
@@ -136,7 +138,7 @@ function fit_rate_equation_selection_per_fig(
             end
     
             #pmap over nt_param_removal_codes for a given `num_params` return rescaled and nt_param_subset added
-            results_array = pmap(
+            results_array = map(
                 nt_param_removal_code -> train_rate_equation(
                     general_rate_equation,
                     data,
@@ -342,6 +344,58 @@ function param_subset_select(params, param_names, nt_param_removal_code)
     return new_params_sorted
 end
 
+function param_subset_select_may(params, param_names, nt_param_removal_code)
+    @assert length(params) == length(param_names)
+    params_dict =
+        Dict(param_name => params[i] for (i, param_name) in enumerate(param_names))
+
+    # for param_choice in keys(nt_param_removal_code)
+    for (name, choice) in pairs(nt_param_removal_code)
+        name_str = string(name)
+        choice_str = string(choice)
+
+        # handle K params
+        if startswith(uppercase(name_str), "K")
+            K_a = replace(name_str, "K_" => "K_a_")
+            K_i = replace(name_str, "K_" => "K_i_")
+      
+            if choice > 0
+                if choice == 1
+                    params_dict[Symbol(K_i)] = params_dict[Symbol(K_a)] 
+
+                elseif choice == 2
+                    params_dict[Symbol(K_a)] = Inf
+
+                elseif choice == 3
+                    params_dict[Symbol(K_i)] = Inf
+                end
+            end
+        
+        elseif startswith(name_str, "alpha")
+            if choice == 0
+                params_dict[Symbol(name_str)] = 0.0
+            elseif choice == 1
+                params_dict[Symbol(name_str)] = 1.0
+            end
+            
+        elseif name_str == "Vmax"
+            if choice == 1
+                params_dict[Symbol(name_str , "_i")] = 1.0
+            elseif choice == 2
+                #TODO: check why it's appear with global in denis's code
+                params_dict[Symbol(name_str)] = 0.0
+            end
+
+        elseif name_str == "L"
+            if choice == 1
+                params_dict[Symbol(name_str)] = 0.0
+            end
+
+        end
+    end
+    new_params_sorted = [params_dict[param_name] for param_name in param_names]
+    return new_params_sorted
+end
 """
 Calculate `nt_param_removal_codes` with `num_params` including non-zero term combinations for codes (excluding alpha terms) in each `previous_param_removal_codes` that has `num_params-1`
 """
@@ -351,7 +405,7 @@ function forward_selection_next_param_removal_codes(
     num_params,
     param_names,
     param_removal_code_names,
-)
+    )
 
     num_alpha_params = count(occursin.("alpha", string.([param_names...])))
     @assert all([
@@ -363,6 +417,7 @@ function forward_selection_next_param_removal_codes(
             sum(param_removal_code[1:(end-num_alpha_params)] .> 0) == num_params
         ) for param_removal_code in previous_param_removal_codes
     ])
+    
     previous_param_subset_masks = unique([
         (
             mask = (

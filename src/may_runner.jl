@@ -5,6 +5,7 @@ Pkg.activate(package_path)
 using DataDrivenEnzymeRateEqs, Test
 using CMAEvolutionStrategy, DataFrames, CSV, Statistics
 using BenchmarkTools
+include("rate_equation_selection.jl")
 
 file_path = joinpath(package_path, "test/Data_for_tests/PKM2_data.csv")
 data = CSV.read(file_path, DataFrame)
@@ -25,4 +26,6 @@ selection_result = @time data_driven_rate_equation_selection(derived_rate_equati
   metab_names, 
   param_names, 
   (7, 15), 
-  true)
+  true,
+  1,
+  500)

@@ -90,7 +90,7 @@ function train_rate_equation(
             rate_equation,
             rate_data_nt,
             param_names,
-            fig_point_indexes;
+            fig_ponint_indexes;
             rescale_params_from_0_10_scale = true,
             nt_param_removal_code = nt_param_removal_code,
         ),
