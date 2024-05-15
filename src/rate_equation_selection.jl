@@ -15,7 +15,7 @@ function prepare_data(data::DataFrame)
 
     #Only include Rate > 0 because otherwise log_ratio_predict_vs_data() will have to divide by 0
     filter!(row -> row.Rate != 0, data)
-
+    #TODO: add errors if some of the columns are missing
     return data
 end
 
@@ -27,9 +27,9 @@ function data_driven_rate_equation_selection(
     metab_names::Tuple{Symbol,Vararg{Symbol}},
     param_names::Tuple{Symbol,Vararg{Symbol}},
     range_number_params::Tuple{Int,Int},
-    forward_model_selection::Bool,
-    n_repetiotions_opt::Int,
-    maxiter_opt::Int;
+    forward_model_selection::Bool;
+    n_reps_opt::Int = 20,
+    maxiter_opt::Int = 50_000,
     model_selection_method = "denis",
 )
     
@@ -51,20 +51,7 @@ function data_driven_rate_equation_selection(
     )
 
     #generate all possible combination of parameter removal codes
-    all_param_removal_codes = calculate_all_parameter_removal_codes(param_names)
-    num_alpha_params = count(occursin.("alpha", string.([param_names...])))
-
-    # keep for each number of params: all the subsets with this number
-    param_subsets_tuple = [(length(param_names) - num_alpha_params -  sum(values(x[1:(end-num_alpha_params)]) .> 0) , values(x)) 
-       for x in all_param_removal_codes]
-    param_subsets_per_n_params = Dict{Int, Vector}()
-    for (key, value) in param_subsets_tuple
-        if haskey(param_subsets_per_n_params, key)
-            push!(param_subsets_per_n_params[key], value)
-        else
-            param_subsets_per_n_params[key] = [value]
-        end
-    end
+    param_subsets_per_n_params = calculate_all_parameter_removal_codes(param_names)
 
     if model_selection_method == "denis"
         results = fit_rate_equation_selection_denis(
@@ -75,16 +62,12 @@ function data_driven_rate_equation_selection(
             param_removal_code_names, 
             range_number_params,
             forward_model_selection,
-            n_repetiotions_opt,
+            n_reps_opt,
             maxiter_opt,
             param_subsets_per_n_params,
             all_param_removal_codes;
             )
-        println("finish fitting subsets")
-        println(first(results.test_results, 5))
-
-        println(first(results.train_results, 5))
-
+ 
         best_n_params, best_subset = find_best_n_params(results.test_results)
         println("Best subset")
         println(best_subset)
@@ -105,7 +88,7 @@ function data_driven_rate_equation_selection(
                 param_removal_code_names,
                 range_number_params,
                 forward_model_selection,
-                n_repetiotions_opt,
+                n_reps_opt,
                 maxiter_opt,
                 param_subsets_per_n_params,
                 all_param_removal_codes,
@@ -127,7 +110,7 @@ function data_driven_rate_equation_selection(
             meta_names,
             param_names,
             param_removal_code_names,
-            n_repetiotions_opt, 
+            n_reps_opt, 
             maxiter_opt
             )
 
@@ -136,8 +119,8 @@ function data_driven_rate_equation_selection(
         # TODO: accordingly, choose best subset 
 
     end
-
-    # TODO: figure out what to return? best subets? more info? 
+    # TODO: decide how to choose best n params -> one sample differences wilcoxon test, need to choose threshold (p=.36?)
+    # TODO: output? best subets? more info? 
     return (results = results, best_n_params = best_n_params, best_subset_row = best_subset_row)
 end
 
@@ -280,7 +263,7 @@ function fit_rate_equation_selection_denis(
             #TODO: change to pmap
             best_nt_param_removal_code =
                 df_results.nt_param_removal_codes[argmin(df_results.train_loss)]
-      
+            # TODO: move test_results out from the loop
             test_results = pmap(
                 removed_fig -> loocv_rate_equation(
                     removed_fig,
@@ -578,7 +561,22 @@ function calculate_all_parameter_removal_codes(param_names::Tuple{Symbol,Vararg{
             feasible_param_subset_codes = (feasible_param_subset_codes..., [0, 1])
         end
     end
-    return collect(Iterators.product(feasible_param_subset_codes...))
+    all_param_removal_codes = collect(Iterators.product(feasible_param_subset_codes...))
+
+    num_alpha_params = count(occursin.("alpha", string.([param_names...])))
+
+    # keep for each number of params: all the subsets with this number
+    param_subsets_tuple = [(length(param_names) - num_alpha_params -  sum(values(x[1:(end-num_alpha_params)]) .> 0) , values(x)) 
+       for x in all_param_removal_codes]
+    param_subsets_per_n_params = Dict{Int, Vector}()
+    for (key, value) in param_subsets_tuple
+        if haskey(param_subsets_per_n_params, key)
+            push!(param_subsets_per_n_params[key], value)
+        else
+            param_subsets_per_n_params[key] = [value]
+        end
+    end
+    return param_subsets_per_n_params
 end
 
 """
