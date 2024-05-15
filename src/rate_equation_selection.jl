@@ -67,7 +67,7 @@ function data_driven_rate_equation_selection(
     end
 
     if model_selection_method == "denis"
-        results = fit_rate_equation_selection_per_fig(
+        results = fit_rate_equation_selection_denis(
             general_rate_equation,
             data,
             metab_names,
@@ -79,14 +79,105 @@ function data_driven_rate_equation_selection(
             maxiter_opt,
             param_subsets_per_n_params,
             all_param_removal_codes;
-            dropped_fig = nothing
             )
+        
+        println(names(results.test_results))
+        println(first(results.test_results)) 
+        best_n_params = find_best_n_params(results.test_results)
+
+
+    elseif model_selection_method == "cv_denis"
+        figs = unique(data.source) 
+        results_figs_df = pmap(
+            dropped_fig -> fit_rate_equation_selection_per_fig(
+                general_rate_equation,
+                data,
+                metab_names,
+                param_names,
+                param_removal_code_names,
+                range_number_params,
+                forward_model_selection,
+                n_repetiotions_opt,
+                maxiter_opt,
+                param_subsets_per_n_params,
+                all_param_removal_codes,
+                dropped_fig
+                ), 
+            figs
+        )
+        results = vcat(results_figs_df...)
+
+        best_n_params = find_best_n_params(results)
+    elseif model_selection_method == "cv_all_subsets"
+        results =  fit_rate_equation_selection_all_subsets(
+            general_rate_equation,
+            data,
+            meta_names,
+            param_names,
+            param_removal_code_names,
+            n_repetiotions_opt, 
+            maxiter_opt
+            )
+
+        # TODO: for each n params: keep the best model in terms of train loss
+        # TODO: choose best num of params 
+        # TODO: accordingly, choose best subset 
+
     end
-    
+
+    # TODO: figure out what to return? best subets? more info? 
+end
+
+function find_best_n_params(df_results::DataFrame, print_res = false)
+     
+    println(names(df_results))
+    println(first(df_results, 5)) 
+    println(nrows(df_results))
+    # Calculate average test loss for each n_params
+    avg_values = combine(groupby(df_results, :num_params), :test_loss_leftout_fig => mean => :avg_test_loss)
+
+    min_row = argmin(avg_values.avg_test_loss)
+    best_n_params =  avg_values[min_row, :]
+    println("Best n params")
+    println(best_n_params)
+
+    if print_res == true
+        println("Avg CV error for each n removed params:")
+        println(sort(avg_values, :avg_test_loss))
+    end
+    return best_n_params
+end
+
+function train_and_choose_best_subset(data,param_subsets_per_n_params,  best_n_params; n_repetiotions_opt = 20, maxiter_opt = 50_000, print_res = false)
+    nt_param_removal_codes = param_subsets_per_n_params[best_n_params]
+
+    results_array = pmap(
+        nt_param_removal_code -> train_rate_equation(
+            general_rate_equation,
+            data,
+            metab_names,
+            param_names;
+            n_iter = n_repetiotions_opt,
+            maxiter_opt = maxiter_opt,
+            nt_param_removal_code = nt_param_removal_code,
+        ),
+        nt_param_removal_codes,
+    )
+
+    df_results = DataFrame(results_array)
+    df_results.num_params = fill(best_n_params, nrow(df_results))
+    df_results.nt_param_removal_codes = nt_param_removal_codes
+    # cols: n_params, param_subset, train_loss, params
+    println(first(df_results, 5)) 
+
+    best_param_subset = DataFrame(results_df[argmin(results_df.train_loss),:])
+    println("Best subset: $(best_param_subset.param_subset)")
+
+    return best_param_subset
 end
 
 
-function fit_rate_equation_selection_per_fig(
+function fit_rate_equation_selection_denis(
         general_rate_equation::Function,
         data::DataFrame,
         metab_names::Tuple{Symbol,Vararg{Symbol}},
@@ -98,7 +189,6 @@ function fit_rate_equation_selection_per_fig(
         maxiter_opt::Int,
         param_subsets_per_n_params,
         all_param_removal_codes;
-        dropped_fig = nothing
         )
 
 
@@ -138,7 +228,7 @@ function fit_rate_equation_selection_per_fig(
             end
     
             #pmap over nt_param_removal_codes for a given `num_params` return rescaled and nt_param_subset added
-            results_array = map(
+            results_array = pmap(
                 nt_param_removal_code -> train_rate_equation(
                     general_rate_equation,
                     data,
@@ -170,6 +260,7 @@ function fit_rate_equation_selection_per_fig(
             #TODO: change to pmap
             best_nt_param_removal_code =
                 df_results.nt_param_removal_codes[argmin(df_results.train_loss)]
+      
             test_results = pmap(
                 removed_fig -> loocv_rate_equation(
                     removed_fig,
@@ -177,23 +268,19 @@ function fit_rate_equation_selection_per_fig(
                     data,
                     metab_names,
                     param_names;
-                    n_iter = 20,
+                    n_iter = n_repetiotions_opt,
+                    maxiter_opt = maxiter_opt,
                     nt_param_removal_code = best_nt_param_removal_code,
                 ),
                 unique(data.source),
             )
+
             df_results = DataFrame(test_results)
             df_results.num_params = fill(num_params, nrow(df_results))
             df_results.nt_param_removal_codes =
                 fill(best_nt_param_removal_code, nrow(df_results))
                 
             df_test_results = vcat(df_test_results, df_results)
-
-            if dropped_fig !== nothing
-                df_test_results.dropped_fig = fill(dropped_fig, nrow(df_test_results))
-                df_train_results.dropped_fig = fill(dropped_fig, nrow(df_train_results))
-            end
-    
         end
     
         return (train_results = df_train_results, test_results = df_test_results)
@@ -202,7 +289,177 @@ function fit_rate_equation_selection_per_fig(
 end
 
 
+function fit_rate_equation_selection_per_fig(
+    general_rate_equation::Function,
+    data::DataFrame,
+    metab_names::Tuple{Symbol,Vararg{Symbol}},
+    param_names::Tuple{Symbol,Vararg{Symbol}},
+    param_removal_code_names, 
+    range_number_params::Tuple{Int,Int},
+    forward_model_selection::Bool,
+    n_repetiotions_opt::Int,
+    maxiter_opt::Int,
+    param_subsets_per_n_params,
+    all_param_removal_codes,
+    test_fig
+    )
 
+    train_data = data[data.source.!=test_fig, :]
+    test_data = data[data.source.==test_fig, :]
+
+    if forward_model_selection
+        num_param_range = (range_number_params[2]):-1:range_number_params[1]
+        starting_param_removal_codes = param_subsets_per_n_params[range_number_params[2]]
+    elseif !forward_model_selection
+        num_param_range = (range_number_params[1]):1:range_number_params[2]
+        starting_param_removal_codes = param_subsets_per_n_params[range_number_params[1]]
+    end
+
+    previous_param_removal_codes = starting_param_removal_codes
+    println("About to start loop with num_params: $num_param_range")
+    
+    df_train_results = DataFrame()
+    df_test_results = DataFrame()
+    for num_params in num_param_range
+        println("Running loop with num_params: $num_params")
+
+        #calculate param_removal_codes for `num_params` given `all_param_removal_codes` and fixed params from previous `num_params`
+        if forward_model_selection
+            nt_param_removal_codes = forward_selection_next_param_removal_codes(
+                param_subsets_per_n_params,
+                previous_param_removal_codes,
+                num_params,
+                param_names,
+                param_removal_code_names,
+            )
+        elseif !forward_model_selection
+            nt_param_removal_codes = reverse_selection_next_param_removal_codes(
+                param_subsets_per_n_params,
+                previous_param_removal_codes,
+                num_params,
+                param_names,
+                param_removal_code_names,
+            )
+        end
+
+        #pmap over nt_param_removal_codes for a given `num_params` return rescaled and nt_param_subset added
+        results_array = map(
+            nt_param_removal_code -> train_rate_equation(
+                general_rate_equation,
+                train_data,
+                metab_names,
+                param_names;
+                n_iter = n_repetiotions_opt,
+                maxiter_opt = maxiter_opt,
+                nt_param_removal_code = nt_param_removal_code,
+            ),
+            nt_param_removal_codes,
+        )
+
+        #convert results_array to DataFrame
+        df_results = DataFrame(results_array)
+        df_results.num_params = fill(num_params, nrow(df_results))
+        df_results.nt_param_removal_codes = nt_param_removal_codes
+        df_train_results = vcat(df_train_results, df_results)
+
+        # Optinally consider saving results to csv file for long running calculation of cluster
+        # CSV.write(
+        #     "$(Dates.format(now(),"mmddyy"))_$(forward_model_selection ? "forward" : "reverse")_model_select_results_$(num_params)_num_params.csv",
+        #     df_results,
+        # )
+        #store top 10% for next loop as `previous_param_removal_codes`
+        filter!(row -> row.train_loss < 1.1 * minimum(df_results.train_loss), df_results)
+        previous_param_removal_codes = values.(df_results.nt_param_removal_codes)
+
+        #calculate loocv test loss for top subset for each `num_params`
+        #TODO: change to pmap
+        best_nt_param_removal_code =
+            df_results.nt_param_removal_codes[argmin(df_results.train_loss)]
+        best_subset_rescaled_params = df_results.params
+
+        test_loss = test_rate_equation(
+                general_rate_equation,
+                test_data,
+                best_subset_rescaled_params,
+                metab_names,
+                param_names
+        )
+
+        df_results =  DataFrame(
+            test_loss = test_loss,          
+            num_params = num_params,          
+            nt_param_removal_code =best_nt_param_removal_code, 
+            test_fig =test_fig,
+            params = best_subset_rescaled_params           
+        )
+            
+        df_test_results = vcat(df_test_results, df_results)
+    end
+
+    return (train_results = df_train_results, test_results = df_test_results)
+
+end
+
+
+function fit_rate_equation_selection_all_subsets(
+    general_rate_equation::Function,
+    data::DataFrame,
+    metab_names::Tuple{Symbol,Vararg{Symbol}},
+    param_names::Tuple{Symbol,Vararg{Symbol}},
+    param_removal_code_names, 
+    n_repetiotions_opt::Int,
+    maxiter_opt::Int,
+    )
+
+    figs = unique(data.source)
+
+    # Initialize an empty list for the combined results
+    all_subsets_figs_to_fit = []
+    lengths = []
+
+    for (n_params, subsets) in param_subsets_per_n_params
+
+        nt_param_subsets = [
+            NamedTuple{param_removal_code_names}(x) for
+            x in unique(param_removal_codes)
+        ]
+
+        # Create the product for this particular number of parameters
+        temp_product = collect(Iterators.product(nt_param_subsets, figs))
+        # Append the product to the main list
+        append!(all_subsets_figs_to_fit, temp_product)
+        # Record the length of the product
+        push!(lengths, length(temp_product))
+    end
+    
+    # Create the parameter mapping using the recorded lengths
+    n_params_mapping = Int[]
+    for (n_params, length) in zip(keys(param_subsets_per_n_params), lengths)
+        append!(n_params_mapping, fill(n_params, length))
+    end
+
+    results_array = pmap(
+        subset_fig_to_fit -> loocv_rate_equation(
+            subset_fig_to_fit[2],
+            general_rate_equation,
+            data,
+            metab_names,
+            param_names;
+            n_iter = n_repetiotions_opt,
+            maxiter_opt = maxiter_opt,
+            nt_param_removal_code = subset_fig_to_fit[1],
+        ),
+        all_subsets_figs_to_fit, 
+    )
+
+    df_results = DataFrame(results_array)
+    df_results.num_params = n_params_mapping
+    all_subsets  = [item[1] for item in all_subsets_figs_to_fit]
+    df_results.nt_param_removal_codes = all_subsets
+       
+    return (train_test_results = df_results)
+
+end
 
 
 "function to calculate train loss without a figure and test loss on removed figure"
@@ -213,6 +470,7 @@ function loocv_rate_equation(
     metab_names::Tuple{Symbol,Vararg{Symbol}},
     param_names::Tuple{Symbol,Vararg{Symbol}};
     n_iter = 20,
+    maxiter_opt = 50_000,
     nt_param_removal_code = nothing,
 )
     # Drop selected figure from data
@@ -225,6 +483,7 @@ function loocv_rate_equation(
         metab_names,
         param_names;
         n_iter = n_iter,
+        maxiter_opt = maxiter_opt,
         nt_param_removal_code = nt_param_removal_code,
     )
     test_loss = test_rate_equation(
@@ -288,13 +547,14 @@ end
 function calculate_all_parameter_removal_codes(param_names::Tuple{Symbol,Vararg{Symbol}})
     feasible_param_subset_codes = ()
     for param_name in param_names
+        param_name_str = string(param_name)
         if param_name == :L
             feasible_param_subset_codes = (feasible_param_subset_codes..., [0, 1])
-        elseif occursin("Vmax_a", string(param_name))
+        elseif occursin("Vmax_a", param_name_str)
             feasible_param_subset_codes = (feasible_param_subset_codes..., [0, 1, 2])
-        elseif occursin("K_a", string(param_name))
+        elseif occursin("K_a", param_name_str)
             feasible_param_subset_codes = (feasible_param_subset_codes..., [0, 1, 2, 3])
-        elseif occursin("alpha", string(param_name))
+        elseif occursin("alpha", param_name_str)
             feasible_param_subset_codes = (feasible_param_subset_codes..., [0, 1])
         end
     end

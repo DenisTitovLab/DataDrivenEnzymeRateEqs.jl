@@ -26,5 +26,6 @@ selection_result = @time data_driven_rate_equation_selection(derived_rate_equati
   param_names, 
   (7, 15), 
   true,
-  1,
-  10)
+  1, # n repeats optimization
+  100 # n iteration opt algorithm
+  )
