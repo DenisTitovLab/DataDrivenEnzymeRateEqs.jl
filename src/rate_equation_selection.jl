@@ -80,10 +80,18 @@ function data_driven_rate_equation_selection(
             param_subsets_per_n_params,
             all_param_removal_codes;
             )
-        
-        println(names(results.test_results))
-        println(first(results.test_results)) 
-        best_n_params = find_best_n_params(results.test_results)
+        println("finish fitting subsets")
+        println(first(results.test_results, 5))
+
+        println(first(results.train_results, 5))
+
+        best_n_params, best_subset = find_best_n_params(results.test_results)
+        println("Best subset")
+        println(best_subset)
+
+        # find best_subset row in train_results
+        best_subset_row = filter(row -> row.nt_param_removal_codes == best_subset, results.train_results)
+        println(best_subset_row)
 
 
     elseif model_selection_method == "cv_denis"
@@ -108,6 +116,10 @@ function data_driven_rate_equation_selection(
         results = vcat(results_figs_df...)
 
         best_n_params = find_best_n_params(results)
+
+        # TODO: add train and choose best subset out of all subsets with best_n_params using all data
+
+
     elseif model_selection_method == "cv_all_subsets"
         results =  fit_rate_equation_selection_all_subsets(
             general_rate_equation,
@@ -126,26 +138,34 @@ function data_driven_rate_equation_selection(
     end
 
     # TODO: figure out what to return? best subets? more info? 
+    return (results = results, best_n_params = best_n_params, best_subset_row = best_subset_row)
 end
 
-function find_best_n_params(df_results::DataFrame, print_res = false)
-     
-    println(names(df_results))
-    println(first(df_results, 5)) 
-    println(nrows(df_results))
+function get_nt_subset(df, num)
+    # Filter the DataFrame where n_params equals num
+    filtered_df = filter(row -> row.num_params == num, df)
+
+    return filtered_df.nt_param_removal_codes[1]
+
+end
+
+function find_best_n_params(df_results::DataFrame, print_res = true)
+    println("find best n params")
     # Calculate average test loss for each n_params
     avg_values = combine(groupby(df_results, :num_params), :test_loss_leftout_fig => mean => :avg_test_loss)
 
     min_row = argmin(avg_values.avg_test_loss)
-    best_n_params =  avg_values[min_row, :]
+    best_n_params =  avg_values[min_row, :].num_params
     println("Best n params")
     println(best_n_params)
+
+    best_subset = get_nt_subset(df_results, best_n_params)
 
     if print_res == true
         println("Avg CV error for each n removed params:")
         println(sort(avg_values, :avg_test_loss))
     end
-    return best_n_params
+    return (best_n_params = best_n_params, best_subset = best_subset)
 end
 
 function train_and_choose_best_subset(data,param_subsets_per_n_params,  best_n_params; n_repetiotions_opt = 20, maxiter_opt = 50_000, print_res = false)
