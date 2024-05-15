@@ -73,6 +73,8 @@ macro derive_general_qssa_rate_eq(metabs_and_regulators_kwargs)
     for key in missing_keys
         enz = merge(enz, (; key => nothing))
     end
+    num_substrates = length(processed_input[:substrates])
+    num_products = length(processed_input[:products])
     # qualified_name = esc(GlobalRef(Main, :rate_equation))
     function_name = (
         hasproperty(processed_input, :rate_equation_name) ?
@@ -87,6 +89,8 @@ macro derive_general_qssa_rate_eq(metabs_and_regulators_kwargs)
                 $(enz.P1 isa Symbol) ? metabs.$(enz.P1) : 1.0,
                 $(enz.P2 isa Symbol) ? metabs.$(enz.P2) : 1.0,
                 $(enz.P3 isa Symbol) ? metabs.$(enz.P3) : 1.0,
+                $(num_substrates),
+                $(num_products),
                 params.Vmax,
                 # $(enz.S1 isa Symbol && enz.S2 isa Symbol && enz.S3 isa Symbol) ?
                 # params.$(Symbol("K_", enz.S1, "_", enz.S2, "_", enz.S3)) : 1.0,
@@ -2777,15 +2781,23 @@ end
     P1,
     P2,
     P3,
+    num_substrates,
+    num_products,
     Vmax,
-    K_S1_S2_S3,
-    K_P1_P2_P3,
+    product_K_substrates,
+    product_K_products,
     Z,
     Keq,
 )
     Vmax = 1.0
-    Vmax_rev = Vmax * K_P1_P2_P3 / (Keq * K_S1_S2_S3)
-    Rate = (Vmax * (S1 * S2 * S3 / K_S1_S2_S3) - Vmax_rev * (P1 * P2 * P3 / K_P1_P2_P3)) / Z
+    Vmax_rev =
+        Vmax * (product_K_products)^num_products /
+        (Keq * (product_K_substrates)^num_substrates)
+    Rate =
+        (
+            Vmax * (S1 * S2 * S3 / (product_K_substrates)^num_substrates) -
+            Vmax_rev * (P1 * P2 * P3 / (product_K_products)^num_products)
+        ) / Z
     return Rate
 end
 
@@ -3066,182 +3078,214 @@ end
     )
     two_metab_bound =
         S1 * (
-            (S2 / K_S1_S2) +
-            (S3 / K_S1_S3) +
-            (P1 / K_S1_P1) +
-            (P2 / K_S1_P2) +
-            (P3 / K_S1_P3) +
-            (R1 / K_S1_R1) +
-            (R2 / K_S1_R2)
+            (S2 / (K_S1_S2)^2) +
+            (S3 / (K_S1_S3)^2) +
+            (P1 / (K_S1_P1)^2) +
+            (P2 / (K_S1_P2)^2) +
+            (P3 / (K_S1_P3)^2) +
+            (R1 / (K_S1_R1)^2) +
+            (R2 / (K_S1_R2)^2)
         ) +
         S2 * (
-            (S3 / K_S2_S3) +
-            (P1 / K_S2_P1) +
-            (P2 / K_S2_P2) +
-            (P3 / K_S2_P3) +
-            (R1 / K_S2_R1) +
-            (R2 / K_S2_R2)
+            (S3 / (K_S2_S3)^2) +
+            (P1 / (K_S2_P1)^2) +
+            (P2 / (K_S2_P2)^2) +
+            (P3 / (K_S2_P3)^2) +
+            (R1 / (K_S2_R1)^2) +
+            (R2 / (K_S2_R2)^2)
         ) +
         S3 * (
-            (P1 / K_S3_P1) +
-            (P2 / K_S3_P2) +
-            (P3 / K_S3_P3) +
-            (R1 / K_S3_R1) +
-            (R2 / K_S3_R2)
+            (P1 / (K_S3_P1)^2) +
+            (P2 / (K_S3_P2)^2) +
+            (P3 / (K_S3_P3)^2) +
+            (R1 / (K_S3_R1)^2) +
+            (R2 / (K_S3_R2)^2)
         ) +
-        P1 * ((P2 / K_P1_P2) + (P3 / K_P1_P3) + (R1 / K_P1_R1) + (R2 / K_P1_R2)) +
-        P2 * ((P3 / K_P2_P3) + (R1 / K_P2_R1) + (R2 / K_P2_R2)) +
-        P3 * ((R1 / K_P3_R1) + (R2 / K_P3_R2)) +
-        (R1 * R2 / K_R1_R2)
+        P1 * (
+            (P2 / (K_P1_P2)^2) +
+            (P3 / (K_P1_P3)^2) +
+            (R1 / (K_P1_R1)^2) +
+            (R2 / (K_P1_R2)^2)
+        ) +
+        P2 * ((P3 / (K_P2_P3)^2) + (R1 / (K_P2_R1)^2) + (R2 / (K_P2_R2)^2)) +
+        P3 * ((R1 / (K_P3_R1)^2) + (R2 / (K_P3_R2)^2)) +
+        (R1 * R2 / (K_R1_R2)^2)
 
     three_metab_bound =
         S1 * (
             S2 * (
-                (S3 / K_S1_S2_S3) +
-                (P1 / K_S1_S2_P1) +
-                (P2 / K_S1_S2_P2) +
-                (P3 / K_S1_S2_P3) +
-                (R1 / K_S1_S2_R1) +
-                (R2 / K_S1_S2_R2)
+                (S3 / (K_S1_S2_S3)^3) +
+                (P1 / (K_S1_S2_P1)^3) +
+                (P2 / (K_S1_S2_P2)^3) +
+                (P3 / (K_S1_S2_P3)^3) +
+                (R1 / (K_S1_S2_R1)^3) +
+                (R2 / (K_S1_S2_R2)^3)
             ) +
             S3 * (
-                (P1 / K_S1_S3_P1) +
-                (P2 / K_S1_S3_P2) +
-                (P3 / K_S1_S3_P3) +
-                (R1 / K_S1_S3_R1) +
-                (R2 / K_S1_S3_R2)
+                (P1 / (K_S1_S3_P1)^3) +
+                (P2 / (K_S1_S3_P2)^3) +
+                (P3 / (K_S1_S3_P3)^3) +
+                (R1 / (K_S1_S3_R1)^3) +
+                (R2 / (K_S1_S3_R2)^3)
             ) +
             P1 * (
-                (P2 / K_S1_P1_P2) +
-                (P3 / K_S1_P1_P3) +
-                (R1 / K_S1_P1_R1) +
-                (R2 / K_S1_P1_R2)
+                (P2 / (K_S1_P1_P2)^3) +
+                (P3 / (K_S1_P1_P3)^3) +
+                (R1 / (K_S1_P1_R1)^3) +
+                (R2 / (K_S1_P1_R2)^3)
             ) +
-            P2 * ((P3 / K_S1_P2_P3) + (R1 / K_S1_P2_R1) + (R2 / K_S1_P2_R2)) +
-            P3 * ((R1 / K_S1_P3_R1) + (R2 / K_S1_P3_R2)) +
-            (R1 * R2 / K_S1_R1_R2)
+            P2 * ((P3 / (K_S1_P2_P3)^3) + (R1 / (K_S1_P2_R1)^3) + (R2 / (K_S1_P2_R2)^3)) +
+            P3 * ((R1 / (K_S1_P3_R1)^3) + (R2 / (K_S1_P3_R2)^3)) +
+            (R1 * R2 / (K_S1_R1_R2)^3)
         ) +
         S2 * (
             S3 * (
-                (P1 / K_S2_S3_P1) +
-                (P2 / K_S2_S3_P2) +
-                (P3 / K_S2_S3_P3) +
-                (R1 / K_S2_S3_R1) +
-                (R2 / K_S2_S3_R2)
+                (P1 / (K_S2_S3_P1)^3) +
+                (P2 / (K_S2_S3_P2)^3) +
+                (P3 / (K_S2_S3_P3)^3) +
+                (R1 / (K_S2_S3_R1)^3) +
+                (R2 / (K_S2_S3_R2)^3)
             ) +
             P1 * (
-                (P2 / K_S2_P1_P2) +
-                (P3 / K_S2_P1_P3) +
-                (R1 / K_S2_P1_R1) +
-                (R2 / K_S2_P1_R2)
+                (P2 / (K_S2_P1_P2)^3) +
+                (P3 / (K_S2_P1_P3)^3) +
+                (R1 / (K_S2_P1_R1)^3) +
+                (R2 / (K_S2_P1_R2)^3)
             ) +
-            P2 * ((P3 / K_S2_P2_P3) + (R1 / K_S2_P2_R1) + (R2 / K_S2_P2_R2)) +
-            P3 * ((R1 / K_S2_P3_R1) + (R2 / K_S2_P3_R2)) +
-            (R1 * R2 / K_S2_R1_R2)
+            P2 * ((P3 / (K_S2_P2_P3)^3) + (R1 / (K_S2_P2_R1)^3) + (R2 / (K_S2_P2_R2)^3)) +
+            P3 * ((R1 / (K_S2_P3_R1)^3) + (R2 / (K_S2_P3_R2)^3)) +
+            (R1 * R2 / (K_S2_R1_R2)^3)
         ) +
         S3 * (
             P1 * (
-                (P2 / K_S3_P1_P2) +
-                (P3 / K_S3_P1_P3) +
-                (R1 / K_S3_P1_R1) +
-                (R2 / K_S3_P1_R2)
+                (P2 / (K_S3_P1_P2)^3) +
+                (P3 / (K_S3_P1_P3)^3) +
+                (R1 / (K_S3_P1_R1)^3) +
+                (R2 / (K_S3_P1_R2)^3)
             ) +
-            P2 * ((P3 / K_S3_P2_P3) + (R1 / K_S3_P2_R1) + (R2 / K_S3_P2_R2)) +
-            P3 * ((R1 / K_S3_P3_R1) + (R2 / K_S3_P3_R2)) +
-            (R1 * R2 / K_S3_R1_R2)
+            P2 * ((P3 / (K_S3_P2_P3)^3) + (R1 / (K_S3_P2_R1)^3) + (R2 / (K_S3_P2_R2)^3)) +
+            P3 * ((R1 / (K_S3_P3_R1)^3) + (R2 / (K_S3_P3_R2)^3)) +
+            (R1 * R2 / (K_S3_R1_R2)^3)
         ) +
         P1 * (
-            P2 * ((P3 / K_P1_P2_P3) + (R1 / K_P1_P2_R1) + (R2 / K_P1_P2_R2)) +
-            P3 * ((R1 / K_P1_P3_R1) + (R2 / K_P1_P3_R2)) +
-            (R1 * R2 / K_P1_R1_R2)
+            P2 * ((P3 / (K_P1_P2_P3)^3) + (R1 / (K_P1_P2_R1)^3) + (R2 / (K_P1_P2_R2)^3)) +
+            P3 * ((R1 / (K_P1_P3_R1)^3) + (R2 / (K_P1_P3_R2)^3)) +
+            (R1 * R2 / (K_P1_R1_R2)^3)
         ) +
-        P2 * (P3 * ((R1 / K_P2_P3_R1) + (R2 / K_P2_P3_R2)) + (R1 * R2 / K_P2_R1_R2)) +
-        P3 * (R1 * R2 / K_P3_R1_R2)
+        P2 * (
+            P3 * ((R1 / (K_P2_P3_R1)^3) + (R2 / (K_P2_P3_R2)^3)) +
+            (R1 * R2 / (K_P2_R1_R2)^3)
+        ) +
+        P3 * (R1 * R2 / (K_P3_R1_R2)^3)
 
     four_metab_bound =
         S1 * (
             S2 * (
                 S3 * (
-                    (P1 / K_S1_S2_S3_P1) +
-                    (P2 / K_S1_S2_S3_P2) +
-                    (P3 / K_S1_S2_S3_P3) +
-                    (R1 / K_S1_S2_S3_R1) +
-                    (R2 / K_S1_S2_S3_R2)
+                    (P1 / (K_S1_S2_S3_P1)^4) +
+                    (P2 / (K_S1_S2_S3_P2)^4) +
+                    (P3 / (K_S1_S2_S3_P3)^4) +
+                    (R1 / (K_S1_S2_S3_R1)^4) +
+                    (R2 / (K_S1_S2_S3_R2)^4)
                 ) +
                 P1 * (
-                    (P2 / K_S1_S2_P1_P2) +
-                    (P3 / K_S1_S2_P1_P3) +
-                    (R1 / K_S1_S2_P1_R1) +
-                    (R2 / K_S1_S2_P1_R2)
+                    (P2 / (K_S1_S2_P1_P2)^4) +
+                    (P3 / (K_S1_S2_P1_P3)^4) +
+                    (R1 / (K_S1_S2_P1_R1)^4) +
+                    (R2 / (K_S1_S2_P1_R2)^4)
                 ) +
-                P2 * ((P3 / K_S1_S2_P2_P3) + (R1 / K_S1_S2_P2_R1) + (R2 / K_S1_S2_P2_R2)) +
-                P3 * ((R1 / K_S1_S2_P3_R1) + (R2 / K_S1_S2_P3_R2)) +
-                (R1 * R2 / K_S1_S2_R1_R2)
+                P2 * (
+                    (P3 / (K_S1_S2_P2_P3)^4) +
+                    (R1 / (K_S1_S2_P2_R1)^4) +
+                    (R2 / (K_S1_S2_P2_R2)^4)
+                ) +
+                P3 * ((R1 / (K_S1_S2_P3_R1)^4) + (R2 / (K_S1_S2_P3_R2)^4)) +
+                (R1 * R2 / (K_S1_S2_R1_R2)^4)
             ) +
             S3 * (
                 P1 * (
-                    (P2 / K_S1_S3_P1_P2) +
-                    (P3 / K_S1_S3_P1_P3) +
-                    (R1 / K_S1_S3_P1_R1) +
-                    (R2 / K_S1_S3_P1_R2)
+                    (P2 / (K_S1_S3_P1_P2)^4) +
+                    (P3 / (K_S1_S3_P1_P3)^4) +
+                    (R1 / (K_S1_S3_P1_R1)^4) +
+                    (R2 / (K_S1_S3_P1_R2)^4)
                 ) +
-                P2 * ((P3 / K_S1_S3_P2_P3) + (R1 / K_S1_S3_P2_R1) + (R2 / K_S1_S3_P2_R2)) +
-                P3 * ((R1 / K_S1_S3_P3_R1) + (R2 / K_S1_S3_P3_R2)) +
-                (R1 * R2 / K_S1_S3_R1_R2)
+                P2 * (
+                    (P3 / (K_S1_S3_P2_P3)^4) +
+                    (R1 / (K_S1_S3_P2_R1)^4) +
+                    (R2 / (K_S1_S3_P2_R2)^4)
+                ) +
+                P3 * ((R1 / (K_S1_S3_P3_R1)^4) + (R2 / (K_S1_S3_P3_R2)^4)) +
+                (R1 * R2 / (K_S1_S3_R1_R2)^4)
             ) +
             P1 * (
-                P2 * ((P3 / K_S1_P1_P2_P3) + (R1 / K_S1_P1_P2_R1) + (R2 / K_S1_P1_P2_R2)) +
-                P3 * ((R1 / K_S1_P1_P3_R1) + (R2 / K_S1_P1_P3_R2)) +
-                (R1 * R2 / K_S1_P1_R1_R2)
+                P2 * (
+                    (P3 / (K_S1_P1_P2_P3)^4) +
+                    (R1 / (K_S1_P1_P2_R1)^4) +
+                    (R2 / (K_S1_P1_P2_R2)^4)
+                ) +
+                P3 * ((R1 / (K_S1_P1_P3_R1)^4) + (R2 / (K_S1_P1_P3_R2)^4)) +
+                (R1 * R2 / (K_S1_P1_R1_R2)^4)
             ) +
             P2 * (
-                P3 * ((R1 / K_S1_P2_P3_R1) + (R2 / K_S1_P2_P3_R2)) +
-                (R1 * R2 / K_S1_P2_R1_R2)
+                P3 * ((R1 / (K_S1_P2_P3_R1)^4) + (R2 / (K_S1_P2_P3_R2)^4)) +
+                (R1 * R2 / (K_S1_P2_R1_R2)^4)
             ) +
-            P3 * (R1 * R2 / K_S1_P3_R1_R2)
+            P3 * (R1 * R2 / (K_S1_P3_R1_R2)^4)
         ) +
         S2 * (
             S3 * (
                 P1 * (
-                    (P2 / K_S2_S3_P1_P2) +
-                    (P3 / K_S2_S3_P1_P3) +
-                    (R1 / K_S2_S3_P1_R1) +
-                    (R2 / K_S2_S3_P1_R2)
+                    (P2 / (K_S2_S3_P1_P2)^4) +
+                    (P3 / (K_S2_S3_P1_P3)^4) +
+                    (R1 / (K_S2_S3_P1_R1)^4) +
+                    (R2 / (K_S2_S3_P1_R2)^4)
                 ) +
-                P2 * ((P3 / K_S2_S3_P2_P3) + (R1 / K_S2_S3_P2_R1) + (R2 / K_S2_S3_P2_R2)) +
-                P3 * ((R1 / K_S2_S3_P3_R1) + (R2 / K_S2_S3_P3_R2)) +
-                (R1 * R2 / K_S2_S3_R1_R2)
+                P2 * (
+                    (P3 / (K_S2_S3_P2_P3)^4) +
+                    (R1 / (K_S2_S3_P2_R1)^4) +
+                    (R2 / (K_S2_S3_P2_R2)^4)
+                ) +
+                P3 * ((R1 / (K_S2_S3_P3_R1)^4) + (R2 / (K_S2_S3_P3_R2)^4)) +
+                (R1 * R2 / (K_S2_S3_R1_R2)^4)
             ) +
             P1 * (
-                P2 * ((P3 / K_S2_P1_P2_P3) + (R1 / K_S2_P1_P2_R1) + (R2 / K_S2_P1_P2_R2)) +
-                P3 * ((R1 / K_S2_P1_P3_R1) + (R2 / K_S2_P1_P3_R2)) +
-                (R1 * R2 / K_S2_P1_R1_R2)
+                P2 * (
+                    (P3 / (K_S2_P1_P2_P3)^4) +
+                    (R1 / (K_S2_P1_P2_R1)^4) +
+                    (R2 / (K_S2_P1_P2_R2)^4)
+                ) +
+                P3 * ((R1 / (K_S2_P1_P3_R1)^4) + (R2 / (K_S2_P1_P3_R2)^4)) +
+                (R1 * R2 / (K_S2_P1_R1_R2)^4)
             ) +
             P2 * (
-                P3 * ((R1 / K_S2_P2_P3_R1) + (R2 / K_S2_P2_P3_R2)) +
-                (R1 * R2 / K_S2_P2_R1_R2)
+                P3 * ((R1 / (K_S2_P2_P3_R1)^4) + (R2 / (K_S2_P2_P3_R2)^4)) +
+                (R1 * R2 / (K_S2_P2_R1_R2)^4)
             ) +
-            P3 * (R1 * R2 / K_S2_P3_R1_R2)
+            P3 * (R1 * R2 / (K_S2_P3_R1_R2)^4)
         ) +
         S3 * (
             P1 * (
-                P2 * ((P3 / K_S3_P1_P2_P3) + (R1 / K_S3_P1_P2_R1) + (R2 / K_S3_P1_P2_R2)) +
-                P3 * ((R1 / K_S3_P1_P3_R1) + (R2 / K_S3_P1_P3_R2)) +
-                (R1 * R2 / K_S3_P1_R1_R2)
+                P2 * (
+                    (P3 / (K_S3_P1_P2_P3)^4) +
+                    (R1 / (K_S3_P1_P2_R1)^4) +
+                    (R2 / (K_S3_P1_P2_R2)^4)
+                ) +
+                P3 * ((R1 / (K_S3_P1_P3_R1)^4) + (R2 / (K_S3_P1_P3_R2)^4)) +
+                (R1 * R2 / (K_S3_P1_R1_R2)^4)
             ) +
             P2 * (
-                P3 * ((R1 / K_S3_P2_P3_R1) + (R2 / K_S3_P2_P3_R2)) +
-                (R1 * R2 / K_S3_P2_R1_R2)
+                P3 * ((R1 / (K_S3_P2_P3_R1)^4) + (R2 / (K_S3_P2_P3_R2)^4)) +
+                (R1 * R2 / (K_S3_P2_R1_R2)^4)
             ) +
-            P3 * (R1 * R2 / K_S3_P3_R1_R2)
+            P3 * (R1 * R2 / (K_S3_P3_R1_R2)^4)
         ) +
         P1 * (
             P2 * (
-                P3 * ((R1 / K_P1_P2_P3_R1) + (R2 / K_P1_P2_P3_R2)) +
-                (R1 * R2 / K_P1_P2_R1_R2)
-            ) + P3 * (R1 * R2 / K_P1_P3_R1_R2)
+                P3 * ((R1 / (K_P1_P2_P3_R1)^4) + (R2 / (K_P1_P2_P3_R2)^4)) +
+                (R1 * R2 / (K_P1_P2_R1_R2)^4)
+            ) + P3 * (R1 * R2 / (K_P1_P3_R1_R2)^4)
         ) +
-        P2 * (P3 * (R1 * R2 / K_P2_P3_R1_R2))
+        P2 * (P3 * (R1 * R2 / (K_P2_P3_R1_R2)^4))
 
 
     five_metab_bound = (
@@ -3249,92 +3293,92 @@ end
             S2 * (
                 S3 * (
                     P1 * (
-                        (P2 / K_S1_S2_S3_P1_P2) +
-                        (P3 / K_S1_S2_S3_P1_P3) +
-                        (R1 / K_S1_S2_S3_P1_R1) +
-                        (R2 / K_S1_S2_S3_P1_R2)
+                        (P2 / (K_S1_S2_S3_P1_P2)^5) +
+                        (P3 / (K_S1_S2_S3_P1_P3)^5) +
+                        (R1 / (K_S1_S2_S3_P1_R1)^5) +
+                        (R2 / (K_S1_S2_S3_P1_R2)^5)
                     ) +
                     P2 * (
-                        (P3 / K_S1_S2_S3_P2_P3) +
-                        (R1 / K_S1_S2_S3_P2_R1) +
-                        (R2 / K_S1_S2_S3_P2_R2)
+                        (P3 / (K_S1_S2_S3_P2_P3)^5) +
+                        (R1 / (K_S1_S2_S3_P2_R1)^5) +
+                        (R2 / (K_S1_S2_S3_P2_R2)^5)
                     ) +
-                    P3 * ((R1 / K_S1_S2_S3_P3_R1) + (R2 / K_S1_S2_S3_P3_R2)) +
-                    (R1 * R2 / K_S1_S2_S3_R1_R2)
+                    P3 * ((R1 / (K_S1_S2_S3_P3_R1)^5) + (R2 / (K_S1_S2_S3_P3_R2)^5)) +
+                    (R1 * R2 / (K_S1_S2_S3_R1_R2)^5)
                 ) +
                 P1 * (
                     P2 * (
-                        (P3 / K_S1_S2_P1_P2_P3) +
-                        (R1 / K_S1_S2_P1_P2_R1) +
-                        (R2 / K_S1_S2_P1_P2_R2)
+                        (P3 / (K_S1_S2_P1_P2_P3)^5) +
+                        (R1 / (K_S1_S2_P1_P2_R1)^5) +
+                        (R2 / (K_S1_S2_P1_P2_R2)^5)
                     ) +
-                    P3 * ((R1 / K_S1_S2_P1_P3_R1) + (R2 / K_S1_S2_P1_P3_R2)) +
-                    (R1 * R2 / K_S1_S2_P1_R1_R2)
+                    P3 * ((R1 / (K_S1_S2_P1_P3_R1)^5) + (R2 / (K_S1_S2_P1_P3_R2)^5)) +
+                    (R1 * R2 / (K_S1_S2_P1_R1_R2)^5)
                 ) +
                 P2 * (
-                    P3 * ((R1 / K_S1_S2_P2_P3_R1) + (R2 / K_S1_S2_P2_P3_R2)) +
-                    (R1 * R2 / K_S1_S2_P2_R1_R2)
+                    P3 * ((R1 / (K_S1_S2_P2_P3_R1)^5) + (R2 / (K_S1_S2_P2_P3_R2)^5)) +
+                    (R1 * R2 / (K_S1_S2_P2_R1_R2)^5)
                 ) +
-                P3 * (R1 * R2 / K_S1_S2_P3_R1_R2)
+                P3 * (R1 * R2 / (K_S1_S2_P3_R1_R2)^5)
             ) +
             S3 * (
                 P1 * (
                     P2 * (
-                        (P3 / K_S1_S3_P1_P2_P3) +
-                        (R1 / K_S1_S3_P1_P2_R1) +
-                        (R2 / K_S1_S3_P1_P2_R2)
+                        (P3 / (K_S1_S3_P1_P2_P3)^5) +
+                        (R1 / (K_S1_S3_P1_P2_R1)^5) +
+                        (R2 / (K_S1_S3_P1_P2_R2)^5)
                     ) +
-                    P3 * ((R1 / K_S1_S3_P1_P3_R1) + (R2 / K_S1_S3_P1_P3_R2)) +
-                    (R1 * R2 / K_S1_S3_P1_R1_R2)
+                    P3 * ((R1 / (K_S1_S3_P1_P3_R1)^5) + (R2 / (K_S1_S3_P1_P3_R2)^5)) +
+                    (R1 * R2 / (K_S1_S3_P1_R1_R2)^5)
                 ) +
                 P2 * (
-                    P3 * ((R1 / K_S1_S3_P2_P3_R1) + (R2 / K_S1_S3_P2_P3_R2)) +
-                    (R1 * R2 / K_S1_S3_P2_R1_R2)
+                    P3 * ((R1 / (K_S1_S3_P2_P3_R1)^5) + (R2 / (K_S1_S3_P2_P3_R2)^5)) +
+                    (R1 * R2 / (K_S1_S3_P2_R1_R2)^5)
                 ) +
-                P3 * (R1 * R2 / K_S1_S3_P3_R1_R2)
+                P3 * (R1 * R2 / (K_S1_S3_P3_R1_R2)^5)
             ) +
             P1 * (
                 P2 * (
-                    P3 * ((R1 / K_S1_P1_P2_P3_R1) + (R2 / K_S1_P1_P2_P3_R2)) +
-                    (R1 * R2 / K_S1_P1_P2_R1_R2)
-                ) + P3 * (R1 * R2 / K_S1_P1_P3_R1_R2)
+                    P3 * ((R1 / (K_S1_P1_P2_P3_R1)^5) + (R2 / (K_S1_P1_P2_P3_R2)^5)) +
+                    (R1 * R2 / (K_S1_P1_P2_R1_R2)^5)
+                ) + P3 * (R1 * R2 / (K_S1_P1_P3_R1_R2)^5)
             ) +
-            P2 * (P3 * (R1 * R2 / K_S1_P2_P3_R1_R2))
+            P2 * (P3 * (R1 * R2 / (K_S1_P2_P3_R1_R2)^5))
         ) +
         S2 * (
             S3 * (
                 P1 * (
                     P2 * (
-                        (P3 / K_S2_S3_P1_P2_P3) +
-                        (R1 / K_S2_S3_P1_P2_R1) +
-                        (R2 / K_S2_S3_P1_P2_R2)
+                        (P3 / (K_S2_S3_P1_P2_P3)^5) +
+                        (R1 / (K_S2_S3_P1_P2_R1)^5) +
+                        (R2 / (K_S2_S3_P1_P2_R2)^5)
                     ) +
-                    P3 * ((R1 / K_S2_S3_P1_P3_R1) + (R2 / K_S2_S3_P1_P3_R2)) +
-                    (R1 * R2 / K_S2_S3_P1_R1_R2)
+                    P3 * ((R1 / (K_S2_S3_P1_P3_R1)^5) + (R2 / (K_S2_S3_P1_P3_R2)^5)) +
+                    (R1 * R2 / (K_S2_S3_P1_R1_R2)^5)
                 ) +
                 P2 * (
-                    P3 * ((R1 / K_S2_S3_P2_P3_R1) + (R2 / K_S2_S3_P2_P3_R2)) +
-                    (R1 * R2 / K_S2_S3_P2_R1_R2)
+                    P3 * ((R1 / (K_S2_S3_P2_P3_R1)^5) + (R2 / (K_S2_S3_P2_P3_R2)^5)) +
+                    (R1 * R2 / (K_S2_S3_P2_R1_R2)^5)
                 ) +
-                P3 * (R1 * R2 / K_S2_S3_P3_R1_R2)
+                P3 * (R1 * R2 / (K_S2_S3_P3_R1_R2)^5)
             ) +
             P1 * (
                 P2 * (
-                    P3 * ((R1 / K_S2_P1_P2_P3_R1) + (R2 / K_S2_P1_P2_P3_R2)) +
-                    (R1 * R2 / K_S2_P1_P2_R1_R2)
-                ) + P3 * (R1 * R2 / K_S2_P1_P3_R1_R2)
+                    P3 * ((R1 / (K_S2_P1_P2_P3_R1)^5) + (R2 / (K_S2_P1_P2_P3_R2)^5)) +
+                    (R1 * R2 / (K_S2_P1_P2_R1_R2)^5)
+                ) + P3 * (R1 * R2 / (K_S2_P1_P3_R1_R2)^5)
             ) +
-            P2 * (P3 * (R1 * R2 / K_S2_P2_P3_R1_R2))
+            P2 * (P3 * (R1 * R2 / (K_S2_P2_P3_R1_R2)^5))
         ) +
         S3 * (
             P1 * (
                 P2 * (
-                    P3 * ((R1 / K_S3_P1_P2_P3_R1) + (R2 / K_S3_P1_P2_P3_R2)) +
-                    (R1 * R2 / K_S3_P1_P2_R1_R2)
-                ) + P3 * (R1 * R2 / K_S3_P1_P3_R1_R2)
-            ) + P2 * (P3 * (R1 * R2 / K_S3_P2_P3_R1_R2))
+                    P3 * ((R1 / (K_S3_P1_P2_P3_R1)^5) + (R2 / (K_S3_P1_P2_P3_R2)^5)) +
+                    (R1 * R2 / (K_S3_P1_P2_R1_R2)^5)
+                ) + P3 * (R1 * R2 / (K_S3_P1_P3_R1_R2)^5)
+            ) + P2 * (P3 * (R1 * R2 / (K_S3_P2_P3_R1_R2)^5))
         ) +
-        P1 * (P2 * (P3 * (R1 * R2 / K_P1_P2_P3_R1_R2)))
+        P1 * (P2 * (P3 * (R1 * R2 / (K_P1_P2_P3_R1_R2)^5)))
     )
 
     six_metab_bound = (
@@ -3343,63 +3387,68 @@ end
                 S3 * (
                     P1 * (
                         P2 * (
-                            (P3 / K_S1_S2_S3_P1_P2_P3) +
-                            (R1 / K_S1_S2_S3_P1_P2_R1) +
-                            (R2 / K_S1_S2_S3_P1_P2_R2)
+                            (P3 / (K_S1_S2_S3_P1_P2_P3)^6) +
+                            (R1 / (K_S1_S2_S3_P1_P2_R1)^6) +
+                            (R2 / (K_S1_S2_S3_P1_P2_R2)^6)
                         ) +
-                        P3 * ((R1 / K_S1_S2_S3_P1_P3_R1) + (R2 / K_S1_S2_S3_P1_P3_R2)) +
-                        (R1 * R2 / K_S1_S2_S3_P1_R1_R2)
+                        P3 * (
+                            (R1 / (K_S1_S2_S3_P1_P3_R1)^6) + (R2 / (K_S1_S2_S3_P1_P3_R2)^6)
+                        ) +
+                        (R1 * R2 / (K_S1_S2_S3_P1_R1_R2)^6)
                     ) +
                     P2 * (
-                        P3 * ((R1 / K_S1_S2_S3_P2_P3_R1) + (R2 / K_S1_S2_S3_P2_P3_R2)) +
-                        (R1 * R2 / K_S1_S2_S3_P2_R1_R2)
+                        P3 * (
+                            (R1 / (K_S1_S2_S3_P2_P3_R1)^6) + (R2 / (K_S1_S2_S3_P2_P3_R2)^6)
+                        ) + (R1 * R2 / (K_S1_S2_S3_P2_R1_R2)^6)
                     ) +
-                    P3 * (R1 * R2 / K_S1_S2_S3_P3_R1_R2)
+                    P3 * (R1 * R2 / (K_S1_S2_S3_P3_R1_R2)^6)
                 ) +
                 P1 * (
-                    (P2 * P3 * R1 / K_S1_S2_P1_P2_P3_R1) +
-                    (P2 * P3 * R2 / K_S1_S2_P1_P2_P3_R2) +
-                    (P2 * R1 * R2 / K_S1_S2_P1_P2_R1_R2) +
-                    (P3 * R1 * R2 / K_S1_S2_P1_P3_R1_R2)
+                    (P2 * P3 * R1 / (K_S1_S2_P1_P2_P3_R1)^6) +
+                    (P2 * P3 * R2 / (K_S1_S2_P1_P2_P3_R2)^6) +
+                    (P2 * R1 * R2 / (K_S1_S2_P1_P2_R1_R2)^6) +
+                    (P3 * R1 * R2 / (K_S1_S2_P1_P3_R1_R2)^6)
                 ) +
-                (P2 * P3 * R1 * R2 / K_S1_S2_P2_P3_R1_R2)
+                (P2 * P3 * R1 * R2 / (K_S1_S2_P2_P3_R1_R2)^6)
             ) +
             S3 * (
                 P1 * (
                     P2 * (
-                        P3 * ((R1 / K_S1_S3_P1_P2_P3_R1) + (R2 / K_S1_S3_P1_P2_P3_R2)) +
-                        (R1 * R2 / K_S1_S3_P1_P2_R1_R2)
-                    ) + (P3 * R1 * R2 / K_S1_S3_P1_P3_R1_R2)
-                ) + (P2 * P3 * R1 * R2 / K_S1_S3_P2_P3_R1_R2)
+                        P3 * (
+                            (R1 / (K_S1_S3_P1_P2_P3_R1)^6) + (R2 / (K_S1_S3_P1_P2_P3_R2)^6)
+                        ) + (R1 * R2 / (K_S1_S3_P1_P2_R1_R2)^6)
+                    ) + (P3 * R1 * R2 / (K_S1_S3_P1_P3_R1_R2)^6)
+                ) + (P2 * P3 * R1 * R2 / (K_S1_S3_P2_P3_R1_R2)^6)
             ) +
-            (P1 * P2 * P3 * R1 * R2 / K_S1_P1_P2_P3_R1_R2)
+            (P1 * P2 * P3 * R1 * R2 / (K_S1_P1_P2_P3_R1_R2)^6)
         ) +
         S2 * (
             S3 * (
                 P1 * (
                     P2 * (
-                        (P3 * R1 / K_S2_S3_P1_P2_P3_R1) +
-                        (P3 * R2 / K_S2_S3_P1_P2_P3_R2) +
-                        (R1 * R2 / K_S2_S3_P1_P2_R1_R2)
-                    ) + (P3 * R1 * R2 / K_S2_S3_P1_P3_R1_R2)
-                ) + (P2 * P3 * R1 * R2 / K_S2_S3_P2_P3_R1_R2)
-            ) + (P1 * P2 * P3 * R1 * R2 / K_S2_P1_P2_P3_R1_R2)
+                        (P3 * R1 / (K_S2_S3_P1_P2_P3_R1)^6) +
+                        (P3 * R2 / (K_S2_S3_P1_P2_P3_R2)^6) +
+                        (R1 * R2 / (K_S2_S3_P1_P2_R1_R2)^6)
+                    ) + (P3 * R1 * R2 / (K_S2_S3_P1_P3_R1_R2)^6)
+                ) + (P2 * P3 * R1 * R2 / (K_S2_S3_P2_P3_R1_R2)^6)
+            ) + (P1 * P2 * P3 * R1 * R2 / (K_S2_P1_P2_P3_R1_R2)^6)
         ) +
-        (S3 * P1 * P2 * P3 * R1 * R2 / K_S3_P1_P2_P3_R1_R2)
+        (S3 * P1 * P2 * P3 * R1 * R2 / (K_S3_P1_P2_P3_R1_R2)^6)
     )
 
     seven_metab_bound = (
-        (S1 * S2 * S3 * P1 * P2 * P3 * R1 / K_S1_S2_S3_P1_P2_P3_R1) +
-        (S1 * S2 * S3 * P1 * P2 * P3 * R2 / K_S1_S2_S3_P1_P2_P3_R2) +
-        (S1 * S2 * S3 * P1 * P2 * R1 * R2 / K_S1_S2_S3_P1_P2_R1_R2) +
-        (S1 * S2 * S3 * P1 * P3 * R1 * R2 / K_S1_S2_S3_P1_P3_R1_R2) +
-        (S1 * S2 * S3 * P2 * P3 * R1 * R2 / K_S1_S2_S3_P2_P3_R1_R2) +
-        (S1 * S2 * P1 * P2 * P3 * R1 * R2 / K_S1_S2_P1_P2_P3_R1_R2) +
-        (S1 * S3 * P1 * P2 * P3 * R1 * R2 / K_S1_S3_P1_P2_P3_R1_R2) +
-        (S2 * S3 * P1 * P2 * P3 * R1 * R2 / K_S2_S3_P1_P2_P3_R1_R2)
+        (S1 * S2 * S3 * P1 * P2 * P3 * R1 / (K_S1_S2_S3_P1_P2_P3_R1)^7) +
+        (S1 * S2 * S3 * P1 * P2 * P3 * R2 / (K_S1_S2_S3_P1_P2_P3_R2)^7) +
+        (S1 * S2 * S3 * P1 * P2 * R1 * R2 / (K_S1_S2_S3_P1_P2_R1_R2)^7) +
+        (S1 * S2 * S3 * P1 * P3 * R1 * R2 / (K_S1_S2_S3_P1_P3_R1_R2)^7) +
+        (S1 * S2 * S3 * P2 * P3 * R1 * R2 / (K_S1_S2_S3_P2_P3_R1_R2)^7) +
+        (S1 * S2 * P1 * P2 * P3 * R1 * R2 / (K_S1_S2_P1_P2_P3_R1_R2)^7) +
+        (S1 * S3 * P1 * P2 * P3 * R1 * R2 / (K_S1_S3_P1_P2_P3_R1_R2)^7) +
+        (S2 * S3 * P1 * P2 * P3 * R1 * R2 / (K_S2_S3_P1_P2_P3_R1_R2)^7)
     )
 
-    eight_metab_bound = (S1 * S2 * S3 * P1 * P2 * P3 * R1 * R2 / K_S1_S2_S3_P1_P2_P3_R1_R2)
+    eight_metab_bound =
+        (S1 * S2 * S3 * P1 * P2 * P3 * R1 * R2 / (K_S1_S2_S3_P1_P2_P3_R1_R2)^8)
 
     return 1 +
            one_metab_bound +
@@ -3421,21 +3470,19 @@ function generate_qssa_param_names(processed_input)
         end
     end
     param_names = (:Vmax,)
-    for metab in metab_names
-        param_names = (param_names..., Symbol("K_", metab))
-    end
-    for (i, metab1) in enumerate(metab_names[1:(end-1)])
-        for metab2 in metab_names[(i+1):end]
+    for metab1 in metab_names
+        param_names = (param_names..., Symbol("K_", metab1))
+        for metab2 in metab_names[findfirst(isequal(metab1), metab_names)+1:end]
             param_names = (param_names..., Symbol("K_", metab1, "_", metab2))
-            for metab3 in metab_names[(i+2):end]
+            for metab3 in metab_names[findfirst(isequal(metab2), metab_names)+1:end]
                 param_names =
                     (param_names..., Symbol("K_", metab1, "_", metab2, "_", metab3))
-                for metab4 in metab_names[(i+3):end]
+                for metab4 in metab_names[findfirst(isequal(metab3), metab_names)+1:end]
                     param_names = (
                         param_names...,
                         Symbol("K_", metab1, "_", metab2, "_", metab3, "_", metab4),
                     )
-                    for metab5 in metab_names[(i+4):end]
+                    for metab5 in metab_names[findfirst(isequal(metab4), metab_names)+1:end]
                         param_names = (
                             param_names...,
                             Symbol(
@@ -3451,7 +3498,8 @@ function generate_qssa_param_names(processed_input)
                                 metab5,
                             ),
                         )
-                        for metab6 in metab_names[(i+5):end]
+                        for metab6 in
+                            metab_names[findfirst(isequal(metab5), metab_names)+1:end]
                             param_names = (
                                 param_names...,
                                 Symbol(
@@ -3469,7 +3517,8 @@ function generate_qssa_param_names(processed_input)
                                     metab6,
                                 ),
                             )
-                            for metab7 in metab_names[(i+6):end]
+                            for metab7 in
+                                metab_names[findfirst(isequal(metab6), metab_names)+1:end]
                                 param_names = (
                                     param_names...,
                                     Symbol(
@@ -3489,7 +3538,8 @@ function generate_qssa_param_names(processed_input)
                                         metab7,
                                     ),
                                 )
-                                for metab8 in metab_names[(i+7):end]
+                                for metab8 in
+                                    metab_names[findfirst(isequal(metab7), metab_names)+1:end]
                                     param_names = (
                                         param_names...,
                                         Symbol(

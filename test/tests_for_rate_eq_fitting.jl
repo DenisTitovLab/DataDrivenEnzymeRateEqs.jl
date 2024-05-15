@@ -6,6 +6,7 @@ using DataDrivenEnzymeRateEqs, Test
 using CMAEvolutionStrategy, DataFrames, CSV, Statistics
 using BenchmarkTools
 
+#Test the fitting for PKM2 enzyme
 PKM2_enzyme = (;
     substrates=[:PEP, :ADP],
     products=[:Pyruvate, :ATP],
@@ -36,7 +37,7 @@ rate_data_nt = Tables.columntable(data[.!isnan.(data.Rate), [:Rate, metab_names.
 # Make a vector containing indexes of points corresponding to each figure
 fig_point_indexes = [findall(data.fig_num .== i) for i in unique(data.fig_num)]
 num_alphas = sum([1 for param_name in param_names if occursin("alpha", string(param_name))])
-kinetic_params = [[rand() for i = 1:length(param_names)-num_alphas]..., [rand([0,1]) for i = 1:num_alphas]...]
+kinetic_params = [[rand() for i = 1:length(param_names)-num_alphas]..., [rand([0, 1]) for i = 1:num_alphas]...]
 benchmark_result = @benchmark DataDrivenEnzymeRateEqs.loss_rate_equation(kinetic_params, rate_equation, rate_data_nt, param_names, fig_point_indexes)
 @test mean(benchmark_result.times) <= 150_000 #ns
 benchmark_result = @benchmark DataDrivenEnzymeRateEqs.loss_rate_equation($(kinetic_params), rate_equation, $(rate_data_nt), $(param_names), $(fig_point_indexes))
@@ -46,6 +47,48 @@ benchmark_result = @benchmark DataDrivenEnzymeRateEqs.loss_rate_equation($(kinet
 fit_result = @time fit_rate_equation(rate_equation, data, metab_names, param_names; n_iter=20)
 @test isapprox(fit_result.train_loss, 0.08946088323758938, rtol=0.01)
 @test fit_result.params isa NamedTuple{param_names}{NTuple{length(param_names),Float64}}
+
+
+#Test the fitting for LDH enzyme
+LDH_enzyme = (;
+    substrates=[:Pyruvate, :NADH],
+    products=[:Lactate, :NAD],
+    regulators=[],
+    Keq=20_000.0,
+    rate_equation_name=:ldh_rate_equation,
+)
+metab_names, param_names = @derive_general_qssa_rate_eq(LDH_enzyme)
+
+
+
+rate_equation(metabs, p) = ldh_rate_equation(metabs, p, 20000.0)
+#Load and process data
+LDH_data_for_fit = CSV.read(joinpath(@__DIR__, "Data_for_tests/LDH_data.csv"), DataFrame)
+#Add source column that uniquely identifies a figure from publication
+LDH_data_for_fit.source = LDH_data_for_fit.Article .* "_" .* LDH_data_for_fit.Fig
+
+data = LDH_data_for_fit
+data.fig_num = vcat(
+    [
+        i * ones(Int64, count(==(unique(data.source)[i]), data.source)) for i = 1:length(unique(data.source))
+    ]...,
+)
+# Convert DF to NamedTuple for better type stability / speed
+rate_data_nt = Tables.columntable(data[.!isnan.(data.Rate), [:Rate, metab_names..., :fig_num]])
+
+# Make a vector containing indexes of points corresponding to each figure
+fig_point_indexes = [findall(data.fig_num .== i) for i in unique(data.fig_num)]
+kinetic_params = [rand() for i = 1:length(param_names)]
+benchmark_result = @benchmark DataDrivenEnzymeRateEqs.loss_rate_equation(kinetic_params, rate_equation, rate_data_nt, param_names, fig_point_indexes)
+@test mean(benchmark_result.times) <= 150_000 #ns
+benchmark_result = @benchmark DataDrivenEnzymeRateEqs.loss_rate_equation($(kinetic_params), rate_equation, $(rate_data_nt), $(param_names), $(fig_point_indexes))
+@test mean(benchmark_result.times) <= 150_000 #ns
+
+#TODO: make fake data with noise and known params and ensure known params are recovered
+fit_result = @time fit_rate_equation(rate_equation, data, metab_names, param_names; n_iter=20)
+@test isapprox(fit_result.train_loss, 0.01288, rtol=0.01)
+@test fit_result.params isa NamedTuple{param_names}{NTuple{length(param_names),Float64}}
+
 
 ##
 #test the ability of `fit_rate_equation` to recover parameters used to generated data for an arbitrary enzyme
