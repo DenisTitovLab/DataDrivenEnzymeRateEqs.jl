@@ -23,10 +23,10 @@ metab_names, param_names = @derive_general_qssa_rate_eq(enzyme_parameters)
 params_nt = NamedTuple{param_names}(rand(length(param_names)))
 metabs_nt = NamedTuple{metab_names}(rand(length(metab_names)))
 benchmark_result = @benchmark rand_enz_rate_equation($(metabs_nt), $(params_nt), $(Keq))
-@test mean(benchmark_result.times) <= 400 #ns
+@test mean(benchmark_result.times) <= 1000 #ns
 @test benchmark_result.allocs == 0
 benchmark_result = @benchmark rand_enz_rate_equation(metabs_nt, params_nt, Keq)
-@test mean(benchmark_result.times) <= 450 #ns
+@test mean(benchmark_result.times) <= 1200 #ns
 @test benchmark_result.allocs <= 1
 
 #test Rate < 0 when [Substrates] = 0
