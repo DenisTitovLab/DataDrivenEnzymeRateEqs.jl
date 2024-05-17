@@ -11,19 +11,15 @@ Derive a function that calculates the rate of a reaction using the Quasi Steady 
 The general QSSA rate equation is given by:
 
 ```math
-Rate = \\frac{{V_{max}^a \\prod_{i=1}^{n} \\left(\\frac{S_i}{K_{a, i}}\\right) - V_{max}^a_{rev} \\prod_{i=1}^{n} \\left(\\frac{P_i}{K_{a, i}}\\right) \\cdot Z_{a, cat}^{n-1} \\cdot Z_{a, reg}^n + L \\left(V_{max}^i \\prod_{i=1}^{n} \\left(\\frac{S_i}{K_{i, i}}\\right) - V_{max}^i_{rev} \\prod_{i=1}^{n} \\left(\\frac{P_i}{K_{i, i}}\\right)\\right) \\cdot Z_{i, cat}^{n-1} \\cdot Z_{i, reg}^n}}{Z_{a, cat}^n \\cdot Z_{a, reg}^n + L \\cdot Z_{i, cat}^n \\cdot Z_{i, reg}^n}
-```
-
+Rate = \frac{V_{max} \left(\frac{\prod_{i=1}^{n}S_i}{(K_{S1...Sn})^n}\right) - V_{max, rev} \left(\frac{\prod_{i=1}^{n}P_i}{(K_{P1...Pn})^n}\right)}{Z}
+``
 where:
-- ``V_{max}^a`` is the maximum rate of the forward reaction
-- ``V_{max rev}^a`` is the maximum rate of the reverse reaction
-- ``V_{max}^i`` is the maximum rate of the forward reaction
-- ``V_{max rev}^i`` is the maximum rate of the reverse reaction
-- ``S_i`` is the concentration of the ``i^{th}`` substrate
-- ``P_i`` is the concentration of the ``i^{th}`` product
-- ``K_{a, i}`` is the Michaelis constant for the ``i^{th}`` substrate
-- ``K_{i, i}`` is the Michaelis constant for the ``i^{th}`` product
-- ``Z`` is the allosteric factor for the catalytic site
+- ``V_{max}`` is the maximum rate of the forward reaction
+- ``V_{max, rev}`` is the maximum rate of the reverse reaction
+- ``S_i``, ``P_i``, ``R_i`` is the concentration of the ``i^{th}`` substrate (S), product (P), or regulator (R)
+- ``K_{X_1...X_n} is the kineitc constant
+- ``Z`` is a combination of all terms containing products of [S], [P], and [R] divided by K_S_P_R
+
 
 # Arguments
 - `metabs_and_regulators_kwargs...`: keyword arguments that specify the substrates, products, catalytic sites, regulatory sites, and other parameters of the reaction.

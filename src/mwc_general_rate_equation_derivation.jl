@@ -11,14 +11,14 @@ Derive a function that calculates the rate of a reaction using the general MWC r
 The general MWC rate equation is given by:
 
 ```math
-Rate = \\frac{{V_{max}^a \\prod_{i=1}^{n} \\left(\\frac{S_i}{K_{a, i}}\\right) - V_{max}^a_{rev} \\prod_{i=1}^{n} \\left(\\frac{P_i}{K_{a, i}}\\right) \\cdot Z_{a, cat}^{n-1} \\cdot Z_{a, reg}^n + L \\left(V_{max}^i \\prod_{i=1}^{n} \\left(\\frac{S_i}{K_{i, i}}\\right) - V_{max}^i_{rev} \\prod_{i=1}^{n} \\left(\\frac{P_i}{K_{i, i}}\\right)\\right) \\cdot Z_{i, cat}^{n-1} \\cdot Z_{i, reg}^n}}{Z_{a, cat}^n \\cdot Z_{a, reg}^n + L \\cdot Z_{i, cat}^n \\cdot Z_{i, reg}^n}
+Rate = \\frac{{V_{max}^a \\prod_{i=1}^{n} \\left(\\frac{S_i}{K_{a, i}}\\right) - V_{max, rev}^a \\prod_{i=1}^{n} \\left(\\frac{P_i}{K_{a, i}}\\right) \\cdot Z_{a, cat}^{n-1} \\cdot Z_{a, reg}^n + L \\left(V_{max}^i \\prod_{i=1}^{n} \\left(\\frac{S_i}{K_{i, i}}\\right) - V_{max, rev}^i \\prod_{i=1}^{n} \\left(\\frac{P_i}{K_{i, i}}\\right)\\right) \\cdot Z_{i, cat}^{n-1} \\cdot Z_{i, reg}^n}}{Z_{a, cat}^n \\cdot Z_{a, reg}^n + L \\cdot Z_{i, cat}^n \\cdot Z_{i, reg}^n}
 ```
 
 where:
 - ``V_{max}^a`` is the maximum rate of the forward reaction
-- ``V_{max rev}^a`` is the maximum rate of the reverse reaction
+- ``V_{max, rev}^a`` is the maximum rate of the reverse reaction
 - ``V_{max}^i`` is the maximum rate of the forward reaction
-- ``V_{max rev}^i`` is the maximum rate of the reverse reaction
+- ``V_{max, rev}^i`` is the maximum rate of the reverse reaction
 - ``S_i`` is the concentration of the ``i^{th}`` substrate
 - ``P_i`` is the concentration of the ``i^{th}`` product
 - ``K_{a, i}`` is the Michaelis constant for the ``i^{th}`` substrate
@@ -73,13 +73,11 @@ macro derive_general_mwc_rate_eq(metabs_and_regulators_kwargs)
         enz = merge(enz, (; Symbol(:R, i) => regulator))
     end
 
-    #TODO: use Base.method_argnames(methods(general_mwc_rate_equation)[1])[2:end] to get args
     mwc_rate_eq_args = [:S1, :S2, :S3, :P1, :P2, :P3, :R1, :R2, :R3, :R4, :R5, :R6]
     missing_keys = filter(x -> !haskey(enz, x), mwc_rate_eq_args)
     for key in missing_keys
         enz = merge(enz, (; key => nothing))
     end
-    # qualified_name = esc(GlobalRef(Main, :rate_equation))
     function_name = (
         hasproperty(processed_input, :rate_equation_name) ?
         esc(processed_input.rate_equation_name) : esc(:rate_equation)
@@ -129,12 +127,12 @@ macro derive_general_mwc_rate_eq(metabs_and_regulators_kwargs)
                     $(enz.P1 isa Symbol) ? params.$(Symbol("K_a_", enz.P1)) : Inf,
                     $(enz.P2 isa Symbol) ? params.$(Symbol("K_a_", enz.P2)) : Inf,
                     $(enz.P3 isa Symbol) ? params.$(Symbol("K_a_", enz.P3)) : Inf,
-                    $(enz.R1 isa Symbol) ? params.$(Symbol("K_a_", enz.R1)) : Inf,
-                    $(enz.R2 isa Symbol) ? params.$(Symbol("K_a_", enz.R2)) : Inf,
-                    $(enz.R3 isa Symbol) ? params.$(Symbol("K_a_", enz.R3)) : Inf,
-                    $(enz.R4 isa Symbol) ? params.$(Symbol("K_a_", enz.R4)) : Inf,
-                    $(enz.R5 isa Symbol) ? params.$(Symbol("K_a_", enz.R5)) : Inf,
-                    $(enz.R6 isa Symbol) ? params.$(Symbol("K_a_", enz.R6)) : Inf,
+                    $(enz.R1 isa Symbol) ? params.$(Symbol("K_a_", enz.R1, "_reg")) : Inf,
+                    $(enz.R2 isa Symbol) ? params.$(Symbol("K_a_", enz.R2, "_reg")) : Inf,
+                    $(enz.R3 isa Symbol) ? params.$(Symbol("K_a_", enz.R3, "_reg")) : Inf,
+                    $(enz.R4 isa Symbol) ? params.$(Symbol("K_a_", enz.R4, "_reg")) : Inf,
+                    $(enz.R5 isa Symbol) ? params.$(Symbol("K_a_", enz.R5, "_reg")) : Inf,
+                    $(enz.R6 isa Symbol) ? params.$(Symbol("K_a_", enz.R6, "_reg")) : Inf,
                     $(enz.S1 isa Symbol && enz.P1 isa Symbol) ?
                     params.$(Symbol("alpha_", enz.S1, "_", enz.P1)) : 1.0,
                     $(enz.S1 isa Symbol && enz.P2 isa Symbol) ?
@@ -276,12 +274,12 @@ macro derive_general_mwc_rate_eq(metabs_and_regulators_kwargs)
                     $(enz.P1 isa Symbol) ? params.$(Symbol("K_i_", enz.P1)) : Inf,
                     $(enz.P2 isa Symbol) ? params.$(Symbol("K_i_", enz.P2)) : Inf,
                     $(enz.P3 isa Symbol) ? params.$(Symbol("K_i_", enz.P3)) : Inf,
-                    $(enz.R1 isa Symbol) ? params.$(Symbol("K_i_", enz.R1)) : Inf,
-                    $(enz.R2 isa Symbol) ? params.$(Symbol("K_i_", enz.R2)) : Inf,
-                    $(enz.R3 isa Symbol) ? params.$(Symbol("K_i_", enz.R3)) : Inf,
-                    $(enz.R4 isa Symbol) ? params.$(Symbol("K_i_", enz.R4)) : Inf,
-                    $(enz.R5 isa Symbol) ? params.$(Symbol("K_i_", enz.R5)) : Inf,
-                    $(enz.R6 isa Symbol) ? params.$(Symbol("K_i_", enz.R6)) : Inf,
+                    $(enz.R1 isa Symbol) ? params.$(Symbol("K_i_", enz.R1, "_reg")) : Inf,
+                    $(enz.R2 isa Symbol) ? params.$(Symbol("K_i_", enz.R2, "_reg")) : Inf,
+                    $(enz.R3 isa Symbol) ? params.$(Symbol("K_i_", enz.R3, "_reg")) : Inf,
+                    $(enz.R4 isa Symbol) ? params.$(Symbol("K_i_", enz.R4, "_reg")) : Inf,
+                    $(enz.R5 isa Symbol) ? params.$(Symbol("K_i_", enz.R5, "_reg")) : Inf,
+                    $(enz.R6 isa Symbol) ? params.$(Symbol("K_i_", enz.R6, "_reg")) : Inf,
                     $(enz.S1 isa Symbol && enz.P1 isa Symbol) ?
                     params.$(Symbol("alpha_", enz.S1, "_", enz.P1)) : 1.0,
                     $(enz.S1 isa Symbol && enz.P2 isa Symbol) ?
@@ -411,12 +409,12 @@ macro derive_general_mwc_rate_eq(metabs_and_regulators_kwargs)
                     $(enz.R4 isa Symbol) ? metabs.$(enz.R4) : 0.0,
                     $(enz.R5 isa Symbol) ? metabs.$(enz.R5) : 0.0,
                     $(enz.R6 isa Symbol) ? metabs.$(enz.R6) : 0.0,
-                    $(enz.R1 isa Symbol) ? params.$(Symbol("K_a_", enz.R1)) : Inf,
-                    $(enz.R2 isa Symbol) ? params.$(Symbol("K_a_", enz.R2)) : Inf,
-                    $(enz.R3 isa Symbol) ? params.$(Symbol("K_a_", enz.R3)) : Inf,
-                    $(enz.R4 isa Symbol) ? params.$(Symbol("K_a_", enz.R4)) : Inf,
-                    $(enz.R5 isa Symbol) ? params.$(Symbol("K_a_", enz.R5)) : Inf,
-                    $(enz.R6 isa Symbol) ? params.$(Symbol("K_a_", enz.R6)) : Inf,
+                    $(enz.R1 isa Symbol) ? params.$(Symbol("K_a_", enz.R1, "_reg")) : Inf,
+                    $(enz.R2 isa Symbol) ? params.$(Symbol("K_a_", enz.R2, "_reg")) : Inf,
+                    $(enz.R3 isa Symbol) ? params.$(Symbol("K_a_", enz.R3, "_reg")) : Inf,
+                    $(enz.R4 isa Symbol) ? params.$(Symbol("K_a_", enz.R4, "_reg")) : Inf,
+                    $(enz.R5 isa Symbol) ? params.$(Symbol("K_a_", enz.R5, "_reg")) : Inf,
+                    $(enz.R6 isa Symbol) ? params.$(Symbol("K_a_", enz.R6, "_reg")) : Inf,
                     $(enz.S1 isa Symbol && enz.R1 isa Symbol) ?
                     params.$(Symbol("alpha_", enz.S1, "_", enz.R1)) : 1.0,
                     $(enz.S1 isa Symbol && enz.R2 isa Symbol) ?
@@ -528,12 +526,12 @@ macro derive_general_mwc_rate_eq(metabs_and_regulators_kwargs)
                     $(enz.R4 isa Symbol) ? metabs.$(enz.R4) : 0.0,
                     $(enz.R5 isa Symbol) ? metabs.$(enz.R5) : 0.0,
                     $(enz.R6 isa Symbol) ? metabs.$(enz.R6) : 0.0,
-                    $(enz.R1 isa Symbol) ? params.$(Symbol("K_i_", enz.R1)) : Inf,
-                    $(enz.R2 isa Symbol) ? params.$(Symbol("K_i_", enz.R2)) : Inf,
-                    $(enz.R3 isa Symbol) ? params.$(Symbol("K_i_", enz.R3)) : Inf,
-                    $(enz.R4 isa Symbol) ? params.$(Symbol("K_i_", enz.R4)) : Inf,
-                    $(enz.R5 isa Symbol) ? params.$(Symbol("K_i_", enz.R5)) : Inf,
-                    $(enz.R6 isa Symbol) ? params.$(Symbol("K_i_", enz.R6)) : Inf,
+                    $(enz.R1 isa Symbol) ? params.$(Symbol("K_i_", enz.R1, "_reg")) : Inf,
+                    $(enz.R2 isa Symbol) ? params.$(Symbol("K_i_", enz.R2, "_reg")) : Inf,
+                    $(enz.R3 isa Symbol) ? params.$(Symbol("K_i_", enz.R3, "_reg")) : Inf,
+                    $(enz.R4 isa Symbol) ? params.$(Symbol("K_i_", enz.R4, "_reg")) : Inf,
+                    $(enz.R5 isa Symbol) ? params.$(Symbol("K_i_", enz.R5, "_reg")) : Inf,
+                    $(enz.R6 isa Symbol) ? params.$(Symbol("K_i_", enz.R6, "_reg")) : Inf,
                     $(enz.S1 isa Symbol && enz.R1 isa Symbol) ?
                     params.$(Symbol("alpha_", enz.S1, "_", enz.R1)) : 1.0,
                     $(enz.S1 isa Symbol && enz.R2 isa Symbol) ?
@@ -1658,9 +1656,11 @@ function generate_param_names(processed_input)
     for metab in [
         processed_input[:substrates]...,
         processed_input[:products]...,
-        processed_input[:regulators]...,
     ]
         param_names = (param_names..., Symbol("K_a_", metab), Symbol("K_i_", metab))
+    end
+    for metab in processed_input[:regulators]
+        param_names = (param_names..., Symbol("K_a_", metab, "_reg"), Symbol("K_i_", metab, "_reg"))
     end
     for substrate in processed_input[:substrates]
         for metabolite in [processed_input[:products]..., processed_input[:regulators]...]
