@@ -42,8 +42,8 @@ function data_driven_rate_equation_selection(
     #(e.g. K_a_Metabolite1 and K_i_Metabolite1 into K_Metabolite1)
     param_removal_code_names = (
         [
-            Symbol(replace(string(param_name), "_a" => "")) for
-            param_name in param_names if !contains(string(param_name), "_i")
+            Symbol(replace(string(param_name), "_a_" => "_allo_")) for
+            param_name in param_names if !contains(string(param_name), "_i") && param_name != :Vmax
         ]...,
     )
 
@@ -232,6 +232,10 @@ function calculate_all_parameter_removal_codes(param_names::Tuple{Symbol,Vararg{
             feasible_param_subset_codes = (feasible_param_subset_codes..., [0, 1, 2])
         elseif occursin("K_a", string(param_name))
             feasible_param_subset_codes = (feasible_param_subset_codes..., [0, 1, 2, 3])
+        elseif startswith(string(param_name), "K_") &&
+               !startswith(string(param_name), "K_i") &&
+               !startswith(string(param_name), "K_a")
+            feasible_param_subset_codes = (feasible_param_subset_codes..., [0, 1])
         elseif occursin("alpha", string(param_name))
             feasible_param_subset_codes = (feasible_param_subset_codes..., [0, 1])
         end
@@ -256,19 +260,23 @@ function param_subset_select(params, param_names, nt_param_removal_code)
         elseif startswith(string(param_choice), "Vmax") &&
                nt_param_removal_code[param_choice] == 2
             global params_dict[:Vmax_i] = 0.0
-        elseif startswith(string(param_choice), "K") &&
+        elseif startswith(string(param_choice), "K_allo") &&
                nt_param_removal_code[param_choice] == 1
             K_i = Symbol("K_i_" * string(param_choice)[3:end])
             K_a = Symbol("K_a_" * string(param_choice)[3:end])
             params_dict[K_i] = params_dict[K_a]
-        elseif startswith(string(param_choice), "K") &&
+        elseif startswith(string(param_choice), "K_allo") &&
                nt_param_removal_code[param_choice] == 2
             K_a = Symbol("K_a_" * string(param_choice)[3:end])
             params_dict[K_a] = Inf
-        elseif startswith(string(param_choice), "K") &&
+        elseif startswith(string(param_choice), "K_allo") &&
                nt_param_removal_code[param_choice] == 3
             K_i = Symbol("K_i_" * string(param_choice)[3:end])
             params_dict[K_i] = Inf
+        elseif startswith(string(param_choice), "K_") &&
+               !startswith(string(param_choice), "K_allo")
+               nt_param_removal_code[param_choice] == 1
+            params_dict[param_choice] = Inf
         elseif startswith(string(param_choice), "alpha") &&
                nt_param_removal_code[param_choice] == 0
             params_dict[param_choice] = 0.0
