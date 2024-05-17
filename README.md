@@ -80,8 +80,8 @@ sym_rate_equation = display_rate_equation(mwc_derived_rate_equation, metab_names
 Check the [Documentation](https://denistitovlab.github.io/DataDrivenEnzymeRateEqs.jl/dev/) for more info
 
 ## Plans for the future
-- add rate equations based on Rapid Equilibrium approximation
-- add rate equations based on Quasy-Steady-State approximation
 - add plotting functions
 - add function for bootstrapping for calculation of kinetic parameter uncertainty based on log-normal distribution
+- update rate equations based on Quasy-Steady-State approximation to choose actual kinetic constants instead of aggregate constants like K_S1_P1_P2
+
 
