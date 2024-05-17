@@ -146,10 +146,10 @@ end
 
 
 ##
-#test the ability of `data_driven_rate_equation_selection` to recover the rate_equation and params used to generated data for an arbitrary enzyme
+#test the ability of `data_driven_rate_equation_selection` to recover the MWC rate_equation and params used to generated data for an arbitrary enzyme
 
 data_gen_rate_equation_Keq = 1.0
-data_gen_rate_equation(metabs, params, data_gen_rate_equation_Keq) = (1/ params.K_a_S) * (metabs.S - metabs.P / data_gen_rate_equation_Keq) / (1 + metabs.S / params.K_a_S + metabs.P / params.K_a_P)
+data_gen_rate_equation(metabs, params, data_gen_rate_equation_Keq) = (1 / params.K_a_S) * (metabs.S - metabs.P / data_gen_rate_equation_Keq) / (1 + metabs.S / params.K_a_S + metabs.P / params.K_a_P)
 data_gen_param_names = (:Vmax_a, :K_a_S, :K_a_P)
 metab_names = (:S, :P)
 params = (Vmax=10.0, K_a_S=1e-3, K_a_P=5e-3)
@@ -180,15 +180,67 @@ noise_sd = 0.2
 data.Rate = [data_gen_rate_equation(row, params, data_gen_rate_equation_Keq) * (1 + noise_sd * randn()) for row in eachrow(data)]
 data
 
-enzyme_parameters = (; substrates=[:S,], products=[:P], regulators=[], Keq=1.0, oligomeric_state=1, rate_equation_name=:derived_rate_equation)
+enzyme_parameters = (; substrates=[:S,], products=[:P], regulators=[], Keq=1.0, oligomeric_state=1, rate_equation_name=:mwc_derived_rate_equation)
+
 metab_names, derived_param_names = @derive_general_mwc_rate_eq(enzyme_parameters)
-derived_rate_equation_no_Keq(nt_metabs, nt_params) = derived_rate_equation(nt_metabs, nt_params, enzyme_parameters.Keq)
-selection_result = @time data_driven_rate_equation_selection(derived_rate_equation_no_Keq, data, metab_names, derived_param_names, (3, 7), true)
-param_names
+mwc_derived_rate_equation_no_Keq(nt_metabs, nt_params) = mwc_derived_rate_equation(nt_metabs, nt_params, enzyme_parameters.Keq)
+selection_result = @time data_driven_rate_equation_selection(mwc_derived_rate_equation_no_Keq, data, metab_names, derived_param_names, (3, 7), true)
+
 #Display best equation with 3 parameters. Compare with data_gen_rate_equation with Vmax=1
+#TODO: remove the filtering for 3 parameters after we add the automatic determination of the best number of parameters
 nt_param_removal_code = filter(x -> x.num_params .== 3, selection_result.test_results).nt_param_removal_codes[1]
 
 using Symbolics
-selected_sym_rate_equation = display_rate_equation(derived_rate_equation, metab_names, derived_param_names; nt_param_removal_code=nt_param_removal_code)
+selected_sym_rate_equation = display_rate_equation(mwc_derived_rate_equation, metab_names, derived_param_names; nt_param_removal_code=nt_param_removal_code)
 original_sym_rate_equation = display_rate_equation(data_gen_rate_equation, metab_names, data_gen_param_names)
-@test simplify(original_sym_rate_equation-selected_sym_rate_equation) == 0
+@test simplify(original_sym_rate_equation - selected_sym_rate_equation) == 0
+
+##
+#test the ability of `data_driven_rate_equation_selection` to recover the QSSA rate_equation and params used to generated data for an arbitrary enzyme
+
+data_gen_rate_equation_Keq = 1.0
+data_gen_rate_equation(metabs, params, data_gen_rate_equation_Keq) = (1 / params.K_S) * (metabs.S - metabs.P / data_gen_rate_equation_Keq) / (1 + metabs.S / params.K_S + metabs.P / params.K_P)
+data_gen_param_names = (:Vmax, :K_S, :K_P)
+metab_names = (:S, :P)
+params = (Vmax=10.0, K_S=1e-3, K_P=5e-3)
+#create DataFrame of simulated data
+num_datapoints = 10
+num_figures = 4
+S_concs = Float64[]
+P_concs = Float64[]
+sources = String[]
+
+for i in 1:num_figures
+    if i < num_figures ÷ 2
+        for S in range(0, rand(1:10) * params.K_S, rand(num_datapoints÷2:num_datapoints*2))
+            push!(S_concs, S)
+            push!(P_concs, 0.0)
+            push!(sources, "Figure$i")
+        end
+    else
+        for P in range(0, rand(1:10) * params.K_P, rand(num_datapoints÷2:num_datapoints*2))
+            push!(S_concs, 0.0)
+            push!(P_concs, P)
+            push!(sources, "Figure$i")
+        end
+    end
+end
+data = DataFrame(S=S_concs, P=P_concs, source=sources)
+noise_sd = 0.2
+data.Rate = [data_gen_rate_equation(row, params, data_gen_rate_equation_Keq) * (1 + noise_sd * randn()) for row in eachrow(data)]
+data
+
+enzyme_parameters = (; substrates=[:S,], products=[:P], regulators=[], Keq=1.0, rate_equation_name=:qssa_derived_rate_equation)
+
+metab_names, derived_param_names = @derive_general_qssa_rate_eq(enzyme_parameters)
+qssa_derived_rate_equation_no_Keq(nt_metabs, nt_params) = qssa_derived_rate_equation(nt_metabs, nt_params, enzyme_parameters.Keq)
+selection_result = @time data_driven_rate_equation_selection(qssa_derived_rate_equation_no_Keq, data, metab_names, derived_param_names, (1, 4), true)
+
+#Display best equation with 3 parameters. Compare with data_gen_rate_equation with Vmax=1
+#TODO: remove the filtering for 3 parameters after we add the automatic determination of the best number of parameters
+nt_param_removal_code = filter(x -> x.num_params .== 3, selection_result.test_results).nt_param_removal_codes[1]
+
+using Symbolics
+selected_sym_rate_equation = display_rate_equation(qssa_derived_rate_equation, metab_names, derived_param_names; nt_param_removal_code=nt_param_removal_code)
+original_sym_rate_equation = display_rate_equation(data_gen_rate_equation, metab_names, data_gen_param_names)
+@test simplify(original_sym_rate_equation - selected_sym_rate_equation) == 0

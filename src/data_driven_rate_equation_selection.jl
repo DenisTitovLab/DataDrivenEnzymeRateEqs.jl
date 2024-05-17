@@ -31,26 +31,26 @@ function data_driven_rate_equation_selection(
     range_number_params::Tuple{Int,Int},
     forward_model_selection::Bool,
 )
-    #check that range_number_params within bounds of minimal and maximal number of parameters
-    #TODO: move to after the removal code generation to make more general
-    @assert range_number_params[1] >=
-            (1 + sum([occursin("K_a_", string(param_name)) for param_name in param_names]))
-    @assert range_number_params[2] <= length(param_names)
-    println("Past assertions")
+
 
     #generate param_removal_code_names by converting each mirror parameter for a and i into one name
     #(e.g. K_a_Metabolite1 and K_i_Metabolite1 into K_Metabolite1)
     param_removal_code_names = (
         [
-            Symbol(replace(string(param_name), "_a" => "")) for
-            param_name in param_names if !contains(string(param_name), "_i")
+            Symbol(replace(string(param_name), "_a_" => "_allo_")) for
+            param_name in param_names if
+            !contains(string(param_name), "_i") && param_name != :Vmax
         ]...,
     )
 
     #generate all possible combination of parameter removal codes
     all_param_removal_codes = calculate_all_parameter_removal_codes(param_names)
-
     num_alpha_params = count(occursin.("alpha", string.([param_names...])))
+    #check that range_number_params within bounds of minimal and maximal number of parameters
+    @assert range_number_params[1] >=
+            length(param_names) - maximum([sum(x .> 0) for x in all_param_removal_codes]) "starting range_number_params cannot be below $(length(param_names) - maximum([sum(x .> 0) for x in all_param_removal_codes]))"
+    @assert range_number_params[2] <= length(param_names) "ending range_number_params cannot be above $(length(param_names))"
+
     if forward_model_selection
         num_param_range = (range_number_params[2]):-1:range_number_params[1]
         starting_param_removal_codes = [
@@ -116,6 +116,13 @@ function data_driven_rate_equation_selection(
         #     "$(Dates.format(now(),"mmddyy"))_$(forward_model_selection ? "forward" : "reverse")_model_select_results_$(num_params)_num_params.csv",
         #     df_results,
         # )
+
+        #if all train_loss are Inf, then skip to next loop
+        if all(df_results.train_loss .== Inf)
+            previous_param_removal_codes = values.(df_results.nt_param_removal_codes)
+            continue
+        end
+
         #store top 10% for next loop as `previous_param_removal_codes`
         filter!(row -> row.train_loss < 1.1 * minimum(df_results.train_loss), df_results)
         previous_param_removal_codes = values.(df_results.nt_param_removal_codes)
@@ -140,9 +147,7 @@ function data_driven_rate_equation_selection(
         df_results.nt_param_removal_codes =
             fill(best_nt_param_removal_code, nrow(df_results))
         df_test_results = vcat(df_test_results, df_results)
-
     end
-
     return (train_results = df_train_results, test_results = df_test_results)
 end
 
@@ -228,11 +233,15 @@ function calculate_all_parameter_removal_codes(param_names::Tuple{Symbol,Vararg{
     for param_name in param_names
         if param_name == :L
             feasible_param_subset_codes = (feasible_param_subset_codes..., [0, 1])
-        elseif occursin("Vmax_a", string(param_name))
+        elseif startswith(string(param_name), "Vmax_a")
             feasible_param_subset_codes = (feasible_param_subset_codes..., [0, 1, 2])
-        elseif occursin("K_a", string(param_name))
+        elseif startswith(string(param_name), "K_a")
             feasible_param_subset_codes = (feasible_param_subset_codes..., [0, 1, 2, 3])
-        elseif occursin("alpha", string(param_name))
+        elseif startswith(string(param_name), "K_") &&
+               !startswith(string(param_name), "K_i") &&
+               !startswith(string(param_name), "K_a")
+            feasible_param_subset_codes = (feasible_param_subset_codes..., [0, 1])
+        elseif startswith(string(param_name), "alpha")
             feasible_param_subset_codes = (feasible_param_subset_codes..., [0, 1])
         end
     end
@@ -256,19 +265,23 @@ function param_subset_select(params, param_names, nt_param_removal_code)
         elseif startswith(string(param_choice), "Vmax") &&
                nt_param_removal_code[param_choice] == 2
             global params_dict[:Vmax_i] = 0.0
-        elseif startswith(string(param_choice), "K") &&
+        elseif startswith(string(param_choice), "K_allo") &&
                nt_param_removal_code[param_choice] == 1
-            K_i = Symbol("K_i_" * string(param_choice)[3:end])
-            K_a = Symbol("K_a_" * string(param_choice)[3:end])
+            K_i = Symbol("K_i_" * string(param_choice)[8:end])
+            K_a = Symbol("K_a_" * string(param_choice)[8:end])
             params_dict[K_i] = params_dict[K_a]
-        elseif startswith(string(param_choice), "K") &&
+        elseif startswith(string(param_choice), "K_allo") &&
                nt_param_removal_code[param_choice] == 2
-            K_a = Symbol("K_a_" * string(param_choice)[3:end])
+            K_a = Symbol("K_a_" * string(param_choice)[8:end])
             params_dict[K_a] = Inf
-        elseif startswith(string(param_choice), "K") &&
+        elseif startswith(string(param_choice), "K_allo") &&
                nt_param_removal_code[param_choice] == 3
-            K_i = Symbol("K_i_" * string(param_choice)[3:end])
+            K_i = Symbol("K_i_" * string(param_choice)[8:end])
             params_dict[K_i] = Inf
+        elseif startswith(string(param_choice), "K_") &&
+               !startswith(string(param_choice), "K_allo") &&
+               nt_param_removal_code[param_choice] == 1
+            params_dict[param_choice] = Inf
         elseif startswith(string(param_choice), "alpha") &&
                nt_param_removal_code[param_choice] == 0
             params_dict[param_choice] = 0.0
