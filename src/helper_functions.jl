@@ -11,10 +11,10 @@ using Symbolics
 Return the symbolic rate equation for the given rate equation function.
 
 # Arguments
-- rate_equation::Function: The rate equation function.
-- metab_names::Tuple{Symbol,Vararg{Symbol}}: The names of the metabolites.
-- param_names::Tuple{Symbol,Vararg{Symbol}}: The names of the parameters.
-- nt_param_removal_code::NamedTuple: The named tuple of the parameters to remove from the rate equation.
+- ``rate_equation::Function``: The rate equation function.
+- ``metab_names::Tuple{Symbol,Vararg{Symbol}}``: The names of the metabolites.
+- ``param_names::Tuple{Symbol,Vararg{Symbol}}``: The names of the parameters.
+- ``nt_param_removal_code::NamedTuple``: The named tuple of the parameters to remove from the rate equation.
 """
 function display_rate_equation(
     rate_equation::Function,

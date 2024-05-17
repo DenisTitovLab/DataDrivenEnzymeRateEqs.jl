@@ -17,7 +17,7 @@ where:
 - ``V_{max}`` is the maximum rate of the forward reaction
 - ``V_{max, rev}`` is the maximum rate of the reverse reaction
 - ``S_i``, ``P_i``, ``R_i`` is the concentration of the ``i^{th}`` substrate (S), product (P), or regulator (R)
-- ``K_{X_1...X_n} is the kineitc constant
+- ``K_{X_1...X_n}`` is the kinetic constant
 - ``Z`` is a combination of all terms containing products of [S], [P], and [R] divided by K_S_P_R
 
 
