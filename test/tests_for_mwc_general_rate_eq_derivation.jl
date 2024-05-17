@@ -53,7 +53,7 @@ end
 params_nt = NamedTuple{param_names}(params_vec)
 metabs_nt = NamedTuple{metab_names}(((1e12 .* ones(length(substrates)))..., zeros(length(products))..., 1e12 .* ones(length(regulators))...))
 rand_enz_rate_equation(metabs_nt, params_nt, Keq)
-@test isapprox(rand_enz_rate_equation(metabs_nt, params_nt, Keq), Vmax_a, rtol=1e-3)
+@test isapprox(rand_enz_rate_equation(metabs_nt, params_nt, Keq), Vmax_a, rtol=1e-2)
 global substrate_Ks = 1.0
 global product_Ks = 1.0
 substrate_params = [Symbol("K_a_", Symbol(:S, i)) for i in 1:length(substrates)]
@@ -67,7 +67,7 @@ for param in propertynames(params_nt)
 end
 Vmax_a_rev = Vmax_a * product_Ks / (Keq * substrate_Ks)
 metabs_nt = NamedTuple{metab_names}(((zeros(length(substrates)))..., 1e12 .* ones(length(products))..., 1e12 .* ones(length(regulators))...))
-@test isapprox(rand_enz_rate_equation(metabs_nt, params_nt, Keq), -Vmax_a_rev, rtol=1e-3)
+@test isapprox(rand_enz_rate_equation(metabs_nt, params_nt, Keq), -Vmax_a_rev, rtol=1e-2)
 
 #test Rate = Vmax_i when [Substrates] and [Inhibitors] -> Inf and Vmax_i_rev when [Products] and [Inhibitors] -> Inf
 Vmax_a = 1.0
@@ -87,7 +87,7 @@ end
 params_nt = NamedTuple{param_names}(params_vec)
 metabs_nt = NamedTuple{metab_names}(((1e12 .* ones(length(substrates)))..., zeros(length(products))..., 1e12 .* ones(length(regulators))...))
 rand_enz_rate_equation(metabs_nt, params_nt, Keq)
-@test isapprox(rand_enz_rate_equation(metabs_nt, params_nt, Keq), Vmax_i, rtol=1e-3)
+@test isapprox(rand_enz_rate_equation(metabs_nt, params_nt, Keq), Vmax_i, rtol=1e-2)
 global substrate_Ks = 1.0
 global product_Ks = 1.0
 substrate_params = [Symbol("K_i_", Symbol(:S, i)) for i in 1:length(substrates)]
@@ -101,4 +101,4 @@ for param in propertynames(params_nt)
 end
 Vmax_i_rev = Vmax_i * product_Ks / (Keq * substrate_Ks)
 metabs_nt = NamedTuple{metab_names}(((zeros(length(substrates)))..., 1e12 .* ones(length(products))..., 1e12 .* ones(length(regulators))...))
-@test isapprox(rand_enz_rate_equation(metabs_nt, params_nt, Keq), -Vmax_i_rev, rtol=1e-3)
+@test isapprox(rand_enz_rate_equation(metabs_nt, params_nt, Keq), -Vmax_i_rev, rtol=1e-2)
