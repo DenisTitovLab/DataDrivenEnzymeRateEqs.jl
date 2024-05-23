@@ -11,7 +11,7 @@ Derive a function that calculates the rate of a reaction using the general MWC r
 The general MWC rate equation is given by:
 
 ```math
-Rate = \\frac{{V_{max}^a \\prod_{i=1}^{n} \\left(\\frac{S_i}{K_{a, i}}\\right) - V_{max, rev}^a \\prod_{i=1}^{n} \\left(\\frac{P_i}{K_{a, i}}\\right) \\cdot Z_{a, cat}^{n-1} \\cdot Z_{a, reg}^n + L \\left(V_{max}^i \\prod_{i=1}^{n} \\left(\\frac{S_i}{K_{i, i}}\\right) - V_{max, rev}^i \\prod_{i=1}^{n} \\left(\\frac{P_i}{K_{i, i}}\\right)\\right) \\cdot Z_{i, cat}^{n-1} \\cdot Z_{i, reg}^n}}{Z_{a, cat}^n \\cdot Z_{a, reg}^n + L \\cdot Z_{i, cat}^n \\cdot Z_{i, reg}^n}
+Rate = \frac{{V_{max}^a \prod_{i=1}^{n} \left(\frac{S_i}{K_{a, i}}\right) - V_{max, rev}^a \prod_{i=1}^{n} \left(\frac{P_i}{K_{a, i}}\right) \cdot Z_{a, cat}^{n-1} \cdot Z_{a, reg}^n + L \left(V_{max}^i \prod_{i=1}^{n} \left(\frac{S_i}{K_{i, i}}\right) - V_{max, rev}^i \prod_{i=1}^{n} \left(\frac{P_i}{K_{i, i}}\right)\right) \cdot Z_{i, cat}^{n-1} \cdot Z_{i, reg}^n}}{Z_{a, cat}^n \cdot Z_{a, reg}^n + L \cdot Z_{i, cat}^n \cdot Z_{i, reg}^n}
 ```
 
 where:
