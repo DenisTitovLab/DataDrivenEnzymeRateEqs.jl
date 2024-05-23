@@ -4,11 +4,12 @@ CurrentModule = DataDrivenEnzymeRateEqs
 
 # DataDrivenEnzymeRateEqs
 
-Documentation for [DataDrivenEnzymeRateEqs](https://github.com/DenisTitovLab/DataDrivenEnzymeRateEqs.jl).
+API for [DataDrivenEnzymeRateEqs](https://github.com/DenisTitovLab/DataDrivenEnzymeRateEqs.jl).
 
 ```@index
 ```
 
 ```@autodocs
 Modules = [DataDrivenEnzymeRateEqs]
+Private = false
 ```

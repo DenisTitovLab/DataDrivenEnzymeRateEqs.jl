@@ -12,7 +12,8 @@ The general QSSA rate equation is given by:
 
 ```math
 Rate = \frac{V_{max} \left(\frac{\prod_{i=1}^{n}S_i}{(K_{S1...Sn})^n}\right) - V_{max, rev} \left(\frac{\prod_{i=1}^{n}P_i}{(K_{P1...Pn})^n}\right)}{Z}
-``
+```
+
 where:
 - ``V_{max}`` is the maximum rate of the forward reaction
 - ``V_{max, rev}`` is the maximum rate of the reverse reaction
