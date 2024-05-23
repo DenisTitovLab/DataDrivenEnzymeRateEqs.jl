@@ -17,6 +17,7 @@ makedocs(;
         "Tutorial" => "Tutorial.md",
         "API" => "API.md",
     ],
+    checkdocs=:exports
 )
 
 deploydocs(;
