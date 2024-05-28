@@ -240,12 +240,12 @@ function calculate_all_parameter_removal_codes(param_names::Tuple{Symbol,Vararg{
         elseif startswith(string(param_name), "K_") &&
                !startswith(string(param_name), "K_i") &&
                !startswith(string(param_name), "K_a") &&
-               length(split(string(param_choice), "_")) == 2
+               length(split(string(param_name), "_")) == 2
             feasible_param_subset_codes = (feasible_param_subset_codes..., [0, 1])
         elseif startswith(string(param_name), "K_") &&
                !startswith(string(param_name), "K_i") &&
                !startswith(string(param_name), "K_a") &&
-               length(split(string(param_choice), "_")) > 2
+               length(split(string(param_name), "_")) > 2
             feasible_param_subset_codes = (feasible_param_subset_codes..., [0, 1, 2])
         elseif startswith(string(param_name), "alpha")
             feasible_param_subset_codes = (feasible_param_subset_codes..., [0, 1])
