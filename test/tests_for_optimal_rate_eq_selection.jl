@@ -193,9 +193,9 @@ nt_param_removal_code = filter(x -> x.num_params .== 3, selection_result.test_re
 using Symbolics
 selected_sym_rate_equation = display_rate_equation(mwc_derived_rate_equation, metab_names, derived_param_names; nt_param_removal_code=nt_param_removal_code)
 original_sym_rate_equation = display_rate_equation(data_gen_rate_equation, metab_names, data_gen_param_names)
-println("Selected rate equation:")
+println("Selected MWC rate equation:")
 println(simplify(selected_sym_rate_equation))
-println("Original rate equation:")
+println("Original MWC rate equation:")
 println(simplify(original_sym_rate_equation))
 @test simplify(original_sym_rate_equation - selected_sym_rate_equation) == 0
 
@@ -247,4 +247,8 @@ nt_param_removal_code = filter(x -> x.num_params .== 3, selection_result.test_re
 using Symbolics
 selected_sym_rate_equation = display_rate_equation(qssa_derived_rate_equation, metab_names, derived_param_names; nt_param_removal_code=nt_param_removal_code)
 original_sym_rate_equation = display_rate_equation(data_gen_rate_equation, metab_names, data_gen_param_names)
+println("Selected QSSA rate equation:")
+println(simplify(selected_sym_rate_equation))
+println("Original QSSA rate equation:")
+println(simplify(original_sym_rate_equation))
 @test simplify(original_sym_rate_equation - selected_sym_rate_equation) == 0
