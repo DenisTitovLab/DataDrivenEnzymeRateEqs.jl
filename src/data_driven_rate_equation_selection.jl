@@ -294,7 +294,7 @@ function param_subset_select(params, param_names, nt_param_removal_code)
                nt_param_removal_code[param_choice] == 2
             params_dict[param_choice] = prod([
                 params_dict[Symbol("K_" * string(metab))] for
-                metab in split(param_choice, "_")[3:end]
+                metab in split(string(param_choice), "_")[3:end]
             ])
         elseif startswith(string(param_choice), "alpha") &&
                nt_param_removal_code[param_choice] == 0
