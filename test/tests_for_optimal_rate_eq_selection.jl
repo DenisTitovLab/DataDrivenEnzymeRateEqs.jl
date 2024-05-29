@@ -202,7 +202,11 @@ println(simplify(selected_sym_rate_equation))
 println("Original MWC rate equation:")
 println(simplify(original_sym_rate_equation))
 #equation with S*P term and without it is equally likely to be selected as there's no data with S and P present. Hence the OR condition below
-@test simplify(original_sym_rate_equation - selected_sym_rate_equation) == 0 || simplify(alrenative_original_sym_rate_equation - selected_sym_rate_equation) == 0
+selected_is_original = simplify(original_sym_rate_equation - selected_sym_rate_equation) == 0
+selected_is_original = selected_is_original isa Bool ? selected_is_original : false
+selected_is_alternative = simplify(alrenative_original_sym_rate_equation - selected_sym_rate_equation) == 0
+selected_is_alternative = selected_is_alternative isa Bool ? selected_is_alternative : false
+@test selected_is_original || selected_is_alternative
 
 ##
 #test the ability of `data_driven_rate_equation_selection` to recover the QSSA rate_equation and params used to generated data for an arbitrary enzyme
@@ -261,4 +265,8 @@ println(simplify(selected_sym_rate_equation))
 println("Original QSSA rate equation:")
 println(simplify(original_sym_rate_equation))
 #equation with S*P term and without it is equally likely to be selected as there's no data with S and P present. Hence the OR condition below
-@test simplify(original_sym_rate_equation - selected_sym_rate_equation) == 0 || simplify(alrenative_original_sym_rate_equation - selected_sym_rate_equation) == 0
+selected_is_original = simplify(original_sym_rate_equation - selected_sym_rate_equation) == 0
+selected_is_original = selected_is_original isa Bool ? selected_is_original : false
+selected_is_alternative = simplify(alrenative_original_sym_rate_equation - selected_sym_rate_equation) == 0
+selected_is_alternative = selected_is_alternative isa Bool ? selected_is_alternative : false
+@test selected_is_original || selected_is_alternative
