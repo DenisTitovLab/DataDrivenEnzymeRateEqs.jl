@@ -239,8 +239,14 @@ function calculate_all_parameter_removal_codes(param_names::Tuple{Symbol,Vararg{
             feasible_param_subset_codes = (feasible_param_subset_codes..., [0, 1, 2, 3])
         elseif startswith(string(param_name), "K_") &&
                !startswith(string(param_name), "K_i") &&
-               !startswith(string(param_name), "K_a")
+               !startswith(string(param_name), "K_a") &&
+               length(split(string(param_name), "_")) == 2
             feasible_param_subset_codes = (feasible_param_subset_codes..., [0, 1])
+        elseif startswith(string(param_name), "K_") &&
+               !startswith(string(param_name), "K_i") &&
+               !startswith(string(param_name), "K_a") &&
+               length(split(string(param_name), "_")) > 2
+            feasible_param_subset_codes = (feasible_param_subset_codes..., [0, 1, 2])
         elseif startswith(string(param_name), "alpha")
             feasible_param_subset_codes = (feasible_param_subset_codes..., [0, 1])
         end
@@ -282,6 +288,15 @@ function param_subset_select(params, param_names, nt_param_removal_code)
                !startswith(string(param_choice), "K_allo") &&
                nt_param_removal_code[param_choice] == 1
             params_dict[param_choice] = Inf
+        elseif startswith(string(param_choice), "K_") &&
+               !startswith(string(param_choice), "K_allo") &&
+               length(split(string(param_choice), "_")) > 2 &&
+               nt_param_removal_code[param_choice] == 2
+            params_dict[param_choice] =
+                prod([
+                    params_dict[Symbol("K_" * string(metab))] for
+                    metab in split(string(param_choice), "_")[2:end]
+                ])^(1 / (length(split(string(param_choice), "_")[2:end])))
         elseif startswith(string(param_choice), "alpha") &&
                nt_param_removal_code[param_choice] == 0
             params_dict[param_choice] = 0.0
