@@ -292,10 +292,11 @@ function param_subset_select(params, param_names, nt_param_removal_code)
                !startswith(string(param_choice), "K_allo") &&
                length(split(string(param_choice), "_")) > 2 &&
                nt_param_removal_code[param_choice] == 2
-            params_dict[param_choice] = prod([
-                params_dict[Symbol("K_" * string(metab))] for
-                metab in split(string(param_choice), "_")[3:end]
-            ])
+            params_dict[param_choice] =
+                prod([
+                    params_dict[Symbol("K_" * string(metab))] for
+                    metab in split(string(param_choice), "_")[3:end]
+                ])^(1 / (length(split(string(param_choice), "_")[3:end])))
         elseif startswith(string(param_choice), "alpha") &&
                nt_param_removal_code[param_choice] == 0
             params_dict[param_choice] = 0.0
