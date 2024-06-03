@@ -63,16 +63,16 @@ data.Rate = [data_gen_rate_equation(row, params) * (1 + noise_sd * randn()) for 
 #### Use the `data` above to identify the rate equation and check that it is same as `data_gen_rate_equation`  
 ```julia
 #Define enzyme
-enzyme_parameters = (; substrates=[:S,], products=[:P], cat1=[:S, :P], reg1=[], reg2=[], Keq=1.0, oligomeric_state=1, rate_equation_name=:derived_rate_equation)
+enzyme_parameters = (; substrates=[:S,], products=[:P], regulators=[], Keq=1.0, oligomeric_state=1, rate_equation_name=:mwc_derived_rate_equation)
 metab_names, param_names = @derive_general_mwc_rate_eq(enzyme_parameters)
 
 #Find the best rate equation
-derived_rate_equation_no_Keq(nt_metabs, nt_params) = derived_rate_equation(nt_metabs, nt_params, enzyme_parameters.Keq)
-selection_result = @time data_driven_rate_equation_selection(derived_rate_equation_no_Keq, data, metab_names, param_names, (3, 7), true)
+mwc_derived_rate_equation_no_Keq(nt_metabs, nt_params) = mwc_derived_rate_equation(nt_metabs, nt_params, enzyme_parameters.Keq)
+selection_result = @time data_driven_rate_equation_selection(mwc_derived_rate_equation_no_Keq, data, metab_names, param_names, (3, 7), true)
 
 #Display best equation with 3 parameters. Compare sym_rate_equation with data_gen_rate_equation with Vmax=1
 nt_param_removal_code = filter(x -> x.num_params .== 3, selection_result.test_results).nt_param_removal_codes[1]
-sym_rate_equation = display_rate_equation(derived_rate_equation, metab_names, param_names; nt_param_removal_code=nt_param_removal_code)
+sym_rate_equation = display_rate_equation(mwc_derived_rate_equation, metab_names, param_names; nt_param_removal_code=nt_param_removal_code)
 ```
 
 ## Documentation
@@ -80,7 +80,8 @@ sym_rate_equation = display_rate_equation(derived_rate_equation, metab_names, pa
 Check the [Documentation](https://denistitovlab.github.io/DataDrivenEnzymeRateEqs.jl/dev/) for more info
 
 ## Plans for the future
-- add rate equations based on Rapid Equilibrium approximation
-- add rate equations based on Quasy-Steady-State approximation
 - add plotting functions
 - add function for bootstrapping for calculation of kinetic parameter uncertainty based on log-normal distribution
+- update rate equations based on Quasy-Steady-State approximation to choose actual kinetic constants instead of aggregate constants like K_S1_P1_P2
+
+

@@ -6,9 +6,7 @@ CurrentModule = DataDrivenEnzymeRateEqs
 
 Documentation for [DataDrivenEnzymeRateEqs](https://github.com/DenisTitovLab/DataDrivenEnzymeRateEqs.jl).
 
-```@index
-```
+This page provides an overview of DataDrivenEnzymeRateEqs.jl package.  
 
-```@autodocs
-Modules = [DataDrivenEnzymeRateEqs]
-```
+Work in progress...  
+
