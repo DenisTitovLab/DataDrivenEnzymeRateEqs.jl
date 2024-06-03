@@ -1,8 +1,8 @@
 using Dates, CSV, DataFrames, Distributed
-include("rate_equation_fitting.jl")
+# include("rate_equation_fitting.jl")
 
 
-function prepare_data(data::DataFrame)
+function prepare_data(data::DataFrame, metab_names)
 
     # Check if the column source exists and add it if it doesn't
     if !hasproperty(data, :source)
@@ -15,7 +15,11 @@ function prepare_data(data::DataFrame)
 
     #Only include Rate > 0 because otherwise log_ratio_predict_vs_data() will have to divide by 0
     filter!(row -> row.Rate != 0, data)
-    #TODO: add errors if some of the columns are missing
+
+    # Check if all values in metab_names are columns in the data
+    missing_columns = setdiff(metab_names, names(data))
+    @assert isempty(missing_columns) "The following metab columns are missing from the data: $(join(missing_columns, ", "))"
+    
     return data
 end
 
@@ -33,22 +37,18 @@ function data_driven_rate_equation_selection(
     model_selection_method = "denis",
 )
     
-    data = prepare_data(data)
-    
-    #check that range_number_params within bounds of minimal and maximal number of parameters
-    @assert range_number_params[1] >=
-            (1 + sum([occursin("K_a_", string(param_name)) for param_name in param_names]))
-    @assert range_number_params[2] <= length(param_names)
-
+    data = prepare_data(data, metab_names)
     
     #generate param_removal_code_names by converting each mirror parameter for a and i into one name
     #(e.g. K_a_Metabolite1 and K_i_Metabolite1 into K_Metabolite1)
     param_removal_code_names = (
         [
-            Symbol(replace(string(param_name), "_a" => "")) for
-            param_name in param_names if !contains(string(param_name), "_i")
+            Symbol(replace(string(param_name), "_a_" => "_allo_")) for
+            param_name in param_names if
+            !contains(string(param_name), "_i") && param_name != :Vmax
         ]...,
     )
+
 
     #generate all possible combination of parameter removal codes
     param_subsets_per_n_params = calculate_all_parameter_removal_codes(param_names)
