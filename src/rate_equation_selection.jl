@@ -1,4 +1,4 @@
-using Dates, CSV, DataFrames, Distributed
+using Dates, CSV, DataFrames, Distributed, HypothesisTests
 # include("rate_equation_fitting.jl")
 
 
@@ -50,6 +50,7 @@ function data_driven_rate_equation_selection(
     )
 
     #generate all possible combination of parameter removal codes
+    println("before calculate all param subsets")
     param_subsets_per_n_params = calculate_all_parameter_removal_codes(param_names, range_number_params)
 
     if model_selection_method == "denis"
@@ -129,24 +130,65 @@ function get_nt_subset(df, num)
 
 end
 
-function find_best_n_params(df_results::DataFrame, print_res = true)
-    println("find best n params")
-    # Calculate average test loss for each n_params
-    avg_values = combine(groupby(df_results, :num_params), :test_loss_leftout_fig => mean => :avg_test_loss)
+# function find_best_n_params(df_results::DataFrame, print_res = true)
+#     println("find best n params")
+#     # Calculate average test loss for each n_params
+#     avg_values = combine(groupby(df_results, :num_params), :test_loss_leftout_fig => mean => :avg_test_loss)
 
-    min_row = argmin(avg_values.avg_test_loss)
-    best_n_params =  avg_values[min_row, :].num_params
-    println("Best n params")
-    println(best_n_params)
+#     min_row = argmin(avg_values.avg_test_loss)
+#     best_n_params =  avg_values[min_row, :].num_params
+#     println("Best n params")
+#     println(best_n_params)
 
-    best_subset = get_nt_subset(df_results, best_n_params)
+#     best_subset = get_nt_subset(df_results, best_n_params)
 
-    if print_res == true
-        println("Avg CV error for each n removed params:")
-        println(sort(avg_values, :avg_test_loss))
+#     if print_res == true
+#         println("Avg CV error for each n removed params:")
+#         println(sort(avg_values, :avg_test_loss))
+#     end
+#     return (best_n_params = best_n_params, best_subset = best_subset)
+# end
+
+
+function find_best_n_params(df_results::DataFrame, p_value_threshold::Float64) :: Int
+    # Group by number of parameters and calculate average test loss
+    grouped = groupby(df_results, :num_params)
+    avg_losses = combine(grouped, :test_loss => mean => :avg_test_loss)
+    
+    # Sort by number of parameters
+    sort!(avg_losses, :num_params)
+    println("Avg CV error for each n params:")
+    println(avg_losses)
+
+    # Find the row with the minimum average test loss
+    idx_min_loss = argmin(avg_losses.avg_test_loss)
+
+    # Start checking from the model with the minimum average loss downwards
+    for i in idx_min_loss:-1:2
+        current_params = avg_losses[i, :num_params]
+        lesser_params = avg_losses[i-1, :num_params]
+
+        # Perform Wilcoxon signed-rank test on test losses
+        losses_current = filter(row -> row.num_params == current_params, df_results).test_loss
+        losses_lesser = filter(row -> row.num_params == lesser_params, df_results).test_loss
+        test_result = SignedRankTest(losses_lesser, losses_current)
+
+        # If the difference is not significant, consider the model with fewer parameters
+        if pvalue(test_result) > p_value_threshold
+            idx_min_loss = i - 1  # Update index to the lesser model
+        else
+            break  # Stop if a significant difference is found
+        end
     end
+
+    best_n_params = avg_losses[idx_min_loss, :num_params]
+    best_subset = get_nt_subset(df_results, best_n_params)
+    
     return (best_n_params = best_n_params, best_subset = best_subset)
 end
+
+
+
 
 function train_and_choose_best_subset(data,param_subsets_per_n_params,  best_n_params; n_repetiotions_opt = 20, maxiter_opt = 50_000, print_res = false)
     nt_param_removal_codes = param_subsets_per_n_params[best_n_params]
@@ -582,45 +624,57 @@ function calculate_all_parameter_removal_codes(param_names::Tuple{Symbol,Vararg{
     feasible_param_subset_codes = ()
     for param_name in param_names
         param_name_str = string(param_name)
-        codes = if param_name == :L
-            [0, 1]
+        if param_name == :L
+            feasible_param_subset_codes = (feasible_param_subset_codes..., [0, 1])
         elseif startswith(param_name_str, "Vmax_a")
-            [0, 1, 2]
+            feasible_param_subset_codes = (feasible_param_subset_codes..., [0, 1,2])
         elseif startswith(param_name_str, "K_a")
-            [0, 1, 2, 3]
+            feasible_param_subset_codes = (feasible_param_subset_codes..., [0, 1,2,3])
         elseif startswith(param_name_str, "K_") &&
                !startswith(param_name_str, "K_i") &&
                !startswith(param_name_str, "K_a") &&
                length(split(param_name_str, "_")) == 2
-            [0, 1]
+               feasible_param_subset_codes = (feasible_param_subset_codes..., [0, 1])
         elseif startswith(param_name_str, "K_") &&
                !startswith(param_name_str, "K_i") &&
                !startswith(param_name_str, "K_a") &&
                length(split(param_name_str, "_")) > 2
-            [0, 1, 2]
+               feasible_param_subset_codes = (feasible_param_subset_codes..., [0, 1,2])
         elseif startswith(string(param_name), "alpha")
-            [0, 1]
-        else
-            []
+            feasible_param_subset_codes = (feasible_param_subset_codes..., [0, 1])
         end
-        push!(feasible_param_subset_codes, codes)
     end
 
     all_param_removal_codes = collect(Iterators.product(feasible_param_subset_codes...))
-
     num_alpha_params = count(occursin.("alpha", string.([param_names...])))
-
     # keep for each number of params: all the subsets with this number
-    param_subsets_tuple = [(length(param_names) - num_alpha_params -  sum(values(x[1:(end-num_alpha_params)]) .> 0) , values(x)) 
-       for x in all_param_removal_codes]
+    # TODO: TRY FIX THIS
     param_subsets_per_n_params = Dict{Int, Vector}()
-    for (key, value) in param_subsets_tuple
-        if haskey(param_subsets_per_n_params, key)
-            push!(param_subsets_per_n_params[key], value)
+    n = length(param_names)
+    for (i, x) in enumerate(all_param_removal_codes[1:50000])
+        n_param = n - num_alpha_params - sum(x[1:end-num_alpha_params] .> 0)
+        param_subset = values(x)
+        # Organize into the dictionary
+        if haskey(param_subsets_per_n_params, n_param)
+            push!(param_subsets_per_n_params[n_param], param_subset)
         else
-            param_subsets_per_n_params[key] = [value]
+            param_subsets_per_n_params[n_param] = [param_subset]
         end
     end
+
+    # param_subsets_tuple = [(
+    #     length(param_names) - num_alpha_params - sum(x[1:end-num_alpha_params] .> 0),
+    #     values(x) 
+    # ) for x in all_param_removal_codes]
+   
+    # param_subsets_per_n_params = Dict{Int, Vector}()
+    # for (key, value) in param_subsets_tuple
+    #     if haskey(param_subsets_per_n_params, key)
+    #         push!(param_subsets_per_n_params[key], value)
+    #     else
+    #         param_subsets_per_n_params[key] = [value]
+    #     end
+    # end
 
     #check that range_number_params within bounds of minimal and maximal number of parameters
     @assert range_number_params[1] >=
@@ -844,4 +898,49 @@ function reverse_selection_next_param_removal_codes(
         ) == num_params
     ]
     return nt_param_removal_codes
+end
+
+# Compare model performances of different number of parameters based on test losses using the Wilcoxon signed-rank test.
+function compare_models_wilcoxon(df::DataFrame, method::Symbol)
+    # Sort the DataFrame by the number of parameters
+    sort!(df, :num_params)
+    
+    # Group data by number of parameters and collect test losses
+    grouped = groupby(df, :num_params)
+    losses = [group[!, :test_loss] for group in grouped]
+    
+    n = length(losses)
+    results = []
+
+    if method == :all_pairs
+        # Comparing all pairs of models
+        for i in 1:n
+            for j in i+1:n
+                test_result = SignedRankTest(losses[i], losses[j])
+                push!(results, (model_a_num_params = grouped[i][1, :num_params], 
+                                model_b_num_params = grouped[j][1, :num_params], 
+                                p_value = pvalue(test_result)))
+            end
+        end
+    elseif method == :forward_stepwise
+        # Comparing each model with the next one (increasing number of parameters)
+        for i in 1:n-1
+            test_result = SignedRankTest(losses[i], losses[i+1])
+            push!(results, (model_a_num_params = grouped[i][1, :num_params], 
+                            model_b_num_params = grouped[i+1][1, :num_params], 
+                            p_value = pvalue(test_result)))
+        end
+    elseif method == :backward_stepwise
+        # Comparing each model with the previous one (decreasing number of parameters)
+        for i in n:-1:2
+            test_result = SignedRankTest(losses[i], losses[i-1])
+            push!(results, (model_a_num_params = grouped[i][1, :num_params], 
+                            model_b_num_params = grouped[i-1][1, :num_params], 
+                            p_value = pvalue(test_result)))
+        end
+    else
+        error("Invalid method specified. Choose :all_pairs, :forward_stepwise, or :backward_stepwise")
+    end
+    
+    return DataFrame(results)
 end
