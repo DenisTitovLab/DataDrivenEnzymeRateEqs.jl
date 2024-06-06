@@ -251,7 +251,8 @@ function calculate_all_parameter_removal_codes(param_names::Tuple{Symbol,Vararg{
             feasible_param_subset_codes = (feasible_param_subset_codes..., [0, 1])
         end
     end
-    return collect(Iterators.product(feasible_param_subset_codes...))
+    # return collect(Iterators.product(feasible_param_subset_codes...))
+    return Iterators.product(feasible_param_subset_codes...)
 end
 
 """
