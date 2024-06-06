@@ -1,7 +1,6 @@
 using Pkg
 package_path = "/home/ec2-user/code/DataDrivenEnzymeRateEqs.jl"
 Pkg.activate(package_path)
-
 using DataDrivenEnzymeRateEqs, Test
 using CMAEvolutionStrategy, DataFrames, CSV, Statistics
 using BenchmarkTools

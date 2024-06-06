@@ -1,4 +1,4 @@
-using Dates, CSV, DataFrames, Distributed, HypothesisTests
+using Dates, CSV, DataFrames, Distributed, HypothesisTests, Profile
 # include("rate_equation_fitting.jl")
 
 
@@ -50,7 +50,6 @@ function data_driven_rate_equation_selection(
     )
 
     #generate all possible combination of parameter removal codes
-    println("before calculate all param subsets")
     param_subsets_per_n_params = calculate_all_parameter_removal_codes(param_names, range_number_params)
 
     if model_selection_method == "denis"
@@ -651,7 +650,7 @@ function calculate_all_parameter_removal_codes(param_names::Tuple{Symbol,Vararg{
     # TODO: TRY FIX THIS
     param_subsets_per_n_params = Dict{Int, Vector}()
     n = length(param_names)
-    for (i, x) in enumerate(all_param_removal_codes[1:50000])
+    for (i, x) in enumerate(all_param_removal_codes)
         n_param = n - num_alpha_params - sum(x[1:end-num_alpha_params] .> 0)
         param_subset = values(x)
         # Organize into the dictionary
