@@ -6,6 +6,8 @@ using DataDrivenEnzymeRateEqs, Test
 using CMAEvolutionStrategy, DataFrames, CSV, Statistics
 using BenchmarkTools
 
+#TODO: add a test for calculate_all_parameter_removal_codes_w_num_params()
+
 #test forward_selection_next_param_removal_codes
 num_metabolites = rand(4:8)
 n_alphas = rand(1:4)
