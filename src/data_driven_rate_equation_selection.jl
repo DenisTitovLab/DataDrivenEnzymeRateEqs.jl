@@ -47,26 +47,20 @@ function data_driven_rate_equation_selection(
     all_param_removal_codes = calculate_all_parameter_removal_codes(param_names)
     num_alpha_params = count(occursin.("alpha", string.([param_names...])))
     #check that range_number_params within bounds of minimal and maximal number of parameters
-    @assert range_number_params[1] >=
-            length(param_names) - length(param_removal_code_names) "starting range_number_params cannot be below $(length(param_names) - length(param_removal_code_names))"
+    @assert range_number_params[1] >= length(param_names) - length(param_removal_code_names) "starting range_number_params cannot be below $(length(param_names) - length(param_removal_code_names))"
     @assert range_number_params[2] <= length(param_names) "ending range_number_params cannot be above $(length(param_names))"
 
-    #TODO: simplify below from array comprehension synthax to filter(x -> sum(x .> 0) == range_number_params[2], all_params) and same for such code elsewhere
     if forward_model_selection
         num_param_range = (range_number_params[2]):-1:range_number_params[1]
-        starting_param_removal_codes = [
-            x for
-            x in all_param_removal_codes if length(param_names) - num_alpha_params -
-            sum(values(x[1:(end-num_alpha_params)]) .> 0) == range_number_params[2]
-        ]
     elseif !forward_model_selection
         num_param_range = (range_number_params[1]):1:range_number_params[2]
-        starting_param_removal_codes = [
-            x for
-            x in all_param_removal_codes if length(param_names) - num_alpha_params -
-            sum(values(x[1:(end-num_alpha_params)]) .> 0) == range_number_params[1]
-        ]
     end
+    starting_param_removal_codes = @time calculate_all_parameter_removal_codes_w_num_params(
+        num_param_range[1],
+        all_param_removal_codes,
+        param_names,
+        num_alpha_params,
+    )
 
     previous_param_removal_codes = starting_param_removal_codes
     println("About to start loop with num_params: $num_param_range")
@@ -228,7 +222,7 @@ function test_rate_equation(
     return test_loss
 end
 
-"""Generate all possibles codes for ways that mirror params for a and i states of MWC enzyme can be removed from the rate equation"""
+"""Generate all possibles codes for ways that params can be removed from the rate equation"""
 function calculate_all_parameter_removal_codes(param_names::Tuple{Symbol,Vararg{Symbol}})
     feasible_param_subset_codes = ()
     for param_name in param_names
@@ -254,6 +248,34 @@ function calculate_all_parameter_removal_codes(param_names::Tuple{Symbol,Vararg{
     end
     # return collect(Iterators.product(feasible_param_subset_codes...))
     return Iterators.product(feasible_param_subset_codes...)
+end
+
+"""Generate codes for ways that params can be removed from the rate equation but still leave `num_params`"""
+function calculate_all_parameter_removal_codes_w_num_params(
+    num_params,
+    all_param_removal_codes,
+    param_names,
+    num_alpha_params,
+)
+    codes_with_num_params = Tuple[]
+    num_non_zero_in_each_code = Int[]
+    for code in all_param_removal_codes
+        sum_non_zero = 0
+        for i = 1:(length(code)-num_alpha_params)
+            if code[i] > 0
+                sum_non_zero += 1
+            end
+        end
+        push!(num_non_zero_in_each_code, sum_non_zero)
+    end
+    num_params_in_each_code =
+        length(param_names) .- num_alpha_params .- num_non_zero_in_each_code
+    for (i, code) in enumerate(all_param_removal_codes)
+        if num_params_in_each_code[i] == num_params
+            push!(codes_with_num_params, code)
+        end
+    end
+    return codes_with_num_params
 end
 
 """
@@ -345,13 +367,14 @@ function forward_selection_next_param_removal_codes(
     ])
 
     #select all param_removal_codes that yield equations with `num_params` number of parameters
-    all_param_codes_w_num_params = [
-        param_removal_codes for param_removal_codes in all_param_removal_codes if (
-            length(param_names) - num_alpha_params -
-            sum(param_removal_codes[1:(end-num_alpha_params)] .> 0)
-        ) == num_params
-    ]
-    # #choose param_removal_codes with n_removed_params number of parameters removed that also contain non-zero elements from previous_param_removal_codes
+    all_param_codes_w_num_params = calculate_all_parameter_removal_codes_w_num_params(
+        num_params,
+        all_param_removal_codes,
+        param_names,
+        num_alpha_params,
+    )
+
+    #choose param_removal_codes with n_removed_params number of parameters removed that also contain non-zero elements from previous_param_removal_codes
     param_removal_codes = []
     for previous_param_subset_mask in previous_param_subset_masks
         push!(
@@ -410,12 +433,13 @@ function reverse_selection_next_param_removal_codes(
     ])
 
     #select all codes that yield equations with `num_params` number of parameters
-    all_param_codes_w_num_params = [
-        param_removal_codes for param_removal_codes in all_param_removal_codes if (
-            length(param_names) - num_alpha_params -
-            sum(param_removal_codes[1:(end-num_alpha_params)] .> 0)
-        ) == num_params
-    ]
+    all_param_codes_w_num_params = calculate_all_parameter_removal_codes_w_num_params(
+        num_params,
+        all_param_removal_codes,
+        param_names,
+        num_alpha_params,
+    )
+
     #choose param_removal_codes with n_removed_params number of parameters removed that also contain non-zero elements from previous_param_removal_codes
     param_removal_codes = []
     for previous_param_subset_mask in previous_param_subset_masks
