@@ -51,7 +51,7 @@ function data_driven_rate_equation_selection(
             length(param_names) - length(param_removal_code_names) "starting range_number_params cannot be below $(length(param_names) - length(param_removal_code_names))"
     @assert range_number_params[2] <= length(param_names) "ending range_number_params cannot be above $(length(param_names))"
 
-    #TODO: maybe this can be sped up / simplified using filter(x -> sum(x .> 0) == range_number_params[2], all_params)
+    #TODO: simplify below from array comprehension synthax to filter(x -> sum(x .> 0) == range_number_params[2], all_params) and same for such code elsewhere
     if forward_model_selection
         num_param_range = (range_number_params[2]):-1:range_number_params[1]
         starting_param_removal_codes = [
