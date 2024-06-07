@@ -55,7 +55,7 @@ function data_driven_rate_equation_selection(
     elseif !forward_model_selection
         num_param_range = (range_number_params[1]):1:range_number_params[2]
     end
-    starting_param_removal_codes = @time calculate_all_parameter_removal_codes_w_num_params(
+    starting_param_removal_codes = calculate_all_parameter_removal_codes_w_num_params(
         num_param_range[1],
         all_param_removal_codes,
         param_names,
