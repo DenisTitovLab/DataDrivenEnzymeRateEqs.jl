@@ -48,7 +48,7 @@ function data_driven_rate_equation_selection(
     num_alpha_params = count(occursin.("alpha", string.([param_names...])))
     #check that range_number_params within bounds of minimal and maximal number of parameters
     @assert range_number_params[1] >=
-            length(param_names) - maximum([sum(x .> 0) for x in all_param_removal_codes]) "starting range_number_params cannot be below $(length(param_names) - maximum([sum(x .> 0) for x in all_param_removal_codes]))"
+            length(param_names) - length(param_removal_code_names) "starting range_number_params cannot be below $(length(param_names) - length(param_removal_code_names))"
     @assert range_number_params[2] <= length(param_names) "ending range_number_params cannot be above $(length(param_names))"
 
     if forward_model_selection
