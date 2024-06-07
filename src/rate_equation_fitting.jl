@@ -46,7 +46,7 @@ function fit_rate_equation(
     metab_names::Tuple{Symbol, Vararg{Symbol}},
     param_names::Tuple{Symbol, Vararg{Symbol}};
     n_iter = 20,
-)
+ )
     train_results = train_rate_equation(
         rate_equation::Function,
         data::DataFrame,
@@ -68,7 +68,7 @@ function train_rate_equation(
     n_iter = 20,
     maxiter_opt = 50_000,
     nt_param_removal_code = nothing,
-)
+ )
     # Add a new column to data to assign an integer to each source/figure from publication
     data.fig_num = vcat(
         [
@@ -176,7 +176,7 @@ function train_rate_equation(
         rescaled_params =
             param_subset_select(rescaled_params, param_names, nt_param_removal_code)
     end
-
+    println("done training")
     return (train_loss = fbest(best_sol), params = NamedTuple{param_names}(rescaled_params))
 end
 

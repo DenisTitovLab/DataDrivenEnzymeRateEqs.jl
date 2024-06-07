@@ -1,5 +1,5 @@
-using Dates, CSV, DataFrames, Distributed, HypothesisTests, Profile
-# include("rate_equation_fitting.jl")
+using Dates, CSV, DataFrames, Distributed, HypothesisTests, IterTools
+include("rate_equation_fitting.jl")
 
 
 function prepare_data(data::DataFrame, metab_names)
@@ -65,8 +65,8 @@ function data_driven_rate_equation_selection(
             maxiter_opt,
             param_subsets_per_n_params,
             )
- 
-        best_n_params, best_subset = find_best_n_params(results.test_results)
+        println("finish stage 1!!")
+        best_n_params, best_subset = find_best_n_params(results.test_results, .4)
         println("Best subset")
         println(best_subset)
 
@@ -268,7 +268,7 @@ function fit_rate_equation_selection_denis(
             end
     
             #pmap over nt_param_removal_codes for a given `num_params` return rescaled and nt_param_subset added
-            results_array = pmap(
+            results_array = map(
                 nt_param_removal_code -> train_rate_equation(
                     general_rate_equation,
                     data,
@@ -616,7 +616,9 @@ function test_rate_equation(
 end
 
 
-
+function calculate_number_of_parameters(x,n, num_alpha_params)
+    return n - num_alpha_params - sum(x[1:end-num_alpha_params] .> 0)
+end
 
 """Generate all possibles codes for ways that mirror params for a and i states of MWC enzyme can be removed from the rate equation"""
 function calculate_all_parameter_removal_codes(param_names::Tuple{Symbol,Vararg{Symbol}}, range_number_params::Tuple{Int,Int})
@@ -644,23 +646,32 @@ function calculate_all_parameter_removal_codes(param_names::Tuple{Symbol,Vararg{
         end
     end
 
-    all_param_removal_codes = collect(Iterators.product(feasible_param_subset_codes...))
+    all_param_removal_codes = IterTools.product(feasible_param_subset_codes...)
+    n_param_subset = length(first(all_param_removal_codes))
     num_alpha_params = count(occursin.("alpha", string.([param_names...])))
+    n = length(param_names)
+
+    counter = 0
+    total_elements = prod(length.(feasible_param_subset_codes))
     # keep for each number of params: all the subsets with this number
     # TODO: TRY FIX THIS
-    param_subsets_per_n_params = Dict{Int, Vector}()
-    n = length(param_names)
-    for (i, x) in enumerate(all_param_removal_codes)
+    param_subsets_per_n_params = Dict{Int, Vector{NTuple{n_param_subset, Int}}}()
+    println("before param subsets per n params")
+    for x in all_param_removal_codes
         n_param = n - num_alpha_params - sum(x[1:end-num_alpha_params] .> 0)
-        param_subset = values(x)
+        #param_subset = values(x)
         # Organize into the dictionary
-        if haskey(param_subsets_per_n_params, n_param)
-            push!(param_subsets_per_n_params[n_param], param_subset)
-        else
-            param_subsets_per_n_params[n_param] = [param_subset]
+        if !haskey(param_subsets_per_n_params, n_param)
+            param_subsets_per_n_params[n_param] = Vector{NTuple{n_param_subset, Int}}()
+        end
+        push!(param_subsets_per_n_params[n_param], x)
+        
+        counter += 1
+        if counter % 100000 == 0
+            println("progress count:", counter)
         end
     end
-
+    println("after param_subsets_per_n_params")
     # param_subsets_tuple = [(
     #     length(param_names) - num_alpha_params - sum(x[1:end-num_alpha_params] .> 0),
     #     values(x) 
@@ -796,7 +807,7 @@ function forward_selection_next_param_removal_codes(
     param_names,
     param_removal_code_names,
     )
-
+    
     num_alpha_params = count(occursin.("alpha", string.([param_names...])))
     @assert all([
         (
