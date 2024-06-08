@@ -55,8 +55,10 @@ function data_driven_rate_equation_selection(
     end
 
     #calculate starting_param_removal_codes num_param_range[1] parameters
+    all_param_removal_codes = calculate_all_parameter_removal_codes(param_names)
     starting_param_removal_codes = calculate_all_parameter_removal_codes_w_num_params(
         num_param_range[1],
+        all_param_removal_codes,
         param_names,
         num_alpha_params,
     )
@@ -254,10 +256,10 @@ end
 """Generate codes for ways that params can be removed from the rate equation but still leave `num_params`"""
 function calculate_all_parameter_removal_codes_w_num_params(
     num_params,
+    all_param_removal_codes,
     param_names,
     num_alpha_params,
 )
-    all_param_removal_codes = calculate_all_parameter_removal_codes(param_names)
     codes_with_num_params = Tuple[]
     num_non_zero_in_each_code = Int[]
     for code in all_param_removal_codes
