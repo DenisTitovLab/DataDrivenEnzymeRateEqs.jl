@@ -34,17 +34,15 @@ function data_driven_rate_equation_selection(
 
 
     #generate param_removal_code_names by converting each mirror parameter for a and i into one name
-    #(e.g. K_a_Metabolite1 and K_i_Metabolite1 into K_Metabolite1)
+    #(e.g. K_a_Metabolite1 and K_i_Metabolite1 into K_allo_Metabolite1)
     param_removal_code_names = (
         [
-            Symbol(replace(string(param_name), "_a" => "_allo")) for
+            Symbol(replace(string(param_name), "_a_" => "_allo_", "Vmax_a" => "Vmax_allo")) for
             param_name in param_names if
             !contains(string(param_name), "_i") && param_name != :Vmax
         ]...,
     )
 
-    #generate all possible combination of parameter removal codes
-    all_param_removal_codes = calculate_all_parameter_removal_codes(param_names)
     num_alpha_params = count(occursin.("alpha", string.([param_names...])))
     #check that range_number_params within bounds of minimal and maximal number of parameters
     @assert range_number_params[1] >= length(param_names) - length(param_removal_code_names) "starting range_number_params cannot be below $(length(param_names) - length(param_removal_code_names))"
@@ -55,15 +53,16 @@ function data_driven_rate_equation_selection(
     elseif !forward_model_selection
         num_param_range = (range_number_params[1]):1:range_number_params[2]
     end
-    #TODO: calculate all_param_removal_codes inside this function and not separately as minimal overhead
+
+    #calculate starting_param_removal_codes num_param_range[1] parameters
     starting_param_removal_codes = calculate_all_parameter_removal_codes_w_num_params(
         num_param_range[1],
-        all_param_removal_codes,
         param_names,
         num_alpha_params,
     )
 
     nt_param_removal_codes = starting_param_removal_codes
+    nt_previous_param_removal_codes = similar(nt_param_removal_codes)
     println("About to start loop with num_params: $num_param_range")
     df_train_results = DataFrame()
     df_test_results = DataFrame()
@@ -71,16 +70,15 @@ function data_driven_rate_equation_selection(
         println("Running loop with num_params: $num_params")
 
         #calculate param_removal_codes for `num_params` given `all_param_removal_codes` and fixed params from previous `num_params`
-        # TODO: skip this step for first loop and just use starting_param_removal_codes (rename to nt_param_removal_codes)
         if num_params != num_param_range[1]
             if forward_model_selection
                 nt_param_removal_codes = forward_selection_next_param_removal_codes(
-                    previous_param_removal_codes,
+                    nt_previous_param_removal_codes,
                     num_alpha_params,
                 )
             elseif !forward_model_selection
                 nt_param_removal_codes = reverse_selection_next_param_removal_codes(
-                    previous_param_removal_codes,
+                    nt_previous_param_removal_codes,
                     num_alpha_params,
                 )
             end
@@ -112,17 +110,19 @@ function data_driven_rate_equation_selection(
 
         #if all train_loss are Inf, then skip to next loop
         if all(df_results.train_loss .== Inf)
-            previous_param_removal_codes = NamedTuple{param_removal_code_names}(
-                values.(df_results.nt_param_removal_codes),
-            )
+            nt_previous_param_removal_codes = [
+                NamedTuple{param_removal_code_names}(x) for
+                x in values.(df_results.nt_param_removal_codes)
+            ]
             continue
         end
 
         #store top 10% for next loop as `previous_param_removal_codes`
         filter!(row -> row.train_loss < 1.1 * minimum(df_results.train_loss), df_results)
-        previous_param_removal_codes =
-            NamedTuple{param_removal_code_names}(values.(df_results.nt_param_removal_codes))
-
+        nt_previous_param_removal_codes = [
+            NamedTuple{param_removal_code_names}(x) for
+            x in values.(df_results.nt_param_removal_codes)
+        ]
         #calculate loocv test loss for top subset for each `num_params`
         best_nt_param_removal_code =
             df_results.nt_param_removal_codes[argmin(df_results.train_loss)]
@@ -254,10 +254,10 @@ end
 """Generate codes for ways that params can be removed from the rate equation but still leave `num_params`"""
 function calculate_all_parameter_removal_codes_w_num_params(
     num_params,
-    all_param_removal_codes,
     param_names,
     num_alpha_params,
 )
+    all_param_removal_codes = calculate_all_parameter_removal_codes(param_names)
     codes_with_num_params = Tuple[]
     num_non_zero_in_each_code = Int[]
     for code in all_param_removal_codes
@@ -336,45 +336,44 @@ function param_subset_select(params, param_names, nt_param_removal_code)
 end
 
 """
-Calculate `nt_param_removal_codes` with `num_params` including non-zero term combinations for codes (excluding alpha terms) in each `previous_param_removal_codes` that has `num_params-1`
+Calculate `nt_param_removal_codes` with `num_params` including non-zero term combinations for codes (excluding alpha terms) in each `nt_previous_param_removal_codes` that has `num_params-1`
 """
 function forward_selection_next_param_removal_codes(
-    previous_param_removal_codes::Vector{T} where {T <: NamedTuple},
-    num_alpha_params
+    nt_previous_param_removal_codes::Vector{T} where {T<:NamedTuple},
+    num_alpha_params,
 )
-param_removal_code_names = keys(previous_param_removal_codes[1])
-next_param_removal_codes = Vector{Vector{Int}}()
-for previous_param_removal_code in previous_param_removal_codes
-    i_cut_off = length(previous_param_removal_code) - num_alpha_params
-    for (i, code_element) in enumerate(previous_param_removal_code)
-        if i <= i_cut_off && code_element == 0
-            if param_removal_code_names[i] == :L
-                feasible_param_subset_codes = [1]
-            elseif startswith(string(param_removal_code_names[i]), "Vmax_allo")
-                feasible_param_subset_codes = [1, 2]
-            elseif startswith(string(param_removal_code_names[i]), "K_allo")
-                feasible_param_subset_codes = [1, 2, 3]
-            elseif startswith(string(param_removal_code_names[i]), "K_") &&
-                   !startswith(string(param_removal_code_names[i]), "K_allo") &&
-                   length(split(string(param_removal_code_names[i]), "_")) == 2
-                feasible_param_subset_codes = [1]
-            elseif startswith(string(param_removal_code_names[i]), "K_") &&
-                   !startswith(string(param_removal_code_names[i]), "K_allo") &&
-                   length(split(string(param_removal_code_names[i]), "_")) > 2
-                feasible_param_subset_codes = [1, 2]
-            end
-            for code_element in feasible_param_subset_codes
-                next_param_removal_code = collect(Int, previous_param_removal_code)
-                next_param_removal_code[i] = code_element
-                push!(next_param_removal_codes, next_param_removal_code)
+    param_removal_code_names = keys(nt_previous_param_removal_codes[1])
+    next_param_removal_codes = Vector{Vector{Int}}()
+    for previous_param_removal_code in nt_previous_param_removal_codes
+        i_cut_off = length(previous_param_removal_code) - num_alpha_params
+        for (i, code_element) in enumerate(previous_param_removal_code)
+            if i <= i_cut_off && code_element == 0
+                if param_removal_code_names[i] == :L
+                    feasible_param_subset_codes = [1]
+                elseif startswith(string(param_removal_code_names[i]), "Vmax_allo")
+                    feasible_param_subset_codes = [1, 2]
+                elseif startswith(string(param_removal_code_names[i]), "K_allo")
+                    feasible_param_subset_codes = [1, 2, 3]
+                elseif startswith(string(param_removal_code_names[i]), "K_") &&
+                       !startswith(string(param_removal_code_names[i]), "K_allo") &&
+                       length(split(string(param_removal_code_names[i]), "_")) == 2
+                    feasible_param_subset_codes = [1]
+                elseif startswith(string(param_removal_code_names[i]), "K_") &&
+                       !startswith(string(param_removal_code_names[i]), "K_allo") &&
+                       length(split(string(param_removal_code_names[i]), "_")) > 2
+                    feasible_param_subset_codes = [1, 2]
+                end
+                for code_element in feasible_param_subset_codes
+                    next_param_removal_code = collect(Int, previous_param_removal_code)
+                    next_param_removal_code[i] = code_element
+                    push!(next_param_removal_codes, next_param_removal_code)
+                end
             end
         end
     end
-end
-nt_param_removal_codes = [NamedTuple{param_removal_code_names}(x)
-                          for
-                          x in unique(next_param_removal_codes)]
-return nt_param_removal_codes
+    nt_param_removal_codes =
+        [NamedTuple{param_removal_code_names}(x) for x in unique(next_param_removal_codes)]
+    return nt_param_removal_codes
 end
 
 """

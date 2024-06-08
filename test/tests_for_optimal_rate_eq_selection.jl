@@ -11,7 +11,7 @@ using BenchmarkTools
 #test forward_selection_next_param_removal_codes
 num_metabolites = rand(4:8)
 n_alphas = rand(1:4)
-num_previous_step_params = rand((2 + num_metabolites):(3 + 2 * num_metabolites))
+num_previous_step_params = rand((2+num_metabolites):(3+2*num_metabolites))
 num_params = num_previous_step_params - 1
 param_names = (
     :L,
@@ -22,18 +22,18 @@ param_names = (
     [Symbol(:alpha, "_$(i)") for i in 1:n_alphas]...
 )
 param_removal_code_names = (
-        [
-            Symbol(replace(string(param_name), "_a" => "_allo")) for
-            param_name in param_names if
-            !contains(string(param_name), "_i") && param_name != :Vmax
-        ]...,
-    )
+    [
+        Symbol(replace(string(param_name), "_a_" => "_allo_", "Vmax_a" => "Vmax_allo")) for
+        param_name in param_names if
+        !contains(string(param_name), "_i") && param_name != :Vmax
+    ]...,
+)
 all_param_removal_codes = DataDrivenEnzymeRateEqs.calculate_all_parameter_removal_codes(param_names)
 param_subset_codes_with_num_params = [x
                                       for x in all_param_removal_codes
                                       if
                                       length(param_names) -
-                                      sum(values(x[1:(end - n_alphas)]) .> 0) - n_alphas ==
+                                      sum(values(x[1:(end-n_alphas)]) .> 0) - n_alphas ==
                                       num_previous_step_params]
 previous_param_removal_codes = [rand(param_subset_codes_with_num_params)
                                 for i in 1:rand(1:20)]
@@ -49,10 +49,10 @@ funct_output_param_subset_codes = [values(nt) for nt in nt_funct_output_param_su
 #ensure that funct_output_param_subset_codes have one less parameter than previous_param_removal_codes
 @test all(
     length(param_names) - n_alphas -
-    sum(funct_output_param_subset_code[1:(end - n_alphas)] .> 0) ==
+    sum(funct_output_param_subset_code[1:(end-n_alphas)] .> 0) ==
     (num_previous_step_params - 1)
-for
-funct_output_param_subset_code in funct_output_param_subset_codes
+    for
+    funct_output_param_subset_code in funct_output_param_subset_codes
 )
 #ensure that non-zero elements from previous_param_removal_codes are present in > 1 of the funct_output_param_subset_code but less than the max_matches
 count_matches = []
@@ -72,12 +72,12 @@ for funct_output_param_subset_code in funct_output_param_subset_codes
     count = 0
     max_matches_vect = Int[]
     for previous_param_removal_code in previous_param_removal_codes
-        count += funct_output_param_subset_code[1:(end - n_alphas)] .*
-                 previous_param_removal_code[1:(end - n_alphas)] ==
-                 previous_param_removal_code[1:(end - n_alphas)] .^ 2
+        count += funct_output_param_subset_code[1:(end-n_alphas)] .*
+                 previous_param_removal_code[1:(end-n_alphas)] ==
+                 previous_param_removal_code[1:(end-n_alphas)] .^ 2
         push!(max_matches_vect,
-            sum((previous_param_removal_code[1:(end - n_alphas)] .== 0) .*
-                non_zero_code_combos_per_param[1:(end - n_alphas)]))
+            sum((previous_param_removal_code[1:(end-n_alphas)] .== 0) .*
+                non_zero_code_combos_per_param[1:(end-n_alphas)]))
     end
     max_matches = maximum(max_matches_vect)
     push!(count_matches, max_matches >= count > 0)
@@ -98,12 +98,12 @@ param_names = (
     [Symbol(:alpha, "_$(i)") for i = 1:n_alphas]...,
 )
 param_removal_code_names = (
-        [
-            Symbol(replace(string(param_name), "_a_" => "_allo_")) for
-            param_name in param_names if
-            !contains(string(param_name), "_i") && param_name != :Vmax
-        ]...,
-    )
+    [
+        Symbol(replace(string(param_name), "_a_" => "_allo_")) for
+        param_name in param_names if
+        !contains(string(param_name), "_i") && param_name != :Vmax
+    ]...,
+)
 all_param_removal_codes = DataDrivenEnzymeRateEqs.calculate_all_parameter_removal_codes(param_names)
 param_subset_codes_with_num_params = [
     x for x in all_param_removal_codes if
