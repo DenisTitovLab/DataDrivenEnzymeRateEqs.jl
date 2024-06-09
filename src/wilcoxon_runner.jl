@@ -68,37 +68,35 @@ function find_optimal_n_params(df_results::DataFrame, p_value_threshold::Float64
     # Group by number of parameters and calculate average test loss
     grouped = groupby(df_results, :num_params)
     avg_losses = combine(grouped, :test_loss => mean => :avg_test_loss)
-    
     # Sort by number of parameters
     sort!(avg_losses, :num_params)
     println(avg_losses)
-
     # Find the row with the minimum average test loss
     idx_min_loss = argmin(avg_losses.avg_test_loss)
+    n_param_minimal_loss = avg_losses[idx_min_loss, :num_params]
+    losses_minimal_loss = filter(row -> row.num_params == n_param_minimal_loss, df_results).test_loss
 
-    # Start checking from the model with the minimum average loss downwards
-    for i in idx_min_loss:-1:2
-        current_params = avg_losses[i, :num_params]
-        lesser_params = avg_losses[i-1, :num_params]
-
+    current_n_params = n_param_minimal_loss
+    # Start checking from the model just below the minimal average loss model downwards
+    for i in idx_min_loss-1:-1:1        
+        current_n_params = avg_losses[i, :num_params]
         # Perform Wilcoxon signed-rank test on test losses
-        losses_current = filter(row -> row.num_params == current_params, df_results).test_loss
-        losses_lesser = filter(row -> row.num_params == lesser_params, df_results).test_loss
-        test_result = SignedRankTest(losses_lesser, losses_current)
+        losses_current = filter(row -> row.num_params == current_n_params, df_results).test_loss
+        # compare with best n params: 
+        test_result = SignedRankTest(losses_current, losses_minimal_loss)
+        pval = pvalue(test_result)
 
-        # If the difference is not significant, consider the model with fewer parameters
-        if pvalue(test_result) > p_value_threshold
-            idx_min_loss = i - 1  # Update index to the lesser model
-        else
+        # If the difference is not significant, continue; else, stop and return last non-significant model's params
+        if pval <= p_value_threshold
+            current_n_params = avg_losses[i+1, :num_params]
             break  # Stop if a significant difference is found
         end
     end
-
-    # Return the number of parameters of the model with minimal significant worsening
-    return avg_losses[idx_min_loss, :num_params]
+    
+    return current_n_params
 end
 
-Random.seed!(13)
+Random.seed!(1353)
 test_results  = DataFrame(
     num_params = repeat([1, 2, 3, 4, 5], inner = 6),
     removed_fig = repeat(1:6, outer = 5),
