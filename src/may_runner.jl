@@ -41,5 +41,6 @@ selection_result = @time data_driven_rate_equation_selection(pkm2_rate_equation_
   (7, 15), 
   true;
   n_reps_opt=1, # n repeats optimization
-  maxiter_opt=100 # n iteration opt algorithm
+  maxiter_opt=30,# n iteration opt algorithm
+  p_val_threshold =.4
   )

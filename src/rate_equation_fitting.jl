@@ -176,7 +176,6 @@ function train_rate_equation(
         rescaled_params =
             param_subset_select(rescaled_params, param_names, nt_param_removal_code)
     end
-    println("done training")
     return (train_loss = fbest(best_sol), params = NamedTuple{param_names}(rescaled_params))
 end
 
