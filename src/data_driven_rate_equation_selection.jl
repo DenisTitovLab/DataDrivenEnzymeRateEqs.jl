@@ -7,7 +7,9 @@ using Dates, CSV, DataFrames, Distributed
         metab_names::Tuple{Symbol,Vararg{Symbol}},
         param_names::Tuple{Symbol,Vararg{Symbol}},
         range_number_params::Tuple{Int,Int},
-        forward_model_selection::Bool,
+        forward_model_selection::Bool;
+        save_train_results::Bool = false,
+        enzyme_name::String = "Enzyme",
     )
 
 This function is used to perform data-driven rate equation selection using a general rate equation and data. The function will select the best rate equation by iteratively removing parameters from the general rate equation and finding an equation that yield best test scores on data not used for fitting.
@@ -19,6 +21,8 @@ This function is used to perform data-driven rate equation selection using a gen
 - `param_names::Tuple`: Tuple of parameter names that correspond to the parameters of `rate_equation`.
 - `range_number_params::Tuple{Int,Int}`: A tuple of integers representing the range of the number of parameters of general_rate_equation to search over.
 - `forward_model_selection::Bool`: A boolean indicating whether to use forward model selection (true) or reverse model selection (false).
+
+# Keyword Arguments
 - `save_train_results::Bool`: A boolean indicating whether to save the results of the training for each number of parameters as a csv file.
 - `enzyme_name::String`: A string for enzyme name that is used to name the csv files that are saved.
 
@@ -31,7 +35,7 @@ function data_driven_rate_equation_selection(
     metab_names::Tuple{Symbol,Vararg{Symbol}},
     param_names::Tuple{Symbol,Vararg{Symbol}},
     range_number_params::Tuple{Int,Int},
-    forward_model_selection::Bool,
+    forward_model_selection::Bool;
     save_train_results::Bool = false,
     enzyme_name::String = "Enzyme",
 )
