@@ -19,6 +19,8 @@ This function is used to perform data-driven rate equation selection using a gen
 - `param_names::Tuple`: Tuple of parameter names that correspond to the parameters of `rate_equation`.
 - `range_number_params::Tuple{Int,Int}`: A tuple of integers representing the range of the number of parameters of general_rate_equation to search over.
 - `forward_model_selection::Bool`: A boolean indicating whether to use forward model selection (true) or reverse model selection (false).
+- `save_train_results::Bool`: A boolean indicating whether to save the results of the training for each number of parameters as a csv file.
+- `enzyme_name::String`: A string for enzyme name that is used to name the csv files that are saved.
 
 # Returns nothing, but saves a csv file for each `num_params` with the results of the training for each combination of parameters tested and a csv file with test results for top 10% of the best results with each number of parameters tested.
 
@@ -30,6 +32,8 @@ function data_driven_rate_equation_selection(
     param_names::Tuple{Symbol,Vararg{Symbol}},
     range_number_params::Tuple{Int,Int},
     forward_model_selection::Bool,
+    save_train_results::Bool = false,
+    enzyme_name::String = "Enzyme",
 )
 
 
@@ -105,10 +109,12 @@ function data_driven_rate_equation_selection(
         df_train_results = vcat(df_train_results, df_results)
 
         # Optinally consider saving results to csv file for long running calculation of cluster
-        # CSV.write(
-        #     "$(Dates.format(now(),"mmddyy"))_$(forward_model_selection ? "forward" : "reverse")_model_select_results_$(num_params)_num_params.csv",
-        #     df_results,
-        # )
+        if save_train_results
+            CSV.write(
+                "$(Dates.format(now(),"mmddyy"))_$(enzyme_name)_$(forward_model_selection ? "forward" : "reverse")_model_select_results_$(num_params)_num_params.csv",
+                df_results,
+            )
+        end
 
         #if all train_loss are Inf, then skip to next loop
         if all(df_results.train_loss .== Inf)
