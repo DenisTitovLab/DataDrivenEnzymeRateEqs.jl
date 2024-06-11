@@ -45,8 +45,7 @@ function data_driven_rate_equation_selection(
     #(e.g. K_a_Metabolite1 and K_i_Metabolite1 into K_allo_Metabolite1)
     param_removal_code_names = (
         [
-            Symbol(replace(string(param_name), "_a_" => "_allo_", "Vmax_a" => "Vmax_allo")) for
-            param_name in param_names if
+            Symbol(replace(string(param_name), "_a_" => "_allo_", "Vmax_a" => "Vmax_allo")) for param_name in param_names if
             !contains(string(param_name), "_i") && param_name != :Vmax
         ]...,
     )
@@ -68,6 +67,7 @@ function data_driven_rate_equation_selection(
         num_param_range[1],
         all_param_removal_codes,
         param_names,
+        param_removal_code_names,
         num_alpha_params,
     )
 
@@ -199,7 +199,7 @@ end
 """Function to calculate loss for a given `rate_equation` and `nt_fitted_params` on `data` that was not used for training"""
 function test_rate_equation(
     rate_equation::Function,
-    data,
+    data::DataFrame,
     nt_fitted_params::NamedTuple,
     metab_names::Tuple{Symbol,Vararg{Symbol}},
     param_names::Tuple{Symbol,Vararg{Symbol}},
@@ -263,12 +263,13 @@ function calculate_all_parameter_removal_codes(param_names::Tuple{Symbol,Vararg{
     return Iterators.product(feasible_param_subset_codes...)
 end
 
-"""Generate codes for ways that params can be removed from the rate equation but still leave `num_params`"""
+"""Generate NamedTuple of codes for ways that params can be removed from the rate equation but still leave `num_params`"""
 function calculate_all_parameter_removal_codes_w_num_params(
-    num_params,
+    num_params::Int,
     all_param_removal_codes,
-    param_names,
-    num_alpha_params,
+    param_names::Tuple{Symbol,Vararg{Symbol}},
+    param_removal_code_names::Tuple{Symbol,Vararg{Symbol}},
+    num_alpha_params::Int,
 )
     codes_with_num_params = Tuple[]
     num_non_zero_in_each_code = Int[]
@@ -288,13 +289,19 @@ function calculate_all_parameter_removal_codes_w_num_params(
             push!(codes_with_num_params, code)
         end
     end
-    return codes_with_num_params
+    nt_param_removal_codes =
+        [NamedTuple{param_removal_code_names}(x) for x in unique(codes_with_num_params)]
+    return nt_param_removal_codes
 end
 
 """
 Function to convert parameter vector to vector where some params are equal to 0, Inf or each other based on nt_param_removal_code
 """
-function param_subset_select(params, param_names, nt_param_removal_code)
+function param_subset_select(
+    params,
+    param_names::Tuple{Symbol,Vararg{Symbol}},
+    nt_param_removal_code::T where T<:NamedTuple,
+)
     @assert length(params) == length(param_names)
     params_dict =
         Dict(param_name => params[i] for (i, param_name) in enumerate(param_names))
@@ -351,8 +358,8 @@ end
 Calculate `nt_param_removal_codes` with `num_params` including non-zero term combinations for codes (excluding alpha terms) in each `nt_previous_param_removal_codes` that has `num_params-1`
 """
 function forward_selection_next_param_removal_codes(
-    nt_previous_param_removal_codes::Vector{T} where {T<:NamedTuple},
-    num_alpha_params,
+    nt_previous_param_removal_codes::Vector{T} where T<:NamedTuple,
+    num_alpha_params::Int,
 )
     param_removal_code_names = keys(nt_previous_param_removal_codes[1])
     next_param_removal_codes = Vector{Vector{Int}}()
@@ -392,7 +399,7 @@ end
 Use `nt_previous_param_removal_codes` to calculate `nt_next_param_removal_codes` that have one additional zero elements except for for elements <= `num_alpha_params` from the end
 """
 function reverse_selection_next_param_removal_codes(
-    nt_previous_param_removal_codes::Vector{T} where {T<:NamedTuple},
+    nt_previous_param_removal_codes::Vector{T} where T<:NamedTuple,
     num_alpha_params::Int,
 )
     param_removal_code_names = keys(nt_previous_param_removal_codes[1])
