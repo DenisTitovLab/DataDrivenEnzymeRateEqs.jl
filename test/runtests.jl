@@ -12,6 +12,9 @@ using SafeTestsets
     @safetestset "MWC Rate Eq Fitting" begin
         include("tests_for_rate_eq_fitting.jl")
     end
+    @safetestset "Plotting" begin
+        include("tests_for_plotting.jl")
+    end
     @safetestset "MWC Rate Eq Subset Selection" begin
         include("tests_for_optimal_rate_eq_selection.jl")
     end
