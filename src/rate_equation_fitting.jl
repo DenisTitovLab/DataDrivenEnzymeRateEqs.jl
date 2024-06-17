@@ -46,6 +46,7 @@ function fit_rate_equation(
     metab_names::Tuple{Symbol, Vararg{Symbol}},
     param_names::Tuple{Symbol, Vararg{Symbol}};
     n_iter = 20,
+    maxiter_opt = 50_000,
  )
     train_results = train_rate_equation(
         rate_equation::Function,
@@ -53,6 +54,7 @@ function fit_rate_equation(
         metab_names::Tuple{Symbol, Vararg{Symbol}},
         param_names::Tuple{Symbol, Vararg{Symbol}};
         n_iter = n_iter,
+        maxiter_opt = maxiter_opt,
         nt_param_removal_code = nothing,
     )
     # rescaled_params = param_rescaling(train_results[2], param_names)
