@@ -27,9 +27,6 @@ PKM2_enzyme = (;
     rate_equation_name=:pkm2_rate_equation,
 )
 metab_names, param_names = @derive_general_mwc_rate_eq(PKM2_enzyme)
-# just for debugging:
-#TODO: delete this line
-# param_names = param_names[1:17]
 pkm2_rate_equation_no_Keq(metabs, p) = pkm2_rate_equation(metabs, p, 20000.0)
 
 # metab_names, param_names = @derive_general_mwc_rate_eq(enzyme_parameters)
@@ -42,5 +39,6 @@ selection_result = @time data_driven_rate_equation_selection(pkm2_rate_equation_
   true;
   n_reps_opt=1, # n repeats optimization
   maxiter_opt=30,# n iteration opt algorithm
+  model_selection_method = "cv_denis",
   p_val_threshold =.4
   )

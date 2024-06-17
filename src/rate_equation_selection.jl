@@ -79,14 +79,6 @@ function data_driven_rate_equation_selection(
             enzyme_name
             )
 
-        # test_res = CSV.read("/home/ec2-user/code/DataDrivenEnzymeRateEqs.jl/test/Data_for_tests/pkm2_test_results_df.csv", DataFrame)
-        # train_res = CSV.read("/home/ec2-user/code/DataDrivenEnzymeRateEqs.jl/test/Data_for_tests/pkm2_train_results_df.csv", DataFrame)
-        # test_res.params = [eval(parse(x)) for x in test_res.params]
-        # test_res.nt_param_removal_codes = [eval(parse(x)) for x in test_res.nt_param_removal_codes]
-        # train_res.params = [eval(parse(x)) for x in train_res.params]
-        # train_res.nt_param_removal_codes = [eval(parse(x)) for x in train_res.nt_param_removal_codes]
-        # results = (train_results = train_res, test_results = test_res)
-        
         best_n_params = find_optimal_n_params(results.test_results, p_val_threshold)
         best_subset = get_nt_subset(results.test_results, best_n_params)
         println("Best subset")
@@ -111,11 +103,12 @@ function data_driven_rate_equation_selection(
                 forward_model_selection,
                 n_reps_opt,
                 maxiter_opt,
-                param_subsets_per_n_params,
+                # param_subsets_per_n_params,
                 all_param_removal_codes,
                 dropped_fig
                 ), 
-            figs
+            # figs
+            figs[1:3] #TODO: delete this after debugging
         )
         results = vcat(results_figs_df...)
 
@@ -247,6 +240,7 @@ function fit_rate_equation_selection_denis(
             param_removal_code_names,
             num_alpha_params,
         )
+
         # starting_param_removal_codes = param_subsets_per_n_params[num_param_range[1]]
     
         nt_param_removal_codes = starting_param_removal_codes
@@ -288,7 +282,6 @@ function fit_rate_equation_selection_denis(
                 ),
                 nt_param_removal_codes,
             )
-            print("a")
             #convert results_array to DataFrame
             df_results = DataFrame(results_array)
             df_results.num_params = fill(num_params, nrow(df_results))
@@ -319,7 +312,6 @@ function fit_rate_equation_selection_denis(
                 NamedTuple{param_removal_code_names}(x) for
                 x in values.(df_results.nt_param_removal_codes)
             ]
-            print("b")
             #calculate loocv test loss for top subset for each `num_params`
             best_nt_param_removal_code =
                 df_results.nt_param_removal_codes[argmin(df_results.train_loss)]
@@ -347,7 +339,7 @@ function fit_rate_equation_selection_denis(
             df_results = DataFrame(:num_params => [num_params], :nt_param_removal_codes => [best_nt_param_removal_code])
             df_test_results = vcat(df_test_results, df_results)
         end
-        println("there are ", size(df_test_results)[1], "best models")
+       
         # calculate loocv test loss for top subsets:
         # Prepare the data for pmap
         subsets_to_fit = [(row.nt_param_removal_codes, removed_fig, row.num_params) for row in eachrow(df_test_results) for removed_fig in unique(data.source)]
@@ -375,7 +367,6 @@ function fit_rate_equation_selection_denis(
         end
 
         df_test_results = vcat(result_dfs...)
-        println("size of df_test_results: ", size(df_test_results))
 
         return (train_results = df_train_results, test_results = df_test_results)
     
@@ -393,7 +384,6 @@ function fit_rate_equation_selection_per_fig(
     forward_model_selection::Bool,
     n_repetiotions_opt::Int,
     maxiter_opt::Int,
-    param_subsets_per_n_params,
     all_param_removal_codes,
     test_fig
     )
@@ -416,6 +406,7 @@ function fit_rate_equation_selection_per_fig(
         param_removal_code_names,
         num_alpha_params,
     )
+    starting_param_removal_codes = starting_param_removal_codes[1:100] #TODO: delete it after debugging
 
     nt_param_removal_codes = starting_param_removal_codes
     nt_previous_param_removal_codes = similar(nt_param_removal_codes)
@@ -432,6 +423,8 @@ function fit_rate_equation_selection_per_fig(
                     nt_previous_param_removal_codes,
                     num_alpha_params,
                 )
+                len_nt = length(nt_param_removal_codes)
+                nt_param_removal_codes = nt_param_removal_codes[1:min(len_nt,100)]  #TODO: delete it after debugging
             elseif !forward_model_selection
                 nt_param_removal_codes = reverse_selection_next_param_removal_codes(
                     nt_previous_param_removal_codes,
@@ -482,16 +475,16 @@ function fit_rate_equation_selection_per_fig(
             df_results.nt_param_removal_codes[argmin(df_results.train_loss)]
         best_subset_rescaled_params = df_results.params
 
-        df_results = DataFrame(:num_params => [num_params],
-        :nt_param_removal_codes => [best_nt_param_removal_code],
-        :params => [best_subset_rescaled_params])
+        df_results = DataFrame(:num_params => num_params,
+        :nt_param_removal_codes => best_nt_param_removal_code,
+        :params => best_subset_rescaled_params)
         
         df_test_results = vcat(df_test_results, df_results)
     end
     
     # calculate test loss for top subsets:
     # Prepare the data for pmap
-    subsets_to_test = [(row.params, row.nt_param_removel_codes,row.num_params) for row in eachrow(df_test_results)]
+    subsets_to_test = [(row.params, row.nt_param_removal_codes,row.num_params) for row in eachrow(df_test_results)]
 
     test_results = pmap(
         best_subset_params -> test_rate_equation(
@@ -909,37 +902,6 @@ function param_subset_select(params, param_names, nt_param_removal_code)
     end
     new_params_sorted = [params_dict[param_name] for param_name in param_names]
     return new_params_sorted
-end
-
-"""Generate NamedTuple of codes for ways that params can be removed from the rate equation but still leave `num_params`"""
-function calculate_all_parameter_removal_codes_w_num_params(
-    num_params::Int,
-    all_param_removal_codes,
-    param_names::Tuple{Symbol,Vararg{Symbol}},
-    param_removal_code_names::Tuple{Symbol,Vararg{Symbol}},
-    num_alpha_params::Int,
-)
-    codes_with_num_params = Tuple[]
-    num_non_zero_in_each_code = Int[]
-    for code in all_param_removal_codes
-        sum_non_zero = 0
-        for i = 1:(length(code)-num_alpha_params)
-            if code[i] > 0
-                sum_non_zero += 1
-            end
-        end
-        push!(num_non_zero_in_each_code, sum_non_zero)
-    end
-    num_params_in_each_code =
-        length(param_names) .- num_alpha_params .- num_non_zero_in_each_code
-    for (i, code) in enumerate(all_param_removal_codes)
-        if num_params_in_each_code[i] == num_params
-            push!(codes_with_num_params, code)
-        end
-    end
-    nt_param_removal_codes =
-        [NamedTuple{param_removal_code_names}(x) for x in unique(codes_with_num_params)]
-    return nt_param_removal_codes
 end
 
 """
