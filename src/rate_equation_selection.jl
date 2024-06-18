@@ -72,7 +72,6 @@ function data_driven_rate_equation_selection(
             forward_model_selection,
             n_reps_opt,
             maxiter_opt,
-            # param_subsets_per_n_params,
             all_param_removal_codes, 
             save_train_results, 
             enzyme_name
@@ -102,7 +101,6 @@ function data_driven_rate_equation_selection(
                 forward_model_selection,
                 n_reps_opt,
                 maxiter_opt,
-                # param_subsets_per_n_params,
                 all_param_removal_codes,
                 dropped_fig
                 ), 
@@ -557,7 +555,6 @@ function fit_rate_equation_selection_all_subsets(
         append!(n_params_mapping, fill(n_params, length))
     end
 
-
     results_array = pmap(
         subset_fig_to_fit -> loocv_rate_equation(
             subset_fig_to_fit[2],
@@ -923,7 +920,7 @@ function train_and_choose_best_subset(
         param_removal_code_names,
         num_alpha_params,
     )
-    
+
     results_array = pmap(
         nt_param_removal_code -> train_rate_equation(
             general_rate_equation,
