@@ -2,8 +2,7 @@ module DataDrivenEnzymeRateEqs
 include("mwc_general_rate_equation_derivation.jl")
 include("qssa_general_rate_equation_derivation.jl")
 include("rate_equation_fitting.jl")
-# include("data_driven_rate_equation_selection.jl")
-include("rate_equation_selection.jl")
+include("data_driven_rate_equation_selection.jl")
 include("helper_functions.jl")
 
 export @derive_general_mwc_rate_eq
