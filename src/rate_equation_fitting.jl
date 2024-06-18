@@ -76,8 +76,8 @@ function train_rate_equation(
         [
             i * ones(
                 Int64,
-                count(==(unique(filtered_data.source)[i]), filtered_data.source),
-            ) for i = 1:length(unique(filtered_data.source))
+                count(==(unique(data.source)[i]), data.source),
+            ) for i = 1:length(unique(data.source))
         ]...,
     )
     # Add a column containing indexes of points corresponding to each figure
