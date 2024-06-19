@@ -868,7 +868,7 @@ function forward_selection_next_param_removal_codes(
     nt_previous_param_removal_codes::Vector{T} where T<:NamedTuple,
     num_alpha_params::Int,
 )
-    feasible_param_subset_codes = []
+    feasible_param_subset_codes = Int[]
     param_removal_code_names = keys(nt_previous_param_removal_codes[1])
     next_param_removal_codes = Vector{Vector{Int}}()
     for previous_param_removal_code in nt_previous_param_removal_codes

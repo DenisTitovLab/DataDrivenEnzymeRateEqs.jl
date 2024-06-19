@@ -4,7 +4,7 @@ Pkg.activate(package_path)
 using DataDrivenEnzymeRateEqs, Test
 using CMAEvolutionStrategy, DataFrames, CSV, Statistics
 using BenchmarkTools
-include("rate_equation_selection.jl")
+# include("rate_equation_selection.jl")
 
 file_path = joinpath(package_path, "test/Data_for_tests/PKM2_data.csv")
 data = CSV.read(file_path, DataFrame)
@@ -40,5 +40,5 @@ selection_result = @time data_driven_rate_equation_selection(pkm2_rate_equation_
   n_reps_opt=1, # n repeats optimization
   maxiter_opt=30,# n iteration opt algorithm
   model_selection_method = "cv_denis",
-  p_val_threshold =.4
+  p_val_threshold = .3  # pval threshould for choosing best n params
   )
