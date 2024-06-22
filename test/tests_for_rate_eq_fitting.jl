@@ -104,7 +104,7 @@ end
 data = DataFrame(S=S_concs, P=P_concs, source=sources)
 noise_sd = 0.2
 data.Rate = [test_rate_equation(row, params) * (1 + noise_sd * randn()) for row in eachrow(data)]
-filter!(row -> row.Rate > 0, data)
+filter!(row -> row.Rate != 0, data)
 fit_result = fit_rate_equation(test_rate_equation, data, metab_names, param_names; n_iter=20)
 
 @test isapprox(fit_result.params.K_S, params.K_S, rtol=3 * noise_sd)
