@@ -196,7 +196,8 @@ selection_result = @time data_driven_rate_equation_selection(mwc_derived_rate_eq
 
 #Display best equation with 3 parameters. Compare with data_gen_rate_equation with Vmax=1
 #TODO: remove the filtering for 3 parameters after we add the automatic determination of the best number of parameters
-nt_param_removal_code = filter(x -> x.num_params .== 3, selection_result.test_results).nt_param_removal_codes[1]
+# nt_param_removal_code = filter(x -> x.num_params .== 3, selection_result.test_results).nt_param_removal_codes[1]
+nt_param_removal_code = selection_result.best_subset_row.nt_param_removal_codes[1]
 
 using Symbolics
 selected_sym_rate_equation = display_rate_equation(mwc_derived_rate_equation, metab_names, derived_param_names; nt_param_removal_code=nt_param_removal_code)
@@ -259,7 +260,8 @@ selection_result = @time data_driven_rate_equation_selection(qssa_derived_rate_e
 
 #Display best equation with 3 parameters. Compare with data_gen_rate_equation with Vmax=1
 #TODO: remove the filtering for 3 parameters after we add the automatic determination of the best number of parameters
-nt_param_removal_code = filter(x -> x.num_params .== 3, selection_result.test_results).nt_param_removal_codes[1]
+# nt_param_removal_code = filter(x -> x.num_params .== 3, selection_result.test_results).nt_param_removal_codes[1]
+nt_param_removal_code = selection_result.best_subset_row.nt_param_removal_codes[1]
 
 using Symbolics
 selected_sym_rate_equation = display_rate_equation(qssa_derived_rate_equation, metab_names, derived_param_names; nt_param_removal_code=nt_param_removal_code)
