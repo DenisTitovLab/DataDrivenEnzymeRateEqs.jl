@@ -162,7 +162,7 @@ data_gen_param_names = (:Vmax_a, :K_a_S, :K_a_P)
 metab_names = (:S, :P)
 params = (Vmax=10.0, K_a_S=1e-3, K_a_P=5e-3)
 #create DataFrame of simulated data
-num_datapoints = 10
+num_datapoints = 60
 num_figures = 4
 S_concs = Float64[]
 P_concs = Float64[]
@@ -186,7 +186,6 @@ end
 data = DataFrame(S=S_concs, P=P_concs, source=sources)
 noise_sd = 0.2
 data.Rate = [mwc_data_gen_rate_equation(row, params, data_gen_rate_equation_Keq) * (1 + noise_sd * randn()) for row in eachrow(data)]
-data
 
 enzyme_parameters = (; substrates=[:S,], products=[:P], regulators=[], Keq=1.0, oligomeric_state=1, rate_equation_name=:mwc_derived_rate_equation)
 
@@ -226,7 +225,7 @@ data_gen_param_names = (:Vmax, :K_S, :K_P)
 metab_names = (:S, :P)
 params = (Vmax=10.0, K_S=1e-3, K_P=5e-3)
 #create DataFrame of simulated data
-num_datapoints = 10
+num_datapoints = 60
 num_figures = 4
 S_concs = Float64[]
 P_concs = Float64[]
