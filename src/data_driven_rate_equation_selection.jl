@@ -21,6 +21,7 @@ function prepare_data(data::DataFrame, metab_names)
     return data
 end
 
+#TODO: edit explantions of data_driven_rate_equation_selection
 
 """
     data_driven_rate_equation_selection(
@@ -60,7 +61,7 @@ function data_driven_rate_equation_selection(
     forward_model_selection::Bool;
     n_reps_opt::Int = 20,
     maxiter_opt::Int = 50_000,
-    model_selection_method = "denis",
+    model_selection_method = "current_subsets_filtering",
     p_val_threshold = .4,
     save_train_results::Bool = false,
     enzyme_name::String = "Enzyme",
@@ -86,7 +87,7 @@ function data_driven_rate_equation_selection(
     # param_subsets_per_n_params = calculate_all_parameter_removal_codes(param_names, range_number_params)
     all_param_removal_codes = calculate_all_parameter_removal_codes(param_names)
 
-    if model_selection_method == "denis"
+    if model_selection_method == "current_subsets_filtering"
         results = fit_rate_equation_selection_denis(
             general_rate_equation,
             data,
@@ -113,9 +114,9 @@ function data_driven_rate_equation_selection(
         println(best_subset_row)
 
 
-    elseif model_selection_method == "cv_denis"
+    elseif model_selection_method == "cv_subsets_filtering"
         figs = unique(data.source) 
-        results_figs_df = pmap(
+        results_figs_df = map(
             dropped_fig -> fit_rate_equation_selection_per_fig(
                 general_rate_equation,
                 data,
@@ -167,6 +168,8 @@ function data_driven_rate_equation_selection(
             maxiter_opt
             )
 
+        # TODO: for each figure: keep for each number of parameters only the best model (best training loss across all subsets with same number of parameters)
+        # then, save it to df and this is the one should be sent to find_optimal_n_params.
         best_n_params = find_optimal_n_params(results, p_val_threshold)
 
         best_subset_row = train_and_choose_best_subset(
