@@ -193,6 +193,7 @@ metab_names, derived_param_names = @derive_general_mwc_rate_eq(enzyme_parameters
 mwc_derived_rate_equation_no_Keq(nt_metabs, nt_params) = mwc_derived_rate_equation(nt_metabs, nt_params, enzyme_parameters.Keq)
 selection_result = @time data_driven_rate_equation_selection(mwc_derived_rate_equation_no_Keq, data, metab_names, derived_param_names, (3, 7), true)
 
+
 #Display best equation with 3 parameters. Compare with data_gen_rate_equation with Vmax=1
 #TODO: remove the filtering for 3 parameters after we add the automatic determination of the best number of parameters
 # nt_param_removal_code = filter(x -> x.num_params .== 3, selection_result.test_results).nt_param_removal_codes[1]
@@ -213,6 +214,36 @@ selected_is_original = selected_is_original isa Bool ? selected_is_original : fa
 selected_is_alternative = simplify(alrenative_original_sym_rate_equation - selected_sym_rate_equation) == 0
 selected_is_alternative = selected_is_alternative isa Bool ? selected_is_alternative : false
 @test selected_is_original || selected_is_alternative
+
+# test model_selction_method = "cv_subsets_filtering" also
+selection_result_2 = @time data_driven_rate_equation_selection(
+    mwc_derived_rate_equation_no_Keq, 
+    data, metab_names, 
+    derived_param_names, 
+    (3, 7), 
+    true,
+    model_selection_method = "cv_subsets_filtering"
+    )
+nt_param_removal_code = selection_result_2.best_subset_row.nt_param_removal_codes[1]
+
+using Symbolics
+selected_sym_rate_equation = display_rate_equation(mwc_derived_rate_equation, metab_names, derived_param_names; nt_param_removal_code=nt_param_removal_code)
+original_sym_rate_equation = display_rate_equation(mwc_data_gen_rate_equation, metab_names, data_gen_param_names)
+alrenative_original_sym_rate_equation = display_rate_equation(mwc_alternative_data_gen_rate_equation, metab_names, data_gen_param_names)
+
+println("Selected MWC rate equation:")
+println(simplify(selected_sym_rate_equation))
+println("Original MWC rate equation:")
+println(simplify(original_sym_rate_equation))
+#equation with S*P term and without it is equally likely to be selected as there's no data with S and P present. Hence the OR condition below
+selected_is_original = simplify(original_sym_rate_equation - selected_sym_rate_equation) == 0
+selected_is_original = selected_is_original isa Bool ? selected_is_original : false
+selected_is_alternative = simplify(alrenative_original_sym_rate_equation - selected_sym_rate_equation) == 0
+selected_is_alternative = selected_is_alternative isa Bool ? selected_is_alternative : false
+@test selected_is_original || selected_is_alternative
+
+
+
 
 ##
 #test the ability of `data_driven_rate_equation_selection` to recover the QSSA rate_equation and params used to generated data for an arbitrary enzyme
@@ -277,3 +308,32 @@ selected_is_original = selected_is_original isa Bool ? selected_is_original : fa
 selected_is_alternative = simplify(alrenative_original_sym_rate_equation - selected_sym_rate_equation) == 0
 selected_is_alternative = selected_is_alternative isa Bool ? selected_is_alternative : false
 @test selected_is_original || selected_is_alternative
+
+# test model_selction_method = cv_cubsets_filtering also: 
+selection_result_2 = @time data_driven_rate_equation_selection(
+    qssa_derived_rate_equation_no_Keq,
+     data, 
+     metab_names, 
+     derived_param_names, 
+     (1, 4),
+      true,
+      model_selection_method = "cv_subsets_filtering")
+
+nt_param_removal_code = selection_result_2.best_subset_row.nt_param_removal_codes[1]
+
+using Symbolics
+selected_sym_rate_equation = display_rate_equation(qssa_derived_rate_equation, metab_names, derived_param_names; nt_param_removal_code=nt_param_removal_code)
+original_sym_rate_equation = display_rate_equation(qssa_data_gen_rate_equation, metab_names, data_gen_param_names)
+alrenative_original_sym_rate_equation = display_rate_equation(qssa_alternative_data_gen_rate_equation, metab_names, data_gen_param_names)
+
+println("Selected QSSA rate equation:")
+println(simplify(selected_sym_rate_equation))
+println("Original QSSA rate equation:")
+println(simplify(original_sym_rate_equation))
+#equation with S*P term and without it is equally likely to be selected as there's no data with S and P present. Hence the OR condition below
+selected_is_original = simplify(original_sym_rate_equation - selected_sym_rate_equation) == 0
+selected_is_original = selected_is_original isa Bool ? selected_is_original : false
+selected_is_alternative = simplify(alrenative_original_sym_rate_equation - selected_sym_rate_equation) == 0
+selected_is_alternative = selected_is_alternative isa Bool ? selected_is_alternative : false
+@test selected_is_original || selected_is_alternative
+
