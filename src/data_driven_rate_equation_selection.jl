@@ -115,6 +115,7 @@ function data_driven_rate_equation_selection(
 
 
     elseif model_selection_method == "cv_subsets_filtering"
+        @info "start cv_subsets_filtering"
         figs = unique(data.source) 
         results_figs_df = map(
             dropped_fig -> fit_rate_equation_selection_per_fig(
@@ -132,6 +133,7 @@ function data_driven_rate_equation_selection(
                 ), 
             figs
         )
+        @info "end map cv_subsets_filtering"
         train_results = [res.train_results for res in results_figs_df]
         test_results = [res.test_results for res in results_figs_df]
         combined_train_results = vcat(train_results...)
@@ -157,7 +159,8 @@ function data_driven_rate_equation_selection(
         println(best_subset_row)
 
     elseif model_selection_method == "cv_all_subsets"
-        results =  fit_rate_equation_selection_all_subsets(
+
+        results = fit_rate_equation_selection_all_subsets(
             general_rate_equation,
             data,
             all_param_removal_codes, 
@@ -166,7 +169,7 @@ function data_driven_rate_equation_selection(
             param_removal_code_names,
             n_reps_opt, 
             maxiter_opt
-            )
+        )
 
         # TODO: for each figure: keep for each number of parameters only the best model (best training loss across all subsets with same number of parameters)
         # then, save it to df and this is the one should be sent to find_optimal_n_params.
