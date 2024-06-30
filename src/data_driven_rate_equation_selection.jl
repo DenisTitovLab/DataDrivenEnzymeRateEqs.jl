@@ -65,7 +65,7 @@ function data_driven_rate_equation_selection(
     p_val_threshold = .4,
     save_train_results::Bool = false,
     enzyme_name::String = "Enzyme",
-)
+ )
     
     data = prepare_data(data, metab_names)
     
@@ -190,7 +190,8 @@ function data_driven_rate_equation_selection(
         )
         println("best subset row")
         println(best_subset_row)
-
+    else
+       throw(ArgumentError("Invalid model selection method $(model_selection_method)"))
     end
     @info "before end of data driven rate equation func"
     return (results = results, best_n_params = best_n_params, best_subset_row = best_subset_row)
