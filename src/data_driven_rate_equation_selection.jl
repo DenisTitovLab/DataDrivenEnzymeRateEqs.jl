@@ -464,10 +464,6 @@ function fit_rate_equation_selection_per_fig(
                 NamedTuple{param_removal_code_names}(x) for
                 x in values.(df_results.nt_param_removal_codes)
             ]
-            nt_previous_param_removal_codes = [
-                NamedTuple{param_removal_code_names}(x) for
-                x in values.(df_results.nt_param_removal_codes)
-            ]
             continue
         end
 
