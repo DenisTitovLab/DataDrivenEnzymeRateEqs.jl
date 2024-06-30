@@ -189,7 +189,7 @@ function data_driven_rate_equation_selection(
         println(best_subset_row)
 
     end
-
+    @info "before end of data driven rate equation func"
     return (results = results, best_n_params = best_n_params, best_subset_row = best_subset_row)
 end
 
