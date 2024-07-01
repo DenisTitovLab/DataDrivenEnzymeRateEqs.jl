@@ -21,7 +21,6 @@ function prepare_data(data::DataFrame, metab_names)
     return data
 end
 
-#TODO: edit explantions of data_driven_rate_equation_selection
 
 """
     data_driven_rate_equation_selection(
@@ -31,11 +30,36 @@ end
         param_names::Tuple{Symbol,Vararg{Symbol}},
         range_number_params::Tuple{Int,Int},
         forward_model_selection::Bool;
+        n_reps_opt::Int = 20, 
+        maxiter_opt::Int = 50_000,
+        model_selection_method::String = "current_subsets_filtering",
+        p_val_threshold::Float64 = 0.4,
         save_train_results::Bool = false,
         enzyme_name::String = "Enzyme",
     )
 
-This function is used to perform data-driven rate equation selection using a general rate equation and data. The function will select the best rate equation by iteratively removing parameters from the general rate equation and finding an equation that yield best test scores on data not used for fitting.
+This function is used to perform data-driven rate equation selection using a general rate equation and data. 
+
+There are three model_selection methods:
+
+1. current_subsets_filtering: 
+This method iteratively fits models that are subsets of the top 10% from the previous iteration,
+saving the best model for each n params based on training loss. Optimal number of parameters are selected using 
+the Wilcoxon test on test scores from LOOCV, and the best equation is the best model with this optimal number.
+
+2. cv_subsets_filtering:
+This method implements current_subsets_filtering separately for each figure,
+leaving one figure out as a test set while training on the remaining data.
+For each number of parameters, it saves the test loss of the best subset for that figure.
+It uses the Wilcoxon test across all figures' results to select the optimal number of parameters. 
+Then, for the chosen number, it trains all subset with this n params on the entire dataset and selects the best
+rate equation based on minimal training loss.
+
+3. cv_all_subsets: 
+This method fits all subsets for each figure, using the others as training data and the left-out figure as the test set.
+It selects the best model for each number of parameters and figure based on training error and computes LOOCV test scores. 
+The optimal n params is determined by the Wilcoxon test across all figures' test scores.
+The best equation is the subset with minimal training loss for this optimal n params when trained on the entire dataset.    
 
 # Arguments
 - `general_rate_equation::Function`: Function that takes a NamedTuple of metabolite concentrations (with `metab_names` keys) and parameters (with `param_names` keys) and returns an enzyme rate.
@@ -46,11 +70,18 @@ This function is used to perform data-driven rate equation selection using a gen
 - `forward_model_selection::Bool`: A boolean indicating whether to use forward model selection (true) or reverse model selection (false).
 
 # Keyword Arguments
+- `n_reps_opt`::Int n repetitions of optimization  
+- `maxiter_opt`::Int max iterations of optimization algorithm
+-  model_selection_method::String - which model selection to find best rate equation (default is current_subsets_filtering)
+-  p_val_threshold::Float64 - pval threshold for Wilcoxon test
 - `save_train_results::Bool`: A boolean indicating whether to save the results of the training for each number of parameters as a csv file.
 - `enzyme_name::String`: A string for enzyme name that is used to name the csv files that are saved.
 
-# Returns nothing, but saves a csv file for each `num_params` with the results of the training for each combination of parameters tested and a csv file with test results for top 10% of the best results with each number of parameters tested.
-
+# Returns
+- `NamedTuple`: A named tuple with the following fields:
+  - `results`: df with train and test results
+  - `best_n_params`: optimal number of parameters
+  - `best_subset_row`: row of the best rate equation selected - includes fitted params 
 """
 function data_driven_rate_equation_selection(
     general_rate_equation::Function,
@@ -61,8 +92,8 @@ function data_driven_rate_equation_selection(
     forward_model_selection::Bool;
     n_reps_opt::Int = 20,
     maxiter_opt::Int = 50_000,
-    model_selection_method = "current_subsets_filtering",
-    p_val_threshold = .4,
+    model_selection_method::String = "current_subsets_filtering",
+    p_val_threshold::Float64 = .4,
     save_train_results::Bool = false,
     enzyme_name::String = "Enzyme",
  )
@@ -88,7 +119,7 @@ function data_driven_rate_equation_selection(
     all_param_removal_codes = calculate_all_parameter_removal_codes(param_names)
 
     if model_selection_method == "current_subsets_filtering"
-        results = fit_rate_equation_selection_denis(
+        results = fit_rate_equation_selection_current(
             general_rate_equation,
             data,
             metab_names,
@@ -208,6 +239,24 @@ function get_nt_subset(df, num)
 
 end
 
+"""
+    select_best_n_params(df_results::DataFrame, p_value_threshold::Float64) -> Int
+
+Uses the Wilcoxon test across all figures' results to select the best number of parameters.
+
+# Arguments
+- `df_results::DataFrame`: A DataFrame containing the results with columns including `:num_params` and `:test_loss`.
+- `p_value_threshold::Float64`: The significance threshold for the Wilcoxon test.
+
+# Returns
+- `Int`: The best number of parameters based on the test losses and the Wilcoxon test.
+
+# Description
+1. Groups the DataFrame by the number of parameters and calculates the average test loss for each group.
+2. Identifies the number of parameters with the minimal average test loss.
+3. Iterates through fewer parameters, performing the Wilcoxon signed-rank test to compare test losses with the current best number of parameters.
+4. Stops and returns the last non-significant model's n param if a significant difference is found.
+"""
 function find_optimal_n_params(df_results::DataFrame, p_value_threshold::Float64) :: Int
     # Group by number of parameters and calculate average test loss
     grouped = groupby(df_results, :num_params)
@@ -243,9 +292,11 @@ function find_optimal_n_params(df_results::DataFrame, p_value_threshold::Float64
     return best_n_params
 end
 
-
-
-function fit_rate_equation_selection_denis(
+"""
+This function iteratively fits models that are subsets of the top 10% from the previous iteration (loop over range num params), saving the best model for each
+n params based on training loss, and compute LOOCV test scores for best models.
+"""
+function fit_rate_equation_selection_current(
         general_rate_equation::Function,
         data::DataFrame,
         metab_names::Tuple{Symbol,Vararg{Symbol}},
@@ -383,11 +434,14 @@ function fit_rate_equation_selection_denis(
         df_test_results = vcat(result_dfs...)
 
         return (train_results = df_train_results, test_results = df_test_results)
-    
-
 end
 
-
+"""
+This function takes a given figure, splits it into training data (all other figures) and a test set (the figure itself). 
+It then iteratively fits models that are subsets of the top 10% from the previous iteration (loop over range num params), 
+saving the best model for each number of parameters based on training loss. 
+Finally, it computes LOOCV test scores for the best models.
+"""
 function fit_rate_equation_selection_per_fig(
     general_rate_equation::Function,
     data::DataFrame,
@@ -522,21 +576,13 @@ function fit_rate_equation_selection_per_fig(
     end
 
     df_test_results = vcat(result_dfs...)
-    # df_results =  DataFrame(
-    #     test_loss = test_loss,          
-    #     num_params = num_params,          
-    #     nt_param_removal_code =best_nt_param_removal_code, 
-    #     test_fig =test_fig,
-    #     params = best_subset_rescaled_params           
-    # )
-        
-    # df_test_results = vcat(df_test_results, df_results)
-    
-
     return (train_results = df_train_results, test_results = df_test_results)
 
 end
 
+"""
+This function fits all subsets for each figure, and computes LOOCV test scores for each.
+"""
 function fit_rate_equation_selection_all_subsets(
     general_rate_equation::Function,
     data::DataFrame,
@@ -609,7 +655,6 @@ function fit_rate_equation_selection_all_subsets(
     df_results.nt_param_removal_codes = all_subsets
        
     return (train_test_results = df_results)
-
 end
 
 
@@ -748,9 +793,9 @@ function calculate_all_parameter_removal_codes_w_num_params(
     return nt_param_removal_codes
 end
 
-"""
-Function to convert parameter vector to vector where some params are equal to 0, Inf or each other based on nt_param_removal_code
-"""
+# """
+# Function to convert parameter vector to vector where some params are equal to 0, Inf or each other based on nt_param_removal_code
+# """
 # function param_subset_select_denis(params, param_names, nt_param_removal_code)
 #     @assert length(params) == length(param_names)
 #     params_dict =
@@ -804,6 +849,9 @@ Function to convert parameter vector to vector where some params are equal to 0,
 #     return new_params_sorted
 # end
 
+"""
+Function to convert parameter vector to vector where some params are equal to 0, Inf or each other based on nt_param_removal_code
+"""
 function param_subset_select(params, param_names, nt_param_removal_code)
     @assert length(params) == length(param_names)
     params_dict =
@@ -867,7 +915,6 @@ end
 
 """
 Calculate `nt_param_removal_codes` with `num_params` including non-zero term combinations for codes (excluding alpha terms) in each `nt_previous_param_removal_codes` that has `num_params-1`
-Calculate `nt_param_removal_codes` with `num_params` including non-zero term combinations for codes (excluding alpha terms) in each `nt_previous_param_removal_codes` that has `num_params-1`
 """
 function forward_selection_next_param_removal_codes(
     nt_previous_param_removal_codes::Vector{T} where T<:NamedTuple,
@@ -912,7 +959,6 @@ end
 
 """
 Use `nt_previous_param_removal_codes` to calculate `nt_next_param_removal_codes` that have one additional zero elements except for for elements <= `num_alpha_params` from the end
-Use `nt_previous_param_removal_codes` to calculate `nt_next_param_removal_codes` that have one additional zero elements except for for elements <= `num_alpha_params` from the end
 """
 function reverse_selection_next_param_removal_codes(
     nt_previous_param_removal_codes::Vector{T} where T<:NamedTuple,
@@ -935,7 +981,10 @@ function reverse_selection_next_param_removal_codes(
     return nt_param_removal_codes
 end
 
-
+"""
+This function taked the best number of parameters, trains all possible subsets of these num parameters on the entire dataset, 
+and then chooses the best subset as the one with the minimal training loss.
+"""
 function train_and_choose_best_subset(
     general_rate_equation::Function,
     data::DataFrame,
