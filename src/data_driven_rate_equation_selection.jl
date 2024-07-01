@@ -115,7 +115,6 @@ function data_driven_rate_equation_selection(
 
 
     elseif model_selection_method == "cv_subsets_filtering"
-        @info "start cv_subsets_filtering"
         figs = unique(data.source) 
         results_figs_df = map(
             dropped_fig -> fit_rate_equation_selection_per_fig(
@@ -133,7 +132,6 @@ function data_driven_rate_equation_selection(
                 ), 
             figs
         )
-        @info "end map cv_subsets_filtering"
         train_results = [res.train_results for res in results_figs_df]
         test_results = [res.test_results for res in results_figs_df]
         combined_train_results = vcat(train_results...)
@@ -164,16 +162,22 @@ function data_driven_rate_equation_selection(
             general_rate_equation,
             data,
             all_param_removal_codes, 
-            meta_names,
+            metab_names,
             param_names,
             param_removal_code_names,
             n_reps_opt, 
             maxiter_opt
         )
 
-        # TODO: for each figure: keep for each number of parameters only the best model (best training loss across all subsets with same number of parameters)
-        # then, save it to df and this is the one should be sent to find_optimal_n_params.
-        best_n_params = find_optimal_n_params(results, p_val_threshold)
+        # This code groups results by dropped_fig and num_params, finds the row with the minimum train_loss in each group,
+        # and creates a new DataFrame with dropped_fig, test_loss, and num_params.
+        grouped = groupby(results, [:dropped_fig, :num_params])
+        agg_results = combine(grouped) do subdf
+            idx = argmin(subdf.train_loss)
+            subdf[idx, [:dropped_fig, :test_loss, :num_params]]
+        end
+
+        best_n_params = find_optimal_n_params(agg_results, p_val_threshold)
 
         best_subset_row = train_and_choose_best_subset(
             general_rate_equation, 
@@ -193,7 +197,6 @@ function data_driven_rate_equation_selection(
     else
        throw(ArgumentError("Invalid model selection method $(model_selection_method)"))
     end
-    @info "before end of data driven rate equation func"
     return (results = results, best_n_params = best_n_params, best_subset_row = best_subset_row)
 end
 
@@ -420,8 +423,8 @@ function fit_rate_equation_selection_per_fig(
 
     nt_param_removal_codes = starting_param_removal_codes
     nt_previous_param_removal_codes = similar(nt_param_removal_codes)
-    println("About to start loop with num_params: $num_param_range")
-    
+    println("Leftout figure: $(test_fig), About to start loop with num_params: $num_param_range")
+
     df_train_results = DataFrame()
     df_test_results = DataFrame()
     for num_params in num_param_range
@@ -552,7 +555,7 @@ function fit_rate_equation_selection_all_subsets(
 
     # keep for each number of params: all the subsets with this number
     param_subsets_per_n_params = Dict{Int, Vector{NTuple{len_param_subset, Int}}}()
-    # for x in Iterators.take(all_param_removal_codes, 30000)
+    # for x in Iterators.take(all_param_removal_codes, 500)
     for x in all_param_removal_codes
         n_param = n - num_alpha_params - sum(x[1:end-num_alpha_params] .> 0)
         if !haskey(param_subsets_per_n_params, n_param)
@@ -570,9 +573,8 @@ function fit_rate_equation_selection_all_subsets(
     for (n_params, subsets) in param_subsets_per_n_params
         nt_param_subsets = [
             NamedTuple{param_removal_code_names}(x) for
-            x in unique(param_removal_codes)
+            x in unique(subsets)
         ]
-
         # Create the product for this particular number of parameters
         temp_product = collect(Iterators.product(nt_param_subsets, figs))
         # Append the product to the main list
@@ -978,7 +980,7 @@ function train_and_choose_best_subset(
     # Optinally consider saving results to csv file for long running calculation of cluster
     if save_train_results
         CSV.write(
-            "$(Dates.format(now(),"mmddyy"))_$(enzyme_name)_$(forward_model_selection ? "forward" : "reverse")_model_select_results_$(num_params)_num_params.csv",
+            "$(Dates.format(now(),"mmddyy"))_$(enzyme_name)_training_results_for_all_subsets_with_best_num_params_$(best_n_params).csv",
             df_results,
         )
     end  
