@@ -362,7 +362,6 @@ function calculate_all_parameter_removal_codes_w_num_params(
                     nt_param_removal_code[Symbol("K_" * string(metab))] == 1 for
                     metab in metab_names
                 )]
-                println(one_metab_codes)
                 if all(
                     nt_param_removal_code[param_name] != 2 for
                     param_name in keys(nt_param_removal_code) if
