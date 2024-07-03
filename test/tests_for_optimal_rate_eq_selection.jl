@@ -165,6 +165,7 @@ end
 
 #test calculate_all_parameter_removal_codes_w_num_params
 num_metabolites = rand(4:8)
+metab_names = Tuple(Symbol("Metabolite$(i)") for i = 1:num_metabolites)
 n_alphas = rand(1:4)
 param_names = (
     :L,
@@ -193,6 +194,7 @@ nt_param_subset_codes_w_num_params =
         all_param_removal_codes,
         param_names,
         param_removal_code_names,
+        metab_names,
         n_alphas,
     )
 #ensure that funct_output_param_subset_codes have the correct number of parameters
