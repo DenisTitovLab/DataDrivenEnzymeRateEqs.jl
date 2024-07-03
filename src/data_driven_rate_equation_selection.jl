@@ -26,7 +26,7 @@ This function is used to perform data-driven rate equation selection using a gen
 - `save_train_results::Bool`: A boolean indicating whether to save the results of the training for each number of parameters as a csv file.
 - `enzyme_name::String`: A string for enzyme name that is used to name the csv files that are saved.
 
-# Returns nothing, but saves a csv file for each `num_params` with the results of the training for each combination of parameters tested and a csv file with test results for top 10% of the best results with each number of parameters tested.
+# Returns train_results, test_results and list of practically_unidentifiable_params and optionally saves a csv file for each `num_params` with the results of the training for each combination of parameters tested and a csv file with test results for top 10% of the best results with each number of parameters tested.
 
 """
 function data_driven_rate_equation_selection(
@@ -61,8 +61,13 @@ function data_driven_rate_equation_selection(
         num_param_range = (range_number_params[1]):1:range_number_params[2]
     end
 
-    #calculate starting_param_removal_codes num_param_range[1] parameters
-    all_param_removal_codes = calculate_all_parameter_removal_codes(param_names)
+    #calculate starting_param_removal_codes parameters
+    practically_unidentifiable_params =
+        find_practically_unidentifiable_params(data, param_names)
+    all_param_removal_codes = calculate_all_parameter_removal_codes(
+        param_names,
+        practically_unidentifiable_params,
+    )
     starting_param_removal_codes = calculate_all_parameter_removal_codes_w_num_params(
         num_param_range[1],
         all_param_removal_codes,
@@ -156,7 +161,11 @@ function data_driven_rate_equation_selection(
             fill(best_nt_param_removal_code, nrow(df_results))
         df_test_results = vcat(df_test_results, df_results)
     end
-    return (train_results = df_train_results, test_results = df_test_results)
+    return (
+        train_results = df_train_results,
+        test_results = df_test_results,
+        practically_unidentifiable_params = practically_unidentifiable_params,
+    )
 end
 
 "function to calculate train loss without a figure and test loss on removed figure"
@@ -236,7 +245,10 @@ function test_rate_equation(
 end
 
 """Generate all possibles codes for ways that params can be removed from the rate equation"""
-function calculate_all_parameter_removal_codes(param_names::Tuple{Symbol,Vararg{Symbol}})
+function calculate_all_parameter_removal_codes(
+    param_names::Tuple{Symbol,Vararg{Symbol}},
+    practically_unidentifiable_params::Tuple{Vararg{Symbol}},
+)
     feasible_param_subset_codes = ()
     for param_name in param_names
         if param_name == :L
@@ -254,13 +266,48 @@ function calculate_all_parameter_removal_codes(param_names::Tuple{Symbol,Vararg{
                !startswith(string(param_name), "K_i") &&
                !startswith(string(param_name), "K_a") &&
                length(split(string(param_name), "_")) > 2
-            feasible_param_subset_codes = (feasible_param_subset_codes..., [0, 1, 2])
+            if param_name in practically_unidentifiable_params
+                feasible_param_subset_codes = (feasible_param_subset_codes..., [1])
+            else
+                feasible_param_subset_codes = (feasible_param_subset_codes..., [0, 1, 2])
+            end
         elseif startswith(string(param_name), "alpha")
-            feasible_param_subset_codes = (feasible_param_subset_codes..., [0, 1])
+            if param_name in practically_unidentifiable_params
+                feasible_param_subset_codes = (feasible_param_subset_codes..., [0])
+            else
+                feasible_param_subset_codes = (feasible_param_subset_codes..., [0, 1])
+            end
         end
     end
     # return collect(Iterators.product(feasible_param_subset_codes...))
     return Iterators.product(feasible_param_subset_codes...)
+end
+
+"""Find parameters that cannot be identified based on data and they are in front of products of metabolites concentrations that are always zero as these combinations of metabolites are absent in the data."""
+function find_practically_unidentifiable_params(
+    data::DataFrame,
+    param_names::Tuple{Symbol,Vararg{Symbol}},
+)
+    practically_unidentifiable_params = []
+    for param_name in param_names
+        if startswith(string(param_name), "K_") &&
+           !startswith(string(param_name), "K_i") &&
+           !startswith(string(param_name), "K_a") &&
+           length(split(string(param_name), "_")) > 3
+            if all([
+                prod(row) == 0 for
+                row in eachrow(data[:, Symbol.(split(string(param_name), "_")[2:end])])
+            ])
+                push!(practically_unidentifiable_params, param_name)
+            end
+        elseif startswith(string(param_name), "alpha_")
+            metabs_in_param_name = Symbol.(split(string(param_name), "_")[2:3])
+            if all([prod(row) == 0 for row in eachrow(data[:, metabs_in_param_name])])
+                push!(practically_unidentifiable_params, param_name)
+            end
+        end
+    end
+    return Tuple(practically_unidentifiable_params)
 end
 
 """Generate NamedTuple of codes for ways that params can be removed from the rate equation but still leave `num_params`"""
@@ -300,7 +347,7 @@ Function to convert parameter vector to vector where some params are equal to 0,
 function param_subset_select(
     params,
     param_names::Tuple{Symbol,Vararg{Symbol}},
-    nt_param_removal_code::T where T<:NamedTuple,
+    nt_param_removal_code::T where {T<:NamedTuple},
 )
     @assert length(params) == length(param_names)
     params_dict =
@@ -358,7 +405,7 @@ end
 Calculate `nt_param_removal_codes` with `num_params` including non-zero term combinations for codes (excluding alpha terms) in each `nt_previous_param_removal_codes` that has `num_params-1`
 """
 function forward_selection_next_param_removal_codes(
-    nt_previous_param_removal_codes::Vector{T} where T<:NamedTuple,
+    nt_previous_param_removal_codes::Vector{T} where {T<:NamedTuple},
     num_alpha_params::Int,
 )
     param_removal_code_names = keys(nt_previous_param_removal_codes[1])
@@ -399,7 +446,7 @@ end
 Use `nt_previous_param_removal_codes` to calculate `nt_next_param_removal_codes` that have one additional zero elements except for for elements <= `num_alpha_params` from the end
 """
 function reverse_selection_next_param_removal_codes(
-    nt_previous_param_removal_codes::Vector{T} where T<:NamedTuple,
+    nt_previous_param_removal_codes::Vector{T} where {T<:NamedTuple},
     num_alpha_params::Int,
 )
     param_removal_code_names = keys(nt_previous_param_removal_codes[1])
