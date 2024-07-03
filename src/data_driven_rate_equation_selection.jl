@@ -75,6 +75,11 @@ function data_driven_rate_equation_selection(
         param_removal_code_names,
         num_alpha_params,
     )
+    if isempty(starting_param_removal_codes)
+        @error "Equations for this enzymes with $(num_param_range[1]) parameters do not exist. One reason could be that some parameters are unidentifiable based on the data so upper bound of range_number_params should be reduced. Check number of practically_unidentifiable_params with find_practically_unidentifiable_params(data, param_names)."
+        return
+    end
+
 
     nt_param_removal_codes = starting_param_removal_codes
     nt_previous_param_removal_codes = similar(nt_param_removal_codes)
