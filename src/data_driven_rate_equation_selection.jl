@@ -51,7 +51,7 @@ function data_driven_rate_equation_selection(
     param_removal_code_names = (
         [
             Symbol(replace(string(param_name), "_a_" => "_allo_", "Vmax_a" => "Vmax_allo")) for param_name in param_names if
-            !contains(string(param_name), "_i") && param_name != :Vmax
+            !contains(string(param_name), "_i") && param_name != :Vmax && param_name != :L
         ]...,
     )
 
@@ -286,9 +286,7 @@ function calculate_all_parameter_removal_codes(
 )
     feasible_param_subset_codes = ()
     for param_name in param_names
-        if param_name == :L
-            feasible_param_subset_codes = (feasible_param_subset_codes..., [0, 1])
-        elseif startswith(string(param_name), "Vmax_a")
+        if startswith(string(param_name), "Vmax_a")
             feasible_param_subset_codes = (feasible_param_subset_codes..., [0, 1, 2])
         elseif startswith(string(param_name), "K_a")
             feasible_param_subset_codes = (feasible_param_subset_codes..., [0, 1, 2, 3])
@@ -409,9 +407,7 @@ function param_subset_select(
         Dict(param_name => params[i] for (i, param_name) in enumerate(param_names))
 
     for param_choice in keys(nt_param_removal_code)
-        if startswith(string(param_choice), "L") && nt_param_removal_code[param_choice] == 1
-            params_dict[:L] = 0.0
-        elseif startswith(string(param_choice), "Vmax_allo") &&
+        if startswith(string(param_choice), "Vmax_allo") &&
                nt_param_removal_code[param_choice] == 1
             params_dict[:Vmax_i] = params_dict[:Vmax_a]
         elseif startswith(string(param_choice), "Vmax_allo") &&
@@ -471,9 +467,7 @@ function forward_selection_next_param_removal_codes(
         i_cut_off = length(previous_param_removal_code) - num_alpha_params
         for (i, code_element) in enumerate(previous_param_removal_code)
             if i <= i_cut_off && code_element == 0
-                if param_removal_code_names[i] == :L
-                    feasible_param_subset_codes = [1]
-                elseif startswith(string(param_removal_code_names[i]), "Vmax_allo")
+                if startswith(string(param_removal_code_names[i]), "Vmax_allo")
                     feasible_param_subset_codes = [1, 2]
                 elseif startswith(string(param_removal_code_names[i]), "K_allo")
                     feasible_param_subset_codes = [1, 2, 3]

@@ -27,7 +27,7 @@ param_removal_code_names = (
     [
         Symbol(replace(string(param_name), "_a_" => "_allo_", "Vmax_a" => "Vmax_allo"))
         for param_name in param_names if
-        !contains(string(param_name), "_i") && param_name != :Vmax
+        !contains(string(param_name), "_i") && param_name != :Vmax && param_name != :L
     ]...,
 )
 all_param_removal_codes =
@@ -62,9 +62,7 @@ funct_output_param_subset_codes = [values(nt) for nt in nt_funct_output_param_su
 count_matches = []
 non_zero_code_combos_per_param = ()
 for param_name in param_names
-    if param_name == :L
-        global non_zero_code_combos_per_param = (non_zero_code_combos_per_param..., 1)
-    elseif occursin("Vmax_a", string(param_name))
+    if occursin("Vmax_a", string(param_name))
         global non_zero_code_combos_per_param = (non_zero_code_combos_per_param..., 2)
     elseif occursin("K_a", string(param_name))
         global non_zero_code_combos_per_param = (non_zero_code_combos_per_param..., 3)
@@ -112,7 +110,7 @@ param_removal_code_names = (
     [
         Symbol(replace(string(param_name), "_a_" => "_allo_")) for
         param_name in param_names if
-        !contains(string(param_name), "_i") && param_name != :Vmax
+        !contains(string(param_name), "_i") && param_name != :Vmax && param_name != :L
     ]...,
 )
 all_param_removal_codes =
@@ -145,9 +143,7 @@ funct_output_param_subset_codes = [values(nt) for nt in nt_funct_output_param_su
 count_matches = []
 non_zero_code_combos_per_param = ()
 for param_name in param_names
-    if param_name == :L
-        global non_zero_code_combos_per_param = (non_zero_code_combos_per_param..., 1)
-    elseif occursin("Vmax_a", string(param_name))
+    if occursin("Vmax_a", string(param_name))
         global non_zero_code_combos_per_param = (non_zero_code_combos_per_param..., 2)
     elseif occursin("K_a", string(param_name))
         global non_zero_code_combos_per_param = (non_zero_code_combos_per_param..., 3)
@@ -188,7 +184,7 @@ param_removal_code_names = (
     [
         Symbol(replace(string(param_name), "_a_" => "_allo_")) for
         param_name in param_names if
-        !contains(string(param_name), "_i") && param_name != :Vmax
+        !contains(string(param_name), "_i") && param_name != :Vmax && param_name != :L
     ]...,
 )
 all_param_removal_codes =
