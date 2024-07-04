@@ -50,16 +50,22 @@ function data_driven_rate_equation_selection(
     #(e.g. K_a_Metabolite1 and K_i_Metabolite1 into K_allo_Metabolite1)
     param_removal_code_names = (
         [
-            Symbol(replace(string(param_name), "_a_" => "_allo_", "Vmax_a" => "Vmax_allo")) for param_name in param_names if
-            !contains(string(param_name), "_i") && param_name != :Vmax && param_name != :L
+            Symbol(replace(string(param_name), "_a_" => "_allo_", "Vmax_a" => "Vmax_allo")) for param_name in param_names if !contains(string(param_name), "_i") &&
+            param_name != :Vmax &&
+            param_name != :L
         ]...,
     )
 
     num_alpha_params = count(occursin.("alpha", string.([param_names...])))
 
     if isnothing(range_number_params)
-        range_number_params =
-            (length(metab_names) + 1, length(param_names) - num_alpha_params)
+        if :L in param_names
+            range_number_params =
+                (length(metab_names) + 2, length(param_names) - num_alpha_params)
+        else
+            range_number_params =
+                (length(metab_names) + 1, length(param_names) - num_alpha_params)
+        end
     end
 
     if forward_model_selection
@@ -82,7 +88,7 @@ function data_driven_rate_equation_selection(
         param_removal_code_names,
         metab_names,
         num_alpha_params,
-        max_zero_alpha
+        max_zero_alpha,
     )
 
     while isempty(starting_param_removal_codes)
@@ -103,7 +109,7 @@ function data_driven_rate_equation_selection(
                 param_removal_code_names,
                 metab_names,
                 num_alpha_params,
-                max_zero_alpha
+                max_zero_alpha,
             )
     end
 
@@ -122,14 +128,14 @@ function data_driven_rate_equation_selection(
                     nt_previous_param_removal_codes,
                     metab_names,
                     num_alpha_params,
-                    max_zero_alpha
+                    max_zero_alpha,
                 )
             elseif !forward_model_selection
                 nt_param_removal_codes = reverse_selection_next_param_removal_codes(
                     nt_previous_param_removal_codes,
                     metab_names,
                     num_alpha_params,
-                    max_zero_alpha
+                    max_zero_alpha,
                 )
             end
         end
@@ -408,7 +414,7 @@ function param_subset_select(
 
     for param_choice in keys(nt_param_removal_code)
         if startswith(string(param_choice), "Vmax_allo") &&
-               nt_param_removal_code[param_choice] == 1
+           nt_param_removal_code[param_choice] == 1
             params_dict[:Vmax_i] = params_dict[:Vmax_a]
         elseif startswith(string(param_choice), "Vmax_allo") &&
                nt_param_removal_code[param_choice] == 2
@@ -601,7 +607,7 @@ function filter_param_removal_codes_for_max_zero_alpha(
     else
         filtered_nt_param_removal_codes = NamedTuple[]
         for nt_param_removal_code in nt_param_removal_codes
-            if sum([nt_param_removal_code[key] for key in alpha_keys]) <= max_zero_alpha
+            if sum([nt_param_removal_code[key] == 0 for key in alpha_keys]) <= max_zero_alpha
                 push!(filtered_nt_param_removal_codes, nt_param_removal_code)
             end
         end
