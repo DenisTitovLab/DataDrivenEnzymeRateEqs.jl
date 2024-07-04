@@ -95,11 +95,13 @@ function data_driven_rate_equation_selection(
             if forward_model_selection
                 nt_param_removal_codes = forward_selection_next_param_removal_codes(
                     nt_previous_param_removal_codes,
+                    metab_names,
                     num_alpha_params,
                 )
             elseif !forward_model_selection
                 nt_param_removal_codes = reverse_selection_next_param_removal_codes(
                     nt_previous_param_removal_codes,
+                    metab_names,
                     num_alpha_params,
                 )
             end
@@ -345,33 +347,11 @@ function calculate_all_parameter_removal_codes_w_num_params(
     end
     nt_param_removal_codes =
         [NamedTuple{param_removal_code_names}(x) for x in unique(codes_with_num_params)]
-
-    # ensure that if K_S1 = Inf then all K_S1_S2 and all other K containing S1 in qssa cannot be 2, which stands for (K_S1_S2)^2 = K_S1 * K_S2
-    if any([occursin("allo", string(key)) for key in keys(nt_param_removal_codes[1])])
-        filtered_nt_param_removal_codes = nt_param_removal_codes
-    else
-        filtered_nt_param_removal_codes = NamedTuple[]
-        for nt_param_removal_code in nt_param_removal_codes
-            if all(
-                nt_param_removal_code[Symbol("K_" * string(metab))] != 1 for
-                metab in metab_names
-            )
-                push!(filtered_nt_param_removal_codes, nt_param_removal_code)
-            else
-                one_metab_codes = metab_names[findall(
-                    nt_param_removal_code[Symbol("K_" * string(metab))] == 1 for
-                    metab in metab_names
-                )]
-                if all(
-                    nt_param_removal_code[param_name] != 2 for
-                    param_name in keys(nt_param_removal_code) if
-                    any(occursin.(string.(one_metab_codes), string(param_name)))
-                )
-                    push!(filtered_nt_param_removal_codes, nt_param_removal_code)
-                end
-            end
-        end
-    end
+    filtered_nt_param_removal_codes =
+        filter_param_removal_codes_to_prevent_wrong_param_combos(
+            nt_param_removal_codes,
+            metab_names,
+        )
     return filtered_nt_param_removal_codes
 end
 
@@ -440,6 +420,7 @@ Calculate `nt_param_removal_codes` with `num_params` including non-zero term com
 """
 function forward_selection_next_param_removal_codes(
     nt_previous_param_removal_codes::Vector{T} where {T<:NamedTuple},
+    metab_names::Tuple{Symbol,Vararg{Symbol}},
     num_alpha_params::Int,
 )
     param_removal_code_names = keys(nt_previous_param_removal_codes[1])
@@ -473,7 +454,12 @@ function forward_selection_next_param_removal_codes(
     end
     nt_param_removal_codes =
         [NamedTuple{param_removal_code_names}(x) for x in unique(next_param_removal_codes)]
-    return nt_param_removal_codes
+    filtered_nt_param_removal_codes =
+        filter_param_removal_codes_to_prevent_wrong_param_combos(
+            nt_param_removal_codes,
+            metab_names,
+        )
+    return filtered_nt_param_removal_codes
 end
 
 """
@@ -481,6 +467,7 @@ Use `nt_previous_param_removal_codes` to calculate `nt_next_param_removal_codes`
 """
 function reverse_selection_next_param_removal_codes(
     nt_previous_param_removal_codes::Vector{T} where {T<:NamedTuple},
+    metab_names::Tuple{Symbol,Vararg{Symbol}},
     num_alpha_params::Int,
 )
     param_removal_code_names = keys(nt_previous_param_removal_codes[1])
@@ -497,5 +484,44 @@ function reverse_selection_next_param_removal_codes(
     end
     nt_param_removal_codes =
         [NamedTuple{param_removal_code_names}(x) for x in unique(next_param_removal_codes)]
-    return nt_param_removal_codes
+    filtered_nt_param_removal_codes =
+        filter_param_removal_codes_to_prevent_wrong_param_combos(
+            nt_param_removal_codes,
+            metab_names,
+        )
+    return filtered_nt_param_removal_codes
+end
+
+"""Filter removal codes to ensure that if K_S1 = Inf then all K_S1_S2 and all other K containing S1 in qssa cannot be 2, which stands for (K_S1_S2)^2 = K_S1 * K_S2"""
+function filter_param_removal_codes_to_prevent_wrong_param_combos(
+    nt_param_removal_codes,
+    metab_names::Tuple{Symbol,Vararg{Symbol}}
+)
+    # ensure that if K_S1 = Inf then all K_S1_S2 and all other K containing S1 in qssa cannot be 2, which stands for (K_S1_S2)^2 = K_S1 * K_S2
+    if any([occursin("allo", string(key)) for key in keys(nt_param_removal_codes[1])])
+        filtered_nt_param_removal_codes = nt_param_removal_codes
+    else
+        filtered_nt_param_removal_codes = NamedTuple[]
+        for nt_param_removal_code in nt_param_removal_codes
+            if all(
+                nt_param_removal_code[Symbol("K_" * string(metab))] != 1 for
+                metab in metab_names
+            )
+                push!(filtered_nt_param_removal_codes, nt_param_removal_code)
+            else
+                one_metab_codes = metab_names[findall(
+                    nt_param_removal_code[Symbol("K_" * string(metab))] == 1 for
+                    metab in metab_names
+                )]
+                if all(
+                    nt_param_removal_code[param_name] != 2 for
+                    param_name in keys(nt_param_removal_code) if
+                    any(occursin.(string.(one_metab_codes), string(param_name)))
+                )
+                    push!(filtered_nt_param_removal_codes, nt_param_removal_code)
+                end
+            end
+        end
+    end
+    return filtered_nt_param_removal_codes
 end

@@ -10,6 +10,7 @@ using BenchmarkTools
 
 #test forward_selection_next_param_removal_codes
 num_metabolites = rand(4:8)
+metab_names = Tuple(Symbol("Metabolite$(i)") for i = 1:num_metabolites)
 n_alphas = rand(1:4)
 num_previous_step_params = rand((2+num_metabolites):(3+2*num_metabolites))
 num_params = num_previous_step_params - 1
@@ -44,6 +45,7 @@ param_removal_code_names
 nt_funct_output_param_subset_codes =
     DataDrivenEnzymeRateEqs.forward_selection_next_param_removal_codes(
         nt_previous_param_removal_codes,
+        metab_names,
         n_alphas,
     )
 funct_output_param_subset_codes = [values(nt) for nt in nt_funct_output_param_subset_codes]
@@ -91,6 +93,7 @@ end
 
 #test reverse_selection_next_param_removal_codes
 num_metabolites = rand(4:8)
+metab_names = Tuple(Symbol("Metabolite$(i)") for i = 1:num_metabolites)
 n_alphas = rand(1:4)
 num_previous_step_params = rand((2+num_metabolites):(3+2*num_metabolites))
 num_params = num_previous_step_params + 1
@@ -123,6 +126,7 @@ nt_previous_param_removal_codes =
 nt_funct_output_param_subset_codes =
     DataDrivenEnzymeRateEqs.reverse_selection_next_param_removal_codes(
         nt_previous_param_removal_codes,
+        metab_names,
         n_alphas,
     )
 funct_output_param_subset_codes = [values(nt) for nt in nt_funct_output_param_subset_codes]
@@ -229,25 +233,59 @@ unidentifiable_params =
         :alpha_ATP_Phenylalanine,
     ) for unidentifiable_param in unidentifiable_params
 )
+
+#test filter_param_removal_codes_to_prevent_wrong_param_combos
+nt_param_removal_codes = [
+    NamedTuple{(:Vmax, :K_S1, :K_S2, :K_S1_S2)}(combo) for
+    combo in Iterators.product([[0, 1], [0, 1], [0, 1], [0, 1, 2]]...)
+]
+metab_names = (:S1, :S2)
+filtered_nt =
+    DataDrivenEnzymeRateEqs.filter_param_removal_codes_to_prevent_wrong_param_combos(
+        nt_param_removal_codes,
+        metab_names,
+    )
+correct_answer = [
+    (Vmax = 0, K_S1 = 0, K_S2 = 0, K_S1_S2 = 0)
+    (Vmax = 1, K_S1 = 0, K_S2 = 0, K_S1_S2 = 0)
+    (Vmax = 0, K_S1 = 1, K_S2 = 0, K_S1_S2 = 0)
+    (Vmax = 1, K_S1 = 1, K_S2 = 0, K_S1_S2 = 0)
+    (Vmax = 0, K_S1 = 0, K_S2 = 1, K_S1_S2 = 0)
+    (Vmax = 1, K_S1 = 0, K_S2 = 1, K_S1_S2 = 0)
+    (Vmax = 0, K_S1 = 1, K_S2 = 1, K_S1_S2 = 0)
+    (Vmax = 1, K_S1 = 1, K_S2 = 1, K_S1_S2 = 0)
+    (Vmax = 0, K_S1 = 0, K_S2 = 0, K_S1_S2 = 1)
+    (Vmax = 1, K_S1 = 0, K_S2 = 0, K_S1_S2 = 1)
+    (Vmax = 0, K_S1 = 1, K_S2 = 0, K_S1_S2 = 1)
+    (Vmax = 1, K_S1 = 1, K_S2 = 0, K_S1_S2 = 1)
+    (Vmax = 0, K_S1 = 0, K_S2 = 1, K_S1_S2 = 1)
+    (Vmax = 1, K_S1 = 0, K_S2 = 1, K_S1_S2 = 1)
+    (Vmax = 0, K_S1 = 1, K_S2 = 1, K_S1_S2 = 1)
+    (Vmax = 1, K_S1 = 1, K_S2 = 1, K_S1_S2 = 1)
+    (Vmax = 0, K_S1 = 0, K_S2 = 0, K_S1_S2 = 2)
+    (Vmax = 1, K_S1 = 0, K_S2 = 0, K_S1_S2 = 2)
+]
+@test filtered_nt == correct_answer
+
+
 #Load and process data
 LDH_data_for_fit = CSV.read(joinpath(@__DIR__, "Data_for_tests/LDH_data.csv"), DataFrame)
 #Add source column that uniquely identifies a figure from publication
 LDH_data_for_fit.source = LDH_data_for_fit.Article .* "_" .* LDH_data_for_fit.Fig
 data = LDH_data_for_fit
 LDH_enzyme = (;
-    substrates=[:Pyruvate, :NADH],
-    products=[:Lactate, :NAD],
-    regulators=[],
-    Keq=20_000.0,
-    rate_equation_name=:ldh_rate_equation,
+    substrates = [:Pyruvate, :NADH],
+    products = [:Lactate, :NAD],
+    regulators = [],
+    Keq = 20_000.0,
+    rate_equation_name = :ldh_rate_equation,
 )
 metab_names, param_names = @derive_general_qssa_rate_eq(LDH_enzyme)
 unidentifiable_params =
     DataDrivenEnzymeRateEqs.find_practically_unidentifiable_params(data, param_names)
 @test all(
-    unidentifiable_param ∈ (
-        :K_Pyruvate_NADH_Lactate_NAD,
-    ) for unidentifiable_param in unidentifiable_params
+    unidentifiable_param ∈ (:K_Pyruvate_NADH_Lactate_NAD,) for
+    unidentifiable_param in unidentifiable_params
 )
 
 
