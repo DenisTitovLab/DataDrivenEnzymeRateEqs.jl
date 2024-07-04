@@ -68,7 +68,7 @@ metab_names, param_names = @derive_general_mwc_rate_eq(enzyme_parameters)
 
 #Find the best rate equation
 mwc_derived_rate_equation_no_Keq(nt_metabs, nt_params) = mwc_derived_rate_equation(nt_metabs, nt_params, enzyme_parameters.Keq)
-selection_result = @time data_driven_rate_equation_selection(mwc_derived_rate_equation_no_Keq, data, metab_names, param_names, (3, 7), true)
+selection_result = @time data_driven_rate_equation_selection(mwc_derived_rate_equation_no_Keq, data, metab_names, param_names)
 
 #Display best equation with 3 parameters. Compare sym_rate_equation with data_gen_rate_equation with Vmax=1
 nt_param_removal_code = filter(x -> x.num_params .== 3, selection_result.test_results).nt_param_removal_codes[1]
