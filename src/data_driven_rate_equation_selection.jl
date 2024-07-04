@@ -388,16 +388,16 @@ function calculate_all_parameter_removal_codes_w_num_params(
                 metab_names,
             )
     end
-    if isempty(filtered_nt_param_removal_codes)
-        filtered_nt_param_removal_codes_w_max_zero_alpha = NamedTuple[]
+    if isempty(nt_param_removal_codes)
+        filtered_nt_param_removal_codes = NamedTuple[]
     else
-        filtered_nt_param_removal_codes_w_max_zero_alpha =
+        filtered_nt_param_removal_codes =
             filter_param_removal_codes_for_max_zero_alpha(
                 nt_param_removal_codes,
                 max_zero_alpha,
             )
     end
-    return filtered_nt_param_removal_codes_w_max_zero_alpha
+    return filtered_nt_param_removal_codes
 end
 
 """
@@ -505,16 +505,16 @@ function forward_selection_next_param_removal_codes(
                 metab_names,
             )
     end
-    if isempty(filtered_nt_param_removal_codes)
-        filtered_nt_param_removal_codes_w_max_zero_alpha = NamedTuple[]
+    if isempty(nt_param_removal_codes)
+        filtered_nt_param_removal_codes = NamedTuple[]
     else
-        filtered_nt_param_removal_codes_w_max_zero_alpha =
+        filtered_nt_param_removal_codes =
             filter_param_removal_codes_for_max_zero_alpha(
                 nt_param_removal_codes,
                 max_zero_alpha,
             )
     end
-    return filtered_nt_param_removal_codes_w_max_zero_alpha
+    return filtered_nt_param_removal_codes
 end
 
 """
@@ -549,16 +549,16 @@ function reverse_selection_next_param_removal_codes(
                 metab_names,
             )
     end
-    if isempty(filtered_nt_param_removal_codes)
-        filtered_nt_param_removal_codes_w_max_zero_alpha = NamedTuple[]
+    if isempty(nt_param_removal_codes)
+        filtered_nt_param_removal_codes = NamedTuple[]
     else
-        filtered_nt_param_removal_codes_w_max_zero_alpha =
+        filtered_nt_param_removal_codes =
             filter_param_removal_codes_for_max_zero_alpha(
                 nt_param_removal_codes,
                 max_zero_alpha,
             )
     end
-    return filtered_nt_param_removal_codes_w_max_zero_alpha
+    return filtered_nt_param_removal_codes
 end
 
 """Filter removal codes to ensure that if K_S1 = Inf then all K_S1_S2 and all other K containing S1 in qssa cannot be 2, which stands for (K_S1_S2)^2 = K_S1 * K_S2"""

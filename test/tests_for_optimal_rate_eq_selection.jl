@@ -393,8 +393,6 @@ selected_sym_rate_equation = display_rate_equation(
     derived_param_names;
     nt_param_removal_code = nt_param_removal_code,
 )
-simplify(selected_sym_rate_equation- original_sym_rate_equation, simplify_fractions=false)
-selected_sym_rate_equation - original_sym_rate_equation
 original_sym_rate_equation =
     display_rate_equation(mwc_data_gen_rate_equation, metab_names, data_gen_param_names)
 alrenative_original_sym_rate_equation = display_rate_equation(
