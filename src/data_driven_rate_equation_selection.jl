@@ -80,8 +80,8 @@ function data_driven_rate_equation_selection(
     while isempty(starting_param_removal_codes)
         num_param_range = ifelse(
             forward_model_selection,
-            (num_param_range[1] - 1, num_param_range[end]),
-            (num_param_range[1] + 1, num_param_range[end])
+            (num_param_range[1] - 1:-1:num_param_range[end]),
+            (num_param_range[1] + 1:+1:num_param_range[end])
         )
         if num_param_range[1] == num_param_range[end]
             @error "Could not find any fesible equations for this enzyme within range_number_params"
