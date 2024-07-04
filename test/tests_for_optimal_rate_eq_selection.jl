@@ -355,8 +355,6 @@ selection_result = @time data_driven_rate_equation_selection(
     data,
     metab_names,
     derived_param_names,
-    (3, 7),
-    true,
 )
 
 #Display best equation with 3 parameters. Compare with data_gen_rate_equation with Vmax=1
@@ -456,8 +454,6 @@ selection_result = @time data_driven_rate_equation_selection(
     data,
     metab_names,
     derived_param_names,
-    (1, 4),
-    true,
 )
 
 #Display best equation with 3 parameters. Compare with data_gen_rate_equation with Vmax=1
