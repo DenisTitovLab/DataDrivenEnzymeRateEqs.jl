@@ -12,6 +12,7 @@ using BenchmarkTools
 num_metabolites = rand(4:8)
 metab_names = Tuple(Symbol("Metabolite$(i)") for i = 1:num_metabolites)
 n_alphas = rand(1:4)
+max_zero_alpha = 1 + ceil(Int, length(metab_names) / 2)
 num_previous_step_params = rand((2+num_metabolites):(3+2*num_metabolites))
 num_params = num_previous_step_params - 1
 param_names = (
@@ -47,6 +48,7 @@ nt_funct_output_param_subset_codes =
         nt_previous_param_removal_codes,
         metab_names,
         n_alphas,
+        max_zero_alpha,
     )
 funct_output_param_subset_codes = [values(nt) for nt in nt_funct_output_param_subset_codes]
 #ensure that funct_output_param_subset_codes have one less parameter than previous_param_removal_codes
@@ -95,6 +97,7 @@ end
 num_metabolites = rand(4:8)
 metab_names = Tuple(Symbol("Metabolite$(i)") for i = 1:num_metabolites)
 n_alphas = rand(1:4)
+max_zero_alpha = 1 + ceil(Int, length(metab_names) / 2)
 num_previous_step_params = rand((2+num_metabolites):(3+2*num_metabolites))
 num_params = num_previous_step_params + 1
 param_names = (
@@ -128,6 +131,7 @@ nt_funct_output_param_subset_codes =
         nt_previous_param_removal_codes,
         metab_names,
         n_alphas,
+        max_zero_alpha,
     )
 funct_output_param_subset_codes = [values(nt) for nt in nt_funct_output_param_subset_codes]
 #ensure that funct_output_param_subset_codes have one more parameter than nt_previous_param_removal_codes
@@ -171,6 +175,7 @@ end
 num_metabolites = rand(4:8)
 metab_names = Tuple(Symbol("Metabolite$(i)") for i = 1:num_metabolites)
 n_alphas = rand(1:4)
+max_zero_alpha = 1 + ceil(Int, length(metab_names) / 2)
 param_names = (
     :L,
     :Vmax_a,
@@ -200,6 +205,7 @@ nt_param_subset_codes_w_num_params =
         param_removal_code_names,
         metab_names,
         n_alphas,
+        max_zero_alpha
     )
 #ensure that funct_output_param_subset_codes have the correct number of parameters
 @test all(

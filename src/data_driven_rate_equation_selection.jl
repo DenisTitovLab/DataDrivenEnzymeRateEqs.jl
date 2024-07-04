@@ -7,7 +7,8 @@ using Dates, CSV, DataFrames, Distributed
         metab_names::Tuple{Symbol,Vararg{Symbol}},
         param_names::Tuple{Symbol,Vararg{Symbol}};
         range_number_params::Union{Nothing, Tuple{Int,Int}} = nothing,
-        forward_model_selection::Bool = true;
+        forward_model_selection::Bool = true,
+        max_zero_alpha::Int = 1 + ceil(Int, length(metab_names) / 2),
         save_train_results::Bool = false,
         enzyme_name::String = "Enzyme",
     )
@@ -19,10 +20,13 @@ This function is used to perform data-driven rate equation selection using a gen
 - `data::DataFrame`: DataFrame containing the data with column `Rate` and columns for each `metab_names` where each row is one measurement. It also needs to have a column `source` that contains a string that identifies the source of the data. This is used to calculate the weights for each figure in the publication.
 - `metab_names::Tuple`: Tuple of metabolite names that correspond to the metabolites of `rate_equation` and column names in `data`.
 - `param_names::Tuple`: Tuple of parameter names that correspond to the parameters of `rate_equation`.
-- `range_number_params::Tuple{Int,Int}`: A tuple of integers representing the range of the number of parameters of general_rate_equation to search over.
-- `forward_model_selection::Bool`: A boolean indicating whether to use forward model selection (true) or reverse model selection (false).
 
 # Keyword Arguments
+- `save_train_results::Bool`: A boolean indicating whether to save the results of the training for each number of parameters as a csv file.
+- `enzyme_name::String`: A string for enzyme name that is used to name the csv files that are saved.
+- `range_number_params::Tuple{Int,Int}`: A tuple of integers representing the range of the number of parameters of general_rate_equation to search over.
+- `forward_model_selection::Bool`: A boolean indicating whether to use forward model selection (true) or reverse model selection (false).
+- `max_zero_alpha::Int`: An integer representing the maximum number of alpha parameters that can be set to 0.
 - `save_train_results::Bool`: A boolean indicating whether to save the results of the training for each number of parameters as a csv file.
 - `enzyme_name::String`: A string for enzyme name that is used to name the csv files that are saved.
 
@@ -36,6 +40,7 @@ function data_driven_rate_equation_selection(
     param_names::Tuple{Symbol,Vararg{Symbol}};
     range_number_params::Union{Nothing,Tuple{Int,Int}} = nothing,
     forward_model_selection::Bool = true,
+    max_zero_alpha::Int = 1 + ceil(Int, length(metab_names) / 2),
     save_train_results::Bool = false,
     enzyme_name::String = "Enzyme",
 )
@@ -77,6 +82,7 @@ function data_driven_rate_equation_selection(
         param_removal_code_names,
         metab_names,
         num_alpha_params,
+        max_zero_alpha
     )
 
     while isempty(starting_param_removal_codes)
@@ -97,6 +103,7 @@ function data_driven_rate_equation_selection(
                 param_removal_code_names,
                 metab_names,
                 num_alpha_params,
+                max_zero_alpha
             )
     end
 
@@ -115,12 +122,14 @@ function data_driven_rate_equation_selection(
                     nt_previous_param_removal_codes,
                     metab_names,
                     num_alpha_params,
+                    max_zero_alpha
                 )
             elseif !forward_model_selection
                 nt_param_removal_codes = reverse_selection_next_param_removal_codes(
                     nt_previous_param_removal_codes,
                     metab_names,
                     num_alpha_params,
+                    max_zero_alpha
                 )
             end
         end
@@ -344,6 +353,7 @@ function calculate_all_parameter_removal_codes_w_num_params(
     param_removal_code_names::Tuple{Symbol,Vararg{Symbol}},
     metab_names::Tuple{Symbol,Vararg{Symbol}},
     num_alpha_params::Int,
+    max_zero_alpha::Int,
 )
     codes_with_num_params = Tuple[]
     num_non_zero_in_each_code = Int[]
@@ -374,7 +384,16 @@ function calculate_all_parameter_removal_codes_w_num_params(
                 metab_names,
             )
     end
-    return filtered_nt_param_removal_codes
+    if isempty(filtered_nt_param_removal_codes)
+        filtered_nt_param_removal_codes_w_max_zero_alpha = NamedTuple[]
+    else
+        filtered_nt_param_removal_codes_w_max_zero_alpha =
+            filter_param_removal_codes_for_max_zero_alpha(
+                nt_param_removal_codes,
+                max_zero_alpha,
+            )
+    end
+    return filtered_nt_param_removal_codes_w_max_zero_alpha
 end
 
 """
@@ -444,6 +463,7 @@ function forward_selection_next_param_removal_codes(
     nt_previous_param_removal_codes::Vector{T} where {T<:NamedTuple},
     metab_names::Tuple{Symbol,Vararg{Symbol}},
     num_alpha_params::Int,
+    max_zero_alpha::Int,
 )
     param_removal_code_names = keys(nt_previous_param_removal_codes[1])
     next_param_removal_codes = Vector{Vector{Int}}()
@@ -485,7 +505,16 @@ function forward_selection_next_param_removal_codes(
                 metab_names,
             )
     end
-    return filtered_nt_param_removal_codes
+    if isempty(filtered_nt_param_removal_codes)
+        filtered_nt_param_removal_codes_w_max_zero_alpha = NamedTuple[]
+    else
+        filtered_nt_param_removal_codes_w_max_zero_alpha =
+            filter_param_removal_codes_for_max_zero_alpha(
+                nt_param_removal_codes,
+                max_zero_alpha,
+            )
+    end
+    return filtered_nt_param_removal_codes_w_max_zero_alpha
 end
 
 """
@@ -495,6 +524,7 @@ function reverse_selection_next_param_removal_codes(
     nt_previous_param_removal_codes::Vector{T} where {T<:NamedTuple},
     metab_names::Tuple{Symbol,Vararg{Symbol}},
     num_alpha_params::Int,
+    max_zero_alpha::Int,
 )
     param_removal_code_names = keys(nt_previous_param_removal_codes[1])
     next_param_removal_codes = Vector{Vector{Int}}()
@@ -519,7 +549,16 @@ function reverse_selection_next_param_removal_codes(
                 metab_names,
             )
     end
-    return filtered_nt_param_removal_codes
+    if isempty(filtered_nt_param_removal_codes)
+        filtered_nt_param_removal_codes_w_max_zero_alpha = NamedTuple[]
+    else
+        filtered_nt_param_removal_codes_w_max_zero_alpha =
+            filter_param_removal_codes_for_max_zero_alpha(
+                nt_param_removal_codes,
+                max_zero_alpha,
+            )
+    end
+    return filtered_nt_param_removal_codes_w_max_zero_alpha
 end
 
 """Filter removal codes to ensure that if K_S1 = Inf then all K_S1_S2 and all other K containing S1 in qssa cannot be 2, which stands for (K_S1_S2)^2 = K_S1 * K_S2"""
@@ -550,6 +589,26 @@ function filter_param_removal_codes_to_prevent_wrong_param_combos(
                 )
                     push!(filtered_nt_param_removal_codes, nt_param_removal_code)
                 end
+            end
+        end
+    end
+    return filtered_nt_param_removal_codes
+end
+
+"""Filter removal codes to ensure that number of alpha that are 0 is max_zero_alpha"""
+function filter_param_removal_codes_for_max_zero_alpha(
+    nt_param_removal_codes,
+    max_zero_alpha::Int,
+)
+    alpha_keys =
+        [key for key in keys(nt_param_removal_codes[1]) if occursin("alpha", string(key))]
+    if isempty(alpha_keys)
+        filtered_nt_param_removal_codes = nt_param_removal_codes
+    else
+        filtered_nt_param_removal_codes = NamedTuple[]
+        for nt_param_removal_code in nt_param_removal_codes
+            if sum([nt_param_removal_code[key] for key in alpha_keys]) <= max_zero_alpha
+                push!(filtered_nt_param_removal_codes, nt_param_removal_code)
             end
         end
     end
