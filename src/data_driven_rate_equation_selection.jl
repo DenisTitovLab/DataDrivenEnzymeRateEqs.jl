@@ -76,11 +76,26 @@ function data_driven_rate_equation_selection(
         metab_names,
         num_alpha_params,
     )
-    if isempty(starting_param_removal_codes)
-        @error "Equations for this enzymes with $(num_param_range[1]) parameters do not exist. One reason could be that some parameters are unidentifiable based on the data so upper bound of range_number_params should be reduced. Check number of practically_unidentifiable_params with find_practically_unidentifiable_params(data, param_names)."
-        return
-    end
 
+    while isempty(starting_param_removal_codes)
+        num_param_range = ifelse(
+            forward_model_selection,
+            (num_param_range[1] - 1, num_param_range[end]),
+            (num_param_range[1] + 1, num_param_range[end])
+        )
+        if num_param_range[1] == num_param_range[end]
+            @error "Could not find any fesible equations for this enzyme within range_number_params"
+        end
+        println("Trying new range_number_params: $num_param_range")
+        starting_param_removal_codes = DataDrivenEnzymeRateEqs.calculate_all_parameter_removal_codes_w_num_params(
+            num_param_range[1],
+            all_param_removal_codes,
+            param_names,
+            param_removal_code_names,
+            metab_names,
+            num_alpha_params,
+        )
+    end
 
     nt_param_removal_codes = starting_param_removal_codes
     nt_previous_param_removal_codes = similar(nt_param_removal_codes)
@@ -347,11 +362,15 @@ function calculate_all_parameter_removal_codes_w_num_params(
     end
     nt_param_removal_codes =
         [NamedTuple{param_removal_code_names}(x) for x in unique(codes_with_num_params)]
-    filtered_nt_param_removal_codes =
-        filter_param_removal_codes_to_prevent_wrong_param_combos(
-            nt_param_removal_codes,
-            metab_names,
-        )
+    if isempty(nt_param_removal_codes)
+        filtered_nt_param_removal_codes = NamedTuple[]
+    else
+        filtered_nt_param_removal_codes =
+            filter_param_removal_codes_to_prevent_wrong_param_combos(
+                nt_param_removal_codes,
+                metab_names,
+            )
+    end
     return filtered_nt_param_removal_codes
 end
 
@@ -454,11 +473,15 @@ function forward_selection_next_param_removal_codes(
     end
     nt_param_removal_codes =
         [NamedTuple{param_removal_code_names}(x) for x in unique(next_param_removal_codes)]
-    filtered_nt_param_removal_codes =
-        filter_param_removal_codes_to_prevent_wrong_param_combos(
-            nt_param_removal_codes,
-            metab_names,
-        )
+    if isempty(nt_param_removal_codes)
+        filtered_nt_param_removal_codes = NamedTuple[]
+    else
+        filtered_nt_param_removal_codes =
+            filter_param_removal_codes_to_prevent_wrong_param_combos(
+                nt_param_removal_codes,
+                metab_names,
+            )
+    end
     return filtered_nt_param_removal_codes
 end
 
@@ -484,18 +507,22 @@ function reverse_selection_next_param_removal_codes(
     end
     nt_param_removal_codes =
         [NamedTuple{param_removal_code_names}(x) for x in unique(next_param_removal_codes)]
-    filtered_nt_param_removal_codes =
-        filter_param_removal_codes_to_prevent_wrong_param_combos(
-            nt_param_removal_codes,
-            metab_names,
-        )
+    if isempty(nt_param_removal_codes)
+        filtered_nt_param_removal_codes = NamedTuple[]
+    else
+        filtered_nt_param_removal_codes =
+            filter_param_removal_codes_to_prevent_wrong_param_combos(
+                nt_param_removal_codes,
+                metab_names,
+            )
+    end
     return filtered_nt_param_removal_codes
 end
 
 """Filter removal codes to ensure that if K_S1 = Inf then all K_S1_S2 and all other K containing S1 in qssa cannot be 2, which stands for (K_S1_S2)^2 = K_S1 * K_S2"""
 function filter_param_removal_codes_to_prevent_wrong_param_combos(
     nt_param_removal_codes,
-    metab_names::Tuple{Symbol,Vararg{Symbol}}
+    metab_names::Tuple{Symbol,Vararg{Symbol}},
 )
     # ensure that if K_S1 = Inf then all K_S1_S2 and all other K containing S1 in qssa cannot be 2, which stands for (K_S1_S2)^2 = K_S1 * K_S2
     if any([occursin("allo", string(key)) for key in keys(nt_param_removal_codes[1])])
