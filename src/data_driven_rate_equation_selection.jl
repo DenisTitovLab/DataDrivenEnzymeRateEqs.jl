@@ -69,9 +69,9 @@ function data_driven_rate_equation_selection(
     end
 
     if forward_model_selection
-        num_param_range = (range_number_params[2]):-1:range_number_params[1]
+        num_param_range = maximum(range_number_params):-1:minimum(range_number_params)
     elseif !forward_model_selection
-        num_param_range = (range_number_params[1]):1:range_number_params[2]
+        num_param_range = minimum(range_number_params):1:maximum(range_number_params)
     end
 
     #calculate starting_param_removal_codes parameters

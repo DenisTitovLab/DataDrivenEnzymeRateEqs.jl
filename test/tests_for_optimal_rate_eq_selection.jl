@@ -1,5 +1,5 @@
-# using TestEnv
-# TestEnv.activate()
+using TestEnv
+TestEnv.activate()
 
 ##
 using DataDrivenEnzymeRateEqs, Test
@@ -201,7 +201,7 @@ nt_param_subset_codes_w_num_params =
         param_removal_code_names,
         metab_names,
         n_alphas,
-        max_zero_alpha
+        max_zero_alpha,
     )
 #ensure that funct_output_param_subset_codes have the correct number of parameters
 @test all(
@@ -269,6 +269,22 @@ correct_answer = [
 ]
 @test filtered_nt == correct_answer
 
+#test filter_param_removal_codes_for_max_zero_alpha
+num_alpha_params = rand(5:10)
+num_non_alpha_params = rand(5:10)
+max_zero_alpha = rand(1:3)
+param_names = ([Symbol("param$(i)") for i = 1:num_non_alpha_params]..., [Symbol("alpha$(i)") for i = 1:num_alpha_params]...)
+nt_param_removal_codes = [
+    NamedTuple{(param_names)}(combo) for
+    combo in Iterators.product([[0, 1] for _ in param_names]...)
+]
+filtered_nt =
+    DataDrivenEnzymeRateEqs.filter_param_removal_codes_for_max_zero_alpha(
+        nt_param_removal_codes,
+        max_zero_alpha,
+    )
+sum_alpha = [sum(values(nt)[end-num_alpha_params:end]) for nt in filtered_nt]
+@test all(num_alpha_params .- sum_alpha .<= max_zero_alpha)
 
 #Load and process data
 LDH_data_for_fit = CSV.read(joinpath(@__DIR__, "Data_for_tests/LDH_data.csv"), DataFrame)
@@ -295,19 +311,25 @@ unidentifiable_params =
 #test the ability of `data_driven_rate_equation_selection` to recover the MWC rate_equation and params used to generated data for an arbitrary enzyme
 data_gen_rate_equation_Keq = 1.0
 mwc_data_gen_rate_equation(metabs, params, data_gen_rate_equation_Keq) =
-    (1 / params.K_a_S) * (metabs.S - metabs.P / data_gen_rate_equation_Keq) /
-    (1 + metabs.S / params.K_a_S + metabs.P / params.K_a_P)
+    (1 / params.K_a_S) * (
+        metabs.S * (1 + metabs.S / params.K_a_S + metabs.P / params.K_a_P) -
+        metabs.P * (1 + metabs.S / params.K_a_S + metabs.P / params.K_a_P) /
+        data_gen_rate_equation_Keq
+    ) / (
+        (1 + metabs.S / params.K_a_S + metabs.P / params.K_a_P)^2 +
+        params.L * (1 + metabs.P / params.K_a_P)^2
+    )
 mwc_alternative_data_gen_rate_equation(metabs, params, data_gen_rate_equation_Keq) =
     (1 / params.K_a_S) * (metabs.S - metabs.P / data_gen_rate_equation_Keq) / (
         1 +
         metabs.S / params.K_a_S +
         metabs.P / params.K_a_P +
-        metabs.S * metabs.P / (params.K_a_S * params.K_a_P)
+        metabs.S * metabs.P / (params.K_a_S * params.K_a_P + params.L)
     )
 
-data_gen_param_names = (:Vmax_a, :K_a_S, :K_a_P)
+data_gen_param_names = (:Vmax_a, :L, :K_a_S, :K_a_P)
 metab_names = (:S, :P)
-params = (Vmax = 10.0, K_a_S = 1e-3, K_a_P = 5e-3)
+params = (Vmax = 10.0, L = 10000, K_a_S = 1e-3, K_a_P = 5e-3)
 #create DataFrame of simulated data
 num_datapoints = 10
 num_figures = 4
@@ -345,7 +367,7 @@ enzyme_parameters = (;
     products = [:P],
     regulators = [],
     Keq = 1.0,
-    oligomeric_state = 1,
+    oligomeric_state = 2,
     rate_equation_name = :mwc_derived_rate_equation,
 )
 
@@ -359,8 +381,8 @@ selection_result = @time data_driven_rate_equation_selection(
     derived_param_names,
 )
 
-#Display best equation with 3 parameters. Compare with data_gen_rate_equation with Vmax=1
-#TODO: remove the filtering for 3 parameters after we add the automatic determination of the best number of parameters
+#Display best equation with 4 parameters. Compare with data_gen_rate_equation with Vmax=1
+#TODO: remove the filtering for 4 parameters after we add the automatic determination of the best number of parameters
 nt_param_removal_code =
     filter(x -> x.num_params .== 4, selection_result.test_results).nt_param_removal_codes[1]
 
@@ -371,6 +393,8 @@ selected_sym_rate_equation = display_rate_equation(
     derived_param_names;
     nt_param_removal_code = nt_param_removal_code,
 )
+simplify(selected_sym_rate_equation- original_sym_rate_equation, simplify_fractions=false)
+selected_sym_rate_equation - original_sym_rate_equation
 original_sym_rate_equation =
     display_rate_equation(mwc_data_gen_rate_equation, metab_names, data_gen_param_names)
 alrenative_original_sym_rate_equation = display_rate_equation(
