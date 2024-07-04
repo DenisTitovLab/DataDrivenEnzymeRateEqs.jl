@@ -454,11 +454,15 @@ function forward_selection_next_param_removal_codes(
     end
     nt_param_removal_codes =
         [NamedTuple{param_removal_code_names}(x) for x in unique(next_param_removal_codes)]
-    filtered_nt_param_removal_codes =
-        filter_param_removal_codes_to_prevent_wrong_param_combos(
-            nt_param_removal_codes,
-            metab_names,
-        )
+    if isempty(nt_param_removal_codes)
+        filtered_nt_param_removal_codes = NamedTuple[]
+    else
+        filtered_nt_param_removal_codes =
+            filter_param_removal_codes_to_prevent_wrong_param_combos(
+                nt_param_removal_codes,
+                metab_names,
+            )
+    end
     return filtered_nt_param_removal_codes
 end
 
@@ -484,18 +488,22 @@ function reverse_selection_next_param_removal_codes(
     end
     nt_param_removal_codes =
         [NamedTuple{param_removal_code_names}(x) for x in unique(next_param_removal_codes)]
-    filtered_nt_param_removal_codes =
-        filter_param_removal_codes_to_prevent_wrong_param_combos(
-            nt_param_removal_codes,
-            metab_names,
-        )
+    if isempty(nt_param_removal_codes)
+        filtered_nt_param_removal_codes = NamedTuple[]
+    else
+        filtered_nt_param_removal_codes =
+            filter_param_removal_codes_to_prevent_wrong_param_combos(
+                nt_param_removal_codes,
+                metab_names,
+            )
+    end
     return filtered_nt_param_removal_codes
 end
 
 """Filter removal codes to ensure that if K_S1 = Inf then all K_S1_S2 and all other K containing S1 in qssa cannot be 2, which stands for (K_S1_S2)^2 = K_S1 * K_S2"""
 function filter_param_removal_codes_to_prevent_wrong_param_combos(
     nt_param_removal_codes,
-    metab_names::Tuple{Symbol,Vararg{Symbol}}
+    metab_names::Tuple{Symbol,Vararg{Symbol}},
 )
     # ensure that if K_S1 = Inf then all K_S1_S2 and all other K containing S1 in qssa cannot be 2, which stands for (K_S1_S2)^2 = K_S1 * K_S2
     if any([occursin("allo", string(key)) for key in keys(nt_param_removal_codes[1])])
