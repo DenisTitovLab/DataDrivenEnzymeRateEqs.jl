@@ -347,11 +347,15 @@ function calculate_all_parameter_removal_codes_w_num_params(
     end
     nt_param_removal_codes =
         [NamedTuple{param_removal_code_names}(x) for x in unique(codes_with_num_params)]
-    filtered_nt_param_removal_codes =
-        filter_param_removal_codes_to_prevent_wrong_param_combos(
-            nt_param_removal_codes,
-            metab_names,
-        )
+    if isempty(nt_param_removal_codes)
+        filtered_nt_param_removal_codes = NamedTuple[]
+    else
+        filtered_nt_param_removal_codes =
+            filter_param_removal_codes_to_prevent_wrong_param_combos(
+                nt_param_removal_codes,
+                metab_names,
+            )
+    end
     return filtered_nt_param_removal_codes
 end
 
