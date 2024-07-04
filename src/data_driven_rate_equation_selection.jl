@@ -6,7 +6,7 @@ using Dates, CSV, DataFrames, Distributed
         data::DataFrame,
         metab_names::Tuple{Symbol,Vararg{Symbol}},
         param_names::Tuple{Symbol,Vararg{Symbol}};
-        range_number_params::Union{nothing, Tuple{Int,Int}} = nothing,
+        range_number_params::Union{Nothing, Tuple{Int,Int}} = nothing,
         forward_model_selection::Bool = true;
         save_train_results::Bool = false,
         enzyme_name::String = "Enzyme",
@@ -34,7 +34,7 @@ function data_driven_rate_equation_selection(
     data::DataFrame,
     metab_names::Tuple{Symbol,Vararg{Symbol}},
     param_names::Tuple{Symbol,Vararg{Symbol}};
-    range_number_params::Union{nothing,Tuple{Int,Int}} = nothing,
+    range_number_params::Union{Nothing,Tuple{Int,Int}} = nothing,
     forward_model_selection::Bool = true,
     save_train_results::Bool = false,
     enzyme_name::String = "Enzyme",
@@ -51,9 +51,6 @@ function data_driven_rate_equation_selection(
     )
 
     num_alpha_params = count(occursin.("alpha", string.([param_names...])))
-    #check that range_number_params within bounds of minimal and maximal number of parameters
-    @assert range_number_params[1] >= length(param_names) - length(param_removal_code_names) "starting range_number_params cannot be below $(length(param_names) - length(param_removal_code_names))"
-    @assert range_number_params[2] <= length(param_names) "ending range_number_params cannot be above $(length(param_names))"
 
     if isnothing(range_number_params)
         range_number_params =
