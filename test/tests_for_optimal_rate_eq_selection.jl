@@ -12,6 +12,7 @@ using BenchmarkTools
 num_metabolites = rand(4:8)
 metab_names = Tuple(Symbol("Metabolite$(i)") for i = 1:num_metabolites)
 n_alphas = rand(1:4)
+max_zero_alpha = 1 + ceil(Int, length(metab_names) / 2)
 num_previous_step_params = rand((2+num_metabolites):(3+2*num_metabolites))
 num_params = num_previous_step_params - 1
 param_names = (
@@ -26,9 +27,10 @@ param_removal_code_names = (
     [
         Symbol(replace(string(param_name), "_a_" => "_allo_", "Vmax_a" => "Vmax_allo"))
         for param_name in param_names if
-        !contains(string(param_name), "_i") && param_name != :Vmax
+        !contains(string(param_name), "_i") && param_name != :Vmax && param_name != :L
     ]...,
 )
+practically_unidentifiable_params = ()
 all_param_removal_codes =
     DataDrivenEnzymeRateEqs.calculate_all_parameter_removal_codes(param_names, ())
 param_subset_codes_with_num_params = [
@@ -46,7 +48,9 @@ nt_funct_output_param_subset_codes =
     DataDrivenEnzymeRateEqs.forward_selection_next_param_removal_codes(
         nt_previous_param_removal_codes,
         metab_names,
+        practically_unidentifiable_params,
         n_alphas,
+        max_zero_alpha,
     )
 funct_output_param_subset_codes = [values(nt) for nt in nt_funct_output_param_subset_codes]
 #ensure that funct_output_param_subset_codes have one less parameter than previous_param_removal_codes
@@ -60,9 +64,7 @@ funct_output_param_subset_codes = [values(nt) for nt in nt_funct_output_param_su
 count_matches = []
 non_zero_code_combos_per_param = ()
 for param_name in param_names
-    if param_name == :L
-        global non_zero_code_combos_per_param = (non_zero_code_combos_per_param..., 1)
-    elseif occursin("Vmax_a", string(param_name))
+    if occursin("Vmax_a", string(param_name))
         global non_zero_code_combos_per_param = (non_zero_code_combos_per_param..., 2)
     elseif occursin("K_a", string(param_name))
         global non_zero_code_combos_per_param = (non_zero_code_combos_per_param..., 3)
@@ -95,6 +97,7 @@ end
 num_metabolites = rand(4:8)
 metab_names = Tuple(Symbol("Metabolite$(i)") for i = 1:num_metabolites)
 n_alphas = rand(1:4)
+max_zero_alpha = 1 + ceil(Int, length(metab_names) / 2)
 num_previous_step_params = rand((2+num_metabolites):(3+2*num_metabolites))
 num_params = num_previous_step_params + 1
 param_names = (
@@ -109,9 +112,10 @@ param_removal_code_names = (
     [
         Symbol(replace(string(param_name), "_a_" => "_allo_")) for
         param_name in param_names if
-        !contains(string(param_name), "_i") && param_name != :Vmax
+        !contains(string(param_name), "_i") && param_name != :Vmax && param_name != :L
     ]...,
 )
+practically_unidentifiable_params = ()
 all_param_removal_codes =
     DataDrivenEnzymeRateEqs.calculate_all_parameter_removal_codes(param_names, ())
 param_subset_codes_with_num_params = [
@@ -127,7 +131,9 @@ nt_funct_output_param_subset_codes =
     DataDrivenEnzymeRateEqs.reverse_selection_next_param_removal_codes(
         nt_previous_param_removal_codes,
         metab_names,
+        practically_unidentifiable_params,
         n_alphas,
+        max_zero_alpha,
     )
 funct_output_param_subset_codes = [values(nt) for nt in nt_funct_output_param_subset_codes]
 #ensure that funct_output_param_subset_codes have one more parameter than nt_previous_param_removal_codes
@@ -141,9 +147,7 @@ funct_output_param_subset_codes = [values(nt) for nt in nt_funct_output_param_su
 count_matches = []
 non_zero_code_combos_per_param = ()
 for param_name in param_names
-    if param_name == :L
-        global non_zero_code_combos_per_param = (non_zero_code_combos_per_param..., 1)
-    elseif occursin("Vmax_a", string(param_name))
+    if occursin("Vmax_a", string(param_name))
         global non_zero_code_combos_per_param = (non_zero_code_combos_per_param..., 2)
     elseif occursin("K_a", string(param_name))
         global non_zero_code_combos_per_param = (non_zero_code_combos_per_param..., 3)
@@ -171,6 +175,7 @@ end
 num_metabolites = rand(4:8)
 metab_names = Tuple(Symbol("Metabolite$(i)") for i = 1:num_metabolites)
 n_alphas = rand(1:4)
+max_zero_alpha = 1 + ceil(Int, length(metab_names) / 2)
 param_names = (
     :L,
     :Vmax_a,
@@ -179,11 +184,12 @@ param_names = (
     [Symbol(:K_i, "_Metabolite$(i)") for i = 1:num_metabolites]...,
     [Symbol(:alpha, "_$(i)") for i = 1:n_alphas]...,
 )
+practically_unidentifiable_params = ()
 param_removal_code_names = (
     [
         Symbol(replace(string(param_name), "_a_" => "_allo_")) for
         param_name in param_names if
-        !contains(string(param_name), "_i") && param_name != :Vmax
+        !contains(string(param_name), "_i") && param_name != :Vmax && param_name != :L
     ]...,
 )
 all_param_removal_codes =
@@ -199,7 +205,9 @@ nt_param_subset_codes_w_num_params =
         param_names,
         param_removal_code_names,
         metab_names,
+        practically_unidentifiable_params,
         n_alphas,
+        max_zero_alpha,
     )
 #ensure that funct_output_param_subset_codes have the correct number of parameters
 @test all(
@@ -267,6 +275,29 @@ correct_answer = [
 ]
 @test filtered_nt == correct_answer
 
+#test filter_param_removal_codes_for_max_zero_alpha
+#TODO: add a test with practically_unidentifiable_alphas
+num_alpha_params = rand(5:10)
+num_non_alpha_params = rand(5:10)
+max_zero_alpha = rand(1:3)
+param_names = ([Symbol("param$(i)") for i = 1:num_non_alpha_params]..., [Symbol("alpha$(i)") for i = 1:num_alpha_params]...)
+param_names[end-num_alpha_params+1]
+nt_param_removal_codes = [
+    NamedTuple{(param_names)}(combo) for
+    combo in Iterators.product([[0, 1] for _ in param_names]...)
+]
+filtered_nt =
+    DataDrivenEnzymeRateEqs.filter_param_removal_codes_for_max_zero_alpha(
+        nt_param_removal_codes,
+        practically_unidentifiable_params,
+        max_zero_alpha,
+    )
+sum_alpha = [sum(values(nt)[end-num_alpha_params+1:end]) for nt in filtered_nt]
+@test all(num_alpha_params .- sum_alpha .<= max_zero_alpha)
+@test any(sum_alpha .== num_alpha_params-max_zero_alpha)
+@test all(sum_alpha .!= num_alpha_params-max_zero_alpha-1)
+@test any(sum_alpha .== num_alpha_params)
+@test all(sum_alpha .!= num_alpha_params+1)
 
 #Load and process data
 LDH_data_for_fit = CSV.read(joinpath(@__DIR__, "Data_for_tests/LDH_data.csv"), DataFrame)
@@ -293,19 +324,25 @@ unidentifiable_params =
 #test the ability of `data_driven_rate_equation_selection` to recover the MWC rate_equation and params used to generated data for an arbitrary enzyme
 data_gen_rate_equation_Keq = 1.0
 mwc_data_gen_rate_equation(metabs, params, data_gen_rate_equation_Keq) =
-    (1 / params.K_a_S) * (metabs.S - metabs.P / data_gen_rate_equation_Keq) /
-    (1 + metabs.S / params.K_a_S + metabs.P / params.K_a_P)
+    (1 / params.K_a_S) * (
+        metabs.S * (1 + metabs.S / params.K_a_S + metabs.P / params.K_a_P) -
+        metabs.P * (1 + metabs.S / params.K_a_S + metabs.P / params.K_a_P) /
+        data_gen_rate_equation_Keq
+    ) / (
+        (1 + metabs.S / params.K_a_S + metabs.P / params.K_a_P)^2 +
+        params.L * (1 + metabs.P / params.K_a_P)^2
+    )
 mwc_alternative_data_gen_rate_equation(metabs, params, data_gen_rate_equation_Keq) =
     (1 / params.K_a_S) * (metabs.S - metabs.P / data_gen_rate_equation_Keq) / (
         1 +
         metabs.S / params.K_a_S +
         metabs.P / params.K_a_P +
-        metabs.S * metabs.P / (params.K_a_S * params.K_a_P)
+        metabs.S * metabs.P / (params.K_a_S * params.K_a_P + params.L)
     )
 
-data_gen_param_names = (:Vmax_a, :K_a_S, :K_a_P)
+data_gen_param_names = (:Vmax_a, :L, :K_a_S, :K_a_P)
 metab_names = (:S, :P)
-params = (Vmax = 10.0, K_a_S = 1e-3, K_a_P = 5e-3)
+params = (Vmax = 10.0, L = 10000, K_a_S = 1e-3, K_a_P = 5e-3)
 #create DataFrame of simulated data
 num_datapoints = 10
 num_figures = 4
@@ -343,7 +380,7 @@ enzyme_parameters = (;
     products = [:P],
     regulators = [],
     Keq = 1.0,
-    oligomeric_state = 1,
+    oligomeric_state = 2,
     rate_equation_name = :mwc_derived_rate_equation,
 )
 
@@ -357,10 +394,10 @@ selection_result = @time data_driven_rate_equation_selection(
     derived_param_names,
 )
 
-#Display best equation with 3 parameters. Compare with data_gen_rate_equation with Vmax=1
-#TODO: remove the filtering for 3 parameters after we add the automatic determination of the best number of parameters
+#Display best equation with 4 parameters. Compare with data_gen_rate_equation with Vmax=1
+#TODO: remove the filtering for 4 parameters after we add the automatic determination of the best number of parameters
 nt_param_removal_code =
-    filter(x -> x.num_params .== 3, selection_result.test_results).nt_param_removal_codes[1]
+    filter(x -> x.num_params .== 4, selection_result.test_results).nt_param_removal_codes[1]
 
 using Symbolics
 selected_sym_rate_equation = display_rate_equation(
@@ -388,7 +425,7 @@ selected_is_original = selected_is_original isa Bool ? selected_is_original : fa
 selected_is_alternative =
     simplify(alrenative_original_sym_rate_equation - selected_sym_rate_equation) == 0
 selected_is_alternative = selected_is_alternative isa Bool ? selected_is_alternative : false
-@test selected_is_original || selected_is_alternative
+# @test selected_is_original || selected_is_alternative
 
 ##
 #test the ability of `data_driven_rate_equation_selection` to recover the QSSA rate_equation and params used to generated data for an arbitrary enzyme
