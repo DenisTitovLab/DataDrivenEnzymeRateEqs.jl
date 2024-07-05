@@ -143,6 +143,14 @@ function data_driven_rate_equation_selection(
                 )
             end
         end
+
+        if isempty(nt_param_removal_codes)
+            println(
+                "Stop the search as no feasible equations for this enzyme with $num_params parameters could be found.",
+            )
+            break
+        end
+
         #pmap over nt_param_removal_codes for a given `num_params` return rescaled and nt_param_subset added
         results_array = pmap(
             nt_param_removal_code -> train_rate_equation(
