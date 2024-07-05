@@ -1,5 +1,5 @@
-using TestEnv
-TestEnv.activate()
+# using TestEnv
+# TestEnv.activate()
 
 ##
 using DataDrivenEnzymeRateEqs, Test
