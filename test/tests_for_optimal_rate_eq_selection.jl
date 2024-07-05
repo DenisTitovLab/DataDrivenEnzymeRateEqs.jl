@@ -280,24 +280,26 @@ correct_answer = [
 num_alpha_params = rand(5:10)
 num_non_alpha_params = rand(5:10)
 max_zero_alpha = rand(1:3)
-param_names = ([Symbol("param$(i)") for i = 1:num_non_alpha_params]..., [Symbol("alpha$(i)") for i = 1:num_alpha_params]...)
+param_names = (
+    [Symbol("param$(i)") for i = 1:num_non_alpha_params]...,
+    [Symbol("alpha$(i)") for i = 1:num_alpha_params]...,
+)
 param_names[end-num_alpha_params+1]
 nt_param_removal_codes = [
     NamedTuple{(param_names)}(combo) for
     combo in Iterators.product([[0, 1] for _ in param_names]...)
 ]
-filtered_nt =
-    DataDrivenEnzymeRateEqs.filter_param_removal_codes_for_max_zero_alpha(
-        nt_param_removal_codes,
-        practically_unidentifiable_params,
-        max_zero_alpha,
-    )
+filtered_nt = DataDrivenEnzymeRateEqs.filter_param_removal_codes_for_max_zero_alpha(
+    nt_param_removal_codes,
+    practically_unidentifiable_params,
+    max_zero_alpha,
+)
 sum_alpha = [sum(values(nt)[end-num_alpha_params+1:end]) for nt in filtered_nt]
 @test all(num_alpha_params .- sum_alpha .<= max_zero_alpha)
-@test any(sum_alpha .== num_alpha_params-max_zero_alpha)
-@test all(sum_alpha .!= num_alpha_params-max_zero_alpha-1)
+@test any(sum_alpha .== num_alpha_params - max_zero_alpha)
+@test all(sum_alpha .!= num_alpha_params - max_zero_alpha - 1)
 @test any(sum_alpha .== num_alpha_params)
-@test all(sum_alpha .!= num_alpha_params+1)
+@test all(sum_alpha .!= num_alpha_params + 1)
 
 #Load and process data
 LDH_data_for_fit = CSV.read(joinpath(@__DIR__, "Data_for_tests/LDH_data.csv"), DataFrame)
@@ -393,11 +395,20 @@ selection_result = @time data_driven_rate_equation_selection(
     metab_names,
     derived_param_names,
 )
+reverse_selection_result = @time data_driven_rate_equation_selection(
+    mwc_derived_rate_equation_no_Keq,
+    data,
+    metab_names,
+    derived_param_names;
+    forward_model_selection = false,
+)
 
 #Display best equation with 4 parameters. Compare with data_gen_rate_equation with Vmax=1
 #TODO: remove the filtering for 4 parameters after we add the automatic determination of the best number of parameters
 nt_param_removal_code =
     filter(x -> x.num_params .== 4, selection_result.test_results).nt_param_removal_codes[1]
+nt_reverse_param_removal_code =
+    filter(x -> x.num_params .== 4, reverse_selection_result.test_results).nt_param_removal_codes[1]
 
 using Symbolics
 selected_sym_rate_equation = display_rate_equation(
@@ -405,6 +416,12 @@ selected_sym_rate_equation = display_rate_equation(
     metab_names,
     derived_param_names;
     nt_param_removal_code = nt_param_removal_code,
+)
+reverse_selected_sym_rate_equation = display_rate_equation(
+    mwc_derived_rate_equation,
+    metab_names,
+    derived_param_names;
+    nt_param_removal_code = nt_reverse_param_removal_code,
 )
 original_sym_rate_equation =
     display_rate_equation(mwc_data_gen_rate_equation, metab_names, data_gen_param_names)
@@ -415,9 +432,14 @@ alrenative_original_sym_rate_equation = display_rate_equation(
 )
 
 println("Selected MWC rate equation:")
-println(simplify(selected_sym_rate_equation))
+println(selected_sym_rate_equation)
+println("Reverse Selected MWC rate equation:")
+println(reverse_selected_sym_rate_equation)
 println("Original MWC rate equation:")
-println(simplify(original_sym_rate_equation))
+println(original_sym_rate_equation)
+forward_is_reverse =
+    simplify(selected_sym_rate_equation - reverse_selected_sym_rate_equation) == 0
+# @test forward_is_reverse
 #equation with S*P term and without it is equally likely to be selected as there's no data with S and P present. Hence the OR condition below
 selected_is_original =
     simplify(original_sym_rate_equation - selected_sym_rate_equation) == 0
@@ -492,14 +514,29 @@ selection_result = @time data_driven_rate_equation_selection(
     metab_names,
     derived_param_names,
 )
+reverse_selection_result = @time data_driven_rate_equation_selection(
+    qssa_derived_rate_equation_no_Keq,
+    data,
+    metab_names,
+    derived_param_names;
+    forward_model_selection = false,
+)
 
 #Display best equation with 3 parameters. Compare with data_gen_rate_equation with Vmax=1
 #TODO: remove the filtering for 3 parameters after we add the automatic determination of the best number of parameters
 nt_param_removal_code =
     filter(x -> x.num_params .== 3, selection_result.test_results).nt_param_removal_codes[1]
+nt_reverse_param_removal_code =
+    filter(x -> x.num_params .== 3, reverse_selection_result.test_results).nt_param_removal_codes[1]
 
 using Symbolics
 selected_sym_rate_equation = display_rate_equation(
+    qssa_derived_rate_equation,
+    metab_names,
+    derived_param_names;
+    nt_param_removal_code = nt_param_removal_code,
+)
+reverse_selected_sym_rate_equation = display_rate_equation(
     qssa_derived_rate_equation,
     metab_names,
     derived_param_names;
@@ -514,10 +551,15 @@ alrenative_original_sym_rate_equation = display_rate_equation(
 )
 
 println("Selected QSSA rate equation:")
-println(simplify(selected_sym_rate_equation))
+println(selected_sym_rate_equation)
+println("Reverse Selected QSSA rate equation:")
+println(reverse_selected_sym_rate_equation)
 println("Original QSSA rate equation:")
-println(simplify(original_sym_rate_equation))
+println(original_sym_rate_equation)
 #equation with S*P term and without it is equally likely to be selected as there's no data with S and P present. Hence the OR condition below
+forward_is_reverse =
+    simplify(selected_sym_rate_equation - reverse_selected_sym_rate_equation) == 0
+@test forward_is_reverse
 selected_is_original =
     simplify(original_sym_rate_equation - selected_sym_rate_equation) == 0
 selected_is_original = selected_is_original isa Bool ? selected_is_original : false
