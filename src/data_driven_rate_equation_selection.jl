@@ -87,6 +87,7 @@ function data_driven_rate_equation_selection(
         param_names,
         param_removal_code_names,
         metab_names,
+        practically_unidentifiable_params,
         num_alpha_params,
         max_zero_alpha,
     )
@@ -108,6 +109,7 @@ function data_driven_rate_equation_selection(
                 param_names,
                 param_removal_code_names,
                 metab_names,
+                practically_unidentifiable_params,
                 num_alpha_params,
                 max_zero_alpha,
             )
@@ -127,6 +129,7 @@ function data_driven_rate_equation_selection(
                 nt_param_removal_codes = forward_selection_next_param_removal_codes(
                     nt_previous_param_removal_codes,
                     metab_names,
+                    practically_unidentifiable_params,
                     num_alpha_params,
                     max_zero_alpha,
                 )
@@ -134,6 +137,7 @@ function data_driven_rate_equation_selection(
                 nt_param_removal_codes = reverse_selection_next_param_removal_codes(
                     nt_previous_param_removal_codes,
                     metab_names,
+                    practically_unidentifiable_params,
                     num_alpha_params,
                     max_zero_alpha,
                 )
@@ -356,6 +360,7 @@ function calculate_all_parameter_removal_codes_w_num_params(
     param_names::Tuple{Symbol,Vararg{Symbol}},
     param_removal_code_names::Tuple{Symbol,Vararg{Symbol}},
     metab_names::Tuple{Symbol,Vararg{Symbol}},
+    practically_unidentifiable_params::Tuple{Vararg{Symbol}},
     num_alpha_params::Int,
     max_zero_alpha::Int,
 )
@@ -388,16 +393,17 @@ function calculate_all_parameter_removal_codes_w_num_params(
                 metab_names,
             )
     end
-    if isempty(nt_param_removal_codes)
-        filtered_nt_param_removal_codes = NamedTuple[]
+    if isempty(filtered_nt_param_removal_codes)
+        filtered_nt_param_removal_codes_max_alpha = NamedTuple[]
     else
-        filtered_nt_param_removal_codes =
+        filtered_nt_param_removal_codes_max_alpha =
             filter_param_removal_codes_for_max_zero_alpha(
                 nt_param_removal_codes,
+                practically_unidentifiable_params,
                 max_zero_alpha,
             )
     end
-    return filtered_nt_param_removal_codes
+    return filtered_nt_param_removal_codes_max_alpha
 end
 
 """
@@ -464,6 +470,7 @@ Calculate `nt_param_removal_codes` with `num_params` including non-zero term com
 function forward_selection_next_param_removal_codes(
     nt_previous_param_removal_codes::Vector{T} where {T<:NamedTuple},
     metab_names::Tuple{Symbol,Vararg{Symbol}},
+    practically_unidentifiable_params::Tuple{Vararg{Symbol}},
     num_alpha_params::Int,
     max_zero_alpha::Int,
 )
@@ -505,16 +512,17 @@ function forward_selection_next_param_removal_codes(
                 metab_names,
             )
     end
-    if isempty(nt_param_removal_codes)
-        filtered_nt_param_removal_codes = NamedTuple[]
+    if isempty(filtered_nt_param_removal_codes)
+        filtered_nt_param_removal_codes_max_alpha = NamedTuple[]
     else
-        filtered_nt_param_removal_codes =
+        filtered_nt_param_removal_codes_max_alpha =
             filter_param_removal_codes_for_max_zero_alpha(
                 nt_param_removal_codes,
+                practically_unidentifiable_params,
                 max_zero_alpha,
             )
     end
-    return filtered_nt_param_removal_codes
+    return filtered_nt_param_removal_codes_max_alpha
 end
 
 """
@@ -523,6 +531,7 @@ Use `nt_previous_param_removal_codes` to calculate `nt_next_param_removal_codes`
 function reverse_selection_next_param_removal_codes(
     nt_previous_param_removal_codes::Vector{T} where {T<:NamedTuple},
     metab_names::Tuple{Symbol,Vararg{Symbol}},
+    practically_unidentifiable_params::Tuple{Vararg{Symbol}},
     num_alpha_params::Int,
     max_zero_alpha::Int,
 )
@@ -549,16 +558,17 @@ function reverse_selection_next_param_removal_codes(
                 metab_names,
             )
     end
-    if isempty(nt_param_removal_codes)
-        filtered_nt_param_removal_codes = NamedTuple[]
+    if isempty(filtered_nt_param_removal_codes)
+        filtered_nt_param_removal_codes_max_alpha = NamedTuple[]
     else
-        filtered_nt_param_removal_codes =
+        filtered_nt_param_removal_codes_max_alpha =
             filter_param_removal_codes_for_max_zero_alpha(
                 nt_param_removal_codes,
+                practically_unidentifiable_params,
                 max_zero_alpha,
             )
     end
-    return filtered_nt_param_removal_codes
+    return filtered_nt_param_removal_codes_max_alpha
 end
 
 """Filter removal codes to ensure that if K_S1 = Inf then all K_S1_S2 and all other K containing S1 in qssa cannot be 2, which stands for (K_S1_S2)^2 = K_S1 * K_S2"""
@@ -598,10 +608,18 @@ end
 """Filter removal codes to ensure that number of alpha that are 0 is max_zero_alpha"""
 function filter_param_removal_codes_for_max_zero_alpha(
     nt_param_removal_codes,
+    practically_unidentifiable_params::Tuple{Vararg{Symbol}},
     max_zero_alpha::Int,
 )
-    alpha_keys =
-        [key for key in keys(nt_param_removal_codes[1]) if occursin("alpha", string(key))]
+    practically_unidentifiable_alphas = [
+        param for
+        param in practically_unidentifiable_params if occursin("alpha", string(param))
+    ]
+    alpha_keys = [
+        key for key in keys(nt_param_removal_codes[1]) if
+        occursin("alpha", string(key)) && key ∉ practically_unidentifiable_alphas
+    ]
+
     if isempty(alpha_keys)
         filtered_nt_param_removal_codes = nt_param_removal_codes
     else

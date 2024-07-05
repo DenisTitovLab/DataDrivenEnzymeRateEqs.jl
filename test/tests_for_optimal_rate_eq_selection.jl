@@ -30,6 +30,7 @@ param_removal_code_names = (
         !contains(string(param_name), "_i") && param_name != :Vmax && param_name != :L
     ]...,
 )
+practically_unidentifiable_params = ()
 all_param_removal_codes =
     DataDrivenEnzymeRateEqs.calculate_all_parameter_removal_codes(param_names, ())
 param_subset_codes_with_num_params = [
@@ -47,6 +48,7 @@ nt_funct_output_param_subset_codes =
     DataDrivenEnzymeRateEqs.forward_selection_next_param_removal_codes(
         nt_previous_param_removal_codes,
         metab_names,
+        practically_unidentifiable_params,
         n_alphas,
         max_zero_alpha,
     )
@@ -113,6 +115,7 @@ param_removal_code_names = (
         !contains(string(param_name), "_i") && param_name != :Vmax && param_name != :L
     ]...,
 )
+practically_unidentifiable_params = ()
 all_param_removal_codes =
     DataDrivenEnzymeRateEqs.calculate_all_parameter_removal_codes(param_names, ())
 param_subset_codes_with_num_params = [
@@ -128,6 +131,7 @@ nt_funct_output_param_subset_codes =
     DataDrivenEnzymeRateEqs.reverse_selection_next_param_removal_codes(
         nt_previous_param_removal_codes,
         metab_names,
+        practically_unidentifiable_params,
         n_alphas,
         max_zero_alpha,
     )
@@ -180,6 +184,7 @@ param_names = (
     [Symbol(:K_i, "_Metabolite$(i)") for i = 1:num_metabolites]...,
     [Symbol(:alpha, "_$(i)") for i = 1:n_alphas]...,
 )
+practically_unidentifiable_params = ()
 param_removal_code_names = (
     [
         Symbol(replace(string(param_name), "_a_" => "_allo_")) for
@@ -200,6 +205,7 @@ nt_param_subset_codes_w_num_params =
         param_names,
         param_removal_code_names,
         metab_names,
+        practically_unidentifiable_params,
         n_alphas,
         max_zero_alpha,
     )
@@ -270,10 +276,12 @@ correct_answer = [
 @test filtered_nt == correct_answer
 
 #test filter_param_removal_codes_for_max_zero_alpha
+#TODO: add a test with practically_unidentifiable_alphas
 num_alpha_params = rand(5:10)
 num_non_alpha_params = rand(5:10)
 max_zero_alpha = rand(1:3)
 param_names = ([Symbol("param$(i)") for i = 1:num_non_alpha_params]..., [Symbol("alpha$(i)") for i = 1:num_alpha_params]...)
+param_names[end-num_alpha_params+1]
 nt_param_removal_codes = [
     NamedTuple{(param_names)}(combo) for
     combo in Iterators.product([[0, 1] for _ in param_names]...)
@@ -281,10 +289,15 @@ nt_param_removal_codes = [
 filtered_nt =
     DataDrivenEnzymeRateEqs.filter_param_removal_codes_for_max_zero_alpha(
         nt_param_removal_codes,
+        practically_unidentifiable_params,
         max_zero_alpha,
     )
-sum_alpha = [sum(values(nt)[end-num_alpha_params:end]) for nt in filtered_nt]
+sum_alpha = [sum(values(nt)[end-num_alpha_params+1:end]) for nt in filtered_nt]
 @test all(num_alpha_params .- sum_alpha .<= max_zero_alpha)
+@test any(sum_alpha .== num_alpha_params-max_zero_alpha)
+@test all(sum_alpha .!= num_alpha_params-max_zero_alpha-1)
+@test any(sum_alpha .== num_alpha_params)
+@test all(sum_alpha .!= num_alpha_params+1)
 
 #Load and process data
 LDH_data_for_fit = CSV.read(joinpath(@__DIR__, "Data_for_tests/LDH_data.csv"), DataFrame)
