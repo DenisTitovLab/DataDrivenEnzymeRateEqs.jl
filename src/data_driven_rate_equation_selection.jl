@@ -98,7 +98,11 @@ function data_driven_rate_equation_selection(
             (num_param_range[1]-1:-1:num_param_range[end]),
             (num_param_range[1]+1:+1:num_param_range[end]),
         )
-        if num_param_range[1] == num_param_range[end]
+        if ifelse(
+            forward_model_selection,
+            (num_param_range[1] < num_param_range[end]),
+            (num_param_range[1] > num_param_range[end]),
+        )
             @error "Could not find any fesible equations for this enzyme within range_number_params"
         end
         println("Trying new range_number_params: $num_param_range")
@@ -146,7 +150,7 @@ function data_driven_rate_equation_selection(
 
         if isempty(nt_param_removal_codes)
             println(
-                "Stop the search early as no feasible equations for this enzyme with $num_params parameters could be found.",
+                "Stoping the search early as no feasible equations for this enzyme with $num_params parameters could be found.",
             )
             break
         end
@@ -344,7 +348,7 @@ function find_practically_unidentifiable_params(
         if startswith(string(param_name), "K_") &&
            !startswith(string(param_name), "K_i") &&
            !startswith(string(param_name), "K_a") &&
-           length(split(string(param_name), "_")) > 3
+           length(split(string(param_name), "_")) >= 3
             if all([
                 prod(row) == 0 for
                 row in eachrow(data[:, Symbol.(split(string(param_name), "_")[2:end])])
@@ -411,7 +415,7 @@ function calculate_all_parameter_removal_codes_w_num_params(
                 max_zero_alpha,
             )
     end
-    return filtered_nt_param_removal_codes_max_alpha
+    return unique(filtered_nt_param_removal_codes_max_alpha)
 end
 
 """
@@ -499,7 +503,11 @@ function forward_selection_next_param_removal_codes(
                 elseif startswith(string(param_removal_code_names[i]), "K_") &&
                        !startswith(string(param_removal_code_names[i]), "K_allo") &&
                        length(split(string(param_removal_code_names[i]), "_")) > 2
-                    feasible_param_subset_codes = [1, 2]
+                    if param_removal_code_names[i] in practically_unidentifiable_params
+                        feasible_param_subset_codes = [1]
+                    else
+                        feasible_param_subset_codes = [1, 2]
+                    end
                 end
                 for code_element in feasible_param_subset_codes
                     next_param_removal_code = collect(Int, previous_param_removal_code)
@@ -530,7 +538,7 @@ function forward_selection_next_param_removal_codes(
                 max_zero_alpha,
             )
     end
-    return filtered_nt_param_removal_codes_max_alpha
+    return unique(filtered_nt_param_removal_codes_max_alpha)
 end
 
 """
@@ -548,7 +556,9 @@ function reverse_selection_next_param_removal_codes(
     for previous_param_removal_code in nt_previous_param_removal_codes
         i_cut_off = length(previous_param_removal_code) - num_alpha_params
         for (i, code_element) in enumerate(previous_param_removal_code)
-            if i <= i_cut_off && code_element != 0
+            if i <= i_cut_off &&
+               code_element != 0 &&
+               param_removal_code_names[i] ∉ practically_unidentifiable_params
                 next_param_removal_code = collect(Int, previous_param_removal_code)
                 next_param_removal_code[i] = 0
                 push!(next_param_removal_codes, next_param_removal_code)
@@ -576,7 +586,7 @@ function reverse_selection_next_param_removal_codes(
                 max_zero_alpha,
             )
     end
-    return filtered_nt_param_removal_codes_max_alpha
+    return unique(filtered_nt_param_removal_codes_max_alpha)
 end
 
 """Filter removal codes to ensure that if K_S1 = Inf then all K_S1_S2 and all other K containing S1 in qssa cannot be 2, which stands for (K_S1_S2)^2 = K_S1 * K_S2"""
