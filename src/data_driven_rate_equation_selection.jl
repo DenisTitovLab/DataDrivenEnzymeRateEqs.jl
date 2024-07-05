@@ -316,7 +316,7 @@ function calculate_all_parameter_removal_codes(
             end
         elseif startswith(string(param_name), "alpha")
             if param_name in practically_unidentifiable_params
-                feasible_param_subset_codes = (feasible_param_subset_codes..., [0])
+                feasible_param_subset_codes = (feasible_param_subset_codes..., [1])
             else
                 feasible_param_subset_codes = (feasible_param_subset_codes..., [0, 1])
             end
