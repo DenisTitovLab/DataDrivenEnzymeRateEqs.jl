@@ -98,7 +98,11 @@ function data_driven_rate_equation_selection(
             (num_param_range[1]-1:-1:num_param_range[end]),
             (num_param_range[1]+1:+1:num_param_range[end]),
         )
-        if num_param_range[1] == num_param_range[end]
+        if ifelse(
+            forward_model_selection,
+            (num_param_range[1] < num_param_range[end]),
+            (num_param_range[1] > num_param_range[end]),
+        )
             @error "Could not find any fesible equations for this enzyme within range_number_params"
         end
         println("Trying new range_number_params: $num_param_range")
@@ -146,7 +150,7 @@ function data_driven_rate_equation_selection(
 
         if isempty(nt_param_removal_codes)
             println(
-                "Stop the search early as no feasible equations for this enzyme with $num_params parameters could be found.",
+                "Stoping the search early as no feasible equations for this enzyme with $num_params parameters could be found.",
             )
             break
         end
@@ -344,7 +348,7 @@ function find_practically_unidentifiable_params(
         if startswith(string(param_name), "K_") &&
            !startswith(string(param_name), "K_i") &&
            !startswith(string(param_name), "K_a") &&
-           length(split(string(param_name), "_")) > 3
+           length(split(string(param_name), "_")) >= 3
             if all([
                 prod(row) == 0 for
                 row in eachrow(data[:, Symbol.(split(string(param_name), "_")[2:end])])

@@ -1,12 +1,10 @@
-# using TestEnv
-# TestEnv.activate()
+using TestEnv
+TestEnv.activate()
 
 ##
 using DataDrivenEnzymeRateEqs, Test
 using CMAEvolutionStrategy, DataFrames, CSV, Statistics
 using BenchmarkTools
-
-#TODO: add a test for calculate_all_parameter_removal_codes_w_num_params()
 
 #test forward_selection_next_param_removal_codes
 num_metabolites = rand(4:8)
@@ -544,11 +542,6 @@ reverse_selected_sym_rate_equation = display_rate_equation(
 )
 original_sym_rate_equation =
     display_rate_equation(qssa_data_gen_rate_equation, metab_names, data_gen_param_names)
-alrenative_original_sym_rate_equation = display_rate_equation(
-    qssa_alternative_data_gen_rate_equation,
-    metab_names,
-    data_gen_param_names,
-)
 
 println("Selected QSSA rate equation:")
 println(selected_sym_rate_equation)
@@ -563,7 +556,4 @@ forward_is_reverse =
 selected_is_original =
     simplify(original_sym_rate_equation - selected_sym_rate_equation) == 0
 selected_is_original = selected_is_original isa Bool ? selected_is_original : false
-selected_is_alternative =
-    simplify(alrenative_original_sym_rate_equation - selected_sym_rate_equation) == 0
-selected_is_alternative = selected_is_alternative isa Bool ? selected_is_alternative : false
-@test selected_is_original || selected_is_alternative
+@test selected_is_original
