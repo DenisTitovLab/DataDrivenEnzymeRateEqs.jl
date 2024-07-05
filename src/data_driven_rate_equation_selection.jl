@@ -146,7 +146,7 @@ function data_driven_rate_equation_selection(
 
         if isempty(nt_param_removal_codes)
             println(
-                "Stop the search as no feasible equations for this enzyme with $num_params parameters could be found.",
+                "Stop the search early as no feasible equations for this enzyme with $num_params parameters could be found.",
             )
             break
         end
