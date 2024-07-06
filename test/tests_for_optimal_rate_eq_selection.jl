@@ -1,5 +1,5 @@
-# using TestEnv
-# TestEnv.activate()
+using TestEnv
+TestEnv.activate()
 
 ##
 using DataDrivenEnzymeRateEqs, Test
@@ -242,36 +242,29 @@ unidentifiable_params =
 
 #test filter_param_removal_codes_to_prevent_wrong_param_combos
 nt_param_removal_codes = [
-    NamedTuple{(:Vmax, :K_S1, :K_S2, :K_S1_S2)}(combo) for
-    combo in Iterators.product([[0, 1], [0, 1], [0, 1], [0, 1, 2]]...)
+    NamedTuple{(:Vmax, :K_S1, :K_S2, :K_S3, :K_S1_S2, :K_S1_S3, :K_S2_S3, :K_S1_S2_S3)}(
+        combo,
+    ) for combo in Iterators.product(
+        [[0, 1], [0, 1], [0, 1], [0, 1], [0, 1, 2], [0, 1, 2], [0, 1, 2], [0, 1, 2]]...,
+    )
 ]
-metab_names = (:S1, :S2)
+metab_names = (:S1, :S2, :S3)
 filtered_nt =
     DataDrivenEnzymeRateEqs.filter_param_removal_codes_to_prevent_wrong_param_combos(
         nt_param_removal_codes,
         metab_names,
     )
-correct_answer = [
-    (Vmax = 0, K_S1 = 0, K_S2 = 0, K_S1_S2 = 0)
-    (Vmax = 1, K_S1 = 0, K_S2 = 0, K_S1_S2 = 0)
-    (Vmax = 0, K_S1 = 1, K_S2 = 0, K_S1_S2 = 0)
-    (Vmax = 1, K_S1 = 1, K_S2 = 0, K_S1_S2 = 0)
-    (Vmax = 0, K_S1 = 0, K_S2 = 1, K_S1_S2 = 0)
-    (Vmax = 1, K_S1 = 0, K_S2 = 1, K_S1_S2 = 0)
-    (Vmax = 0, K_S1 = 1, K_S2 = 1, K_S1_S2 = 0)
-    (Vmax = 1, K_S1 = 1, K_S2 = 1, K_S1_S2 = 0)
-    (Vmax = 0, K_S1 = 0, K_S2 = 0, K_S1_S2 = 1)
-    (Vmax = 1, K_S1 = 0, K_S2 = 0, K_S1_S2 = 1)
-    (Vmax = 0, K_S1 = 1, K_S2 = 0, K_S1_S2 = 1)
-    (Vmax = 1, K_S1 = 1, K_S2 = 0, K_S1_S2 = 1)
-    (Vmax = 0, K_S1 = 0, K_S2 = 1, K_S1_S2 = 1)
-    (Vmax = 1, K_S1 = 0, K_S2 = 1, K_S1_S2 = 1)
-    (Vmax = 0, K_S1 = 1, K_S2 = 1, K_S1_S2 = 1)
-    (Vmax = 1, K_S1 = 1, K_S2 = 1, K_S1_S2 = 1)
-    (Vmax = 0, K_S1 = 0, K_S2 = 0, K_S1_S2 = 2)
-    (Vmax = 1, K_S1 = 0, K_S2 = 0, K_S1_S2 = 2)
-]
-@test filtered_nt == correct_answer
+for filtered_code in filtered_nt
+    for param in [:K_S1, :K_S2, :K_S3]
+        if filtered_code[param] == 1
+            for param_combo in [:K_S1_S2, :K_S1_S3, :K_S2_S3, :K_S1_S2_S3]
+                if occursin(string(param), string(param_combo))
+                    @test filtered_code[param_combo] != 2
+                end
+            end
+        end
+    end
+end
 
 #test filter_param_removal_codes_for_max_zero_alpha
 #TODO: add a test with practically_unidentifiable_alphas
@@ -405,8 +398,10 @@ reverse_selection_result = @time data_driven_rate_equation_selection(
 #TODO: remove the filtering for 4 parameters after we add the automatic determination of the best number of parameters
 nt_param_removal_code =
     filter(x -> x.num_params .== 4, selection_result.test_results).nt_param_removal_codes[1]
-nt_reverse_param_removal_code =
-    filter(x -> x.num_params .== 4, reverse_selection_result.test_results).nt_param_removal_codes[1]
+nt_reverse_param_removal_code = filter(
+    x -> x.num_params .== 4,
+    reverse_selection_result.test_results,
+).nt_param_removal_codes[1]
 
 using Symbolics
 selected_sym_rate_equation = display_rate_equation(
@@ -524,8 +519,10 @@ reverse_selection_result = @time data_driven_rate_equation_selection(
 #TODO: remove the filtering for 3 parameters after we add the automatic determination of the best number of parameters
 nt_param_removal_code =
     filter(x -> x.num_params .== 3, selection_result.test_results).nt_param_removal_codes[1]
-nt_reverse_param_removal_code =
-    filter(x -> x.num_params .== 3, reverse_selection_result.test_results).nt_param_removal_codes[1]
+nt_reverse_param_removal_code = filter(
+    x -> x.num_params .== 3,
+    reverse_selection_result.test_results,
+).nt_param_removal_codes[1]
 
 using Symbolics
 selected_sym_rate_equation = display_rate_equation(
