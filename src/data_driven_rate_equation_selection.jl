@@ -410,7 +410,7 @@ function calculate_all_parameter_removal_codes_w_num_params(
     else
         filtered_nt_param_removal_codes_max_alpha =
             filter_param_removal_codes_for_max_zero_alpha(
-                nt_param_removal_codes,
+                filtered_nt_param_removal_codes,
                 practically_unidentifiable_params,
                 max_zero_alpha,
             )
@@ -533,7 +533,7 @@ function forward_selection_next_param_removal_codes(
     else
         filtered_nt_param_removal_codes_max_alpha =
             filter_param_removal_codes_for_max_zero_alpha(
-                nt_param_removal_codes,
+                filtered_nt_param_removal_codes,
                 practically_unidentifiable_params,
                 max_zero_alpha,
             )
@@ -581,7 +581,7 @@ function reverse_selection_next_param_removal_codes(
     else
         filtered_nt_param_removal_codes_max_alpha =
             filter_param_removal_codes_for_max_zero_alpha(
-                nt_param_removal_codes,
+                filtered_nt_param_removal_codes,
                 practically_unidentifiable_params,
                 max_zero_alpha,
             )
