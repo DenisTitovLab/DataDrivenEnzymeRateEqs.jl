@@ -39,6 +39,6 @@ selection_result = @time data_driven_rate_equation_selection(pkm2_rate_equation_
   true;
   n_reps_opt=1, # n repeats optimization
   maxiter_opt=30,# n iteration opt algorithm
-  model_selection_method = "cv_denis",
+  model_selection_method = "cv_all_subsets",
   p_val_threshold = .3  # pval threshould for choosing best n params
   )

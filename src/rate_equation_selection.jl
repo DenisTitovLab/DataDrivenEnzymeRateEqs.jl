@@ -1,6 +1,6 @@
 using Dates, CSV, DataFrames, Distributed, HypothesisTests
 include("rate_equation_fitting.jl")
-
+using Dates, CSV, DataFrames, Distributed, HypothesisTests
 
 function prepare_data(data::DataFrame, metab_names)
 
@@ -23,6 +23,7 @@ function prepare_data(data::DataFrame, metab_names)
     return data
 end
 
+#TODO: edit explantions of data_driven_rate_equation_selection
 
 """
     data_driven_rate_equation_selection(
@@ -31,7 +32,9 @@ end
         metab_names::Tuple{Symbol,Vararg{Symbol}},
         param_names::Tuple{Symbol,Vararg{Symbol}},
         range_number_params::Tuple{Int,Int},
-        forward_model_selection::Bool,
+        forward_model_selection::Bool;
+        save_train_results::Bool = false,
+        enzyme_name::String = "Enzyme",
     )
 
 This function is used to perform data-driven rate equation selection using a general rate equation and data. The function will select the best rate equation by iteratively removing parameters from the general rate equation and finding an equation that yield best test scores on data not used for fitting.
@@ -43,6 +46,10 @@ This function is used to perform data-driven rate equation selection using a gen
 - `param_names::Tuple`: Tuple of parameter names that correspond to the parameters of `rate_equation`.
 - `range_number_params::Tuple{Int,Int}`: A tuple of integers representing the range of the number of parameters of general_rate_equation to search over.
 - `forward_model_selection::Bool`: A boolean indicating whether to use forward model selection (true) or reverse model selection (false).
+
+# Keyword Arguments
+- `save_train_results::Bool`: A boolean indicating whether to save the results of the training for each number of parameters as a csv file.
+- `enzyme_name::String`: A string for enzyme name that is used to name the csv files that are saved.
 
 # Returns nothing, but saves a csv file for each `num_params` with the results of the training for each combination of parameters tested and a csv file with test results for top 10% of the best results with each number of parameters tested.
 
@@ -56,7 +63,7 @@ function data_driven_rate_equation_selection(
     forward_model_selection::Bool;
     n_reps_opt::Int = 20,
     maxiter_opt::Int = 50_000,
-    model_selection_method = "denis",
+    model_selection_method = "current_subsets_filtering",
     p_val_threshold = .4,
     save_train_results::Bool = false,
     enzyme_name::String = "Enzyme",
@@ -65,11 +72,10 @@ function data_driven_rate_equation_selection(
     data = prepare_data(data, metab_names)
     
     #generate param_removal_code_names by converting each mirror parameter for a and i into one name
-    #(e.g. K_a_Metabolite1 and K_i_Metabolite1 into K_Metabolite1)
+    #(e.g. K_a_Metabolite1 and K_i_Metabolite1 into K_allo_Metabolite1)
     param_removal_code_names = (
         [
-            Symbol(replace(string(param_name), "_a_" => "_allo_")) for
-            param_name in param_names if
+            Symbol(replace(string(param_name), "_a_" => "_allo_", "Vmax_a" => "Vmax_allo")) for param_name in param_names if
             !contains(string(param_name), "_i") && param_name != :Vmax
         ]...,
     )
@@ -83,7 +89,7 @@ function data_driven_rate_equation_selection(
     # param_subsets_per_n_params = calculate_all_parameter_removal_codes(param_names, range_number_params)
     all_param_removal_codes = calculate_all_parameter_removal_codes(param_names)
 
-    if model_selection_method == "denis"
+    if model_selection_method == "current_subsets_filtering"
         results = fit_rate_equation_selection_denis(
             general_rate_equation,
             data,
@@ -110,9 +116,9 @@ function data_driven_rate_equation_selection(
         println(best_subset_row)
 
 
-    elseif model_selection_method == "cv_denis"
+    elseif model_selection_method == "cv_subsets_filtering"
         figs = unique(data.source) 
-        results_figs_df = pmap(
+        results_figs_df = map(
             dropped_fig -> fit_rate_equation_selection_per_fig(
                 general_rate_equation,
                 data,
@@ -164,6 +170,8 @@ function data_driven_rate_equation_selection(
             maxiter_opt
             )
 
+        # TODO: for each figure: keep for each number of parameters only the best model (best training loss across all subsets with same number of parameters)
+        # then, save it to df and this is the one should be sent to find_optimal_n_params.
         best_n_params = find_optimal_n_params(results, p_val_threshold)
 
         best_subset_row = train_and_choose_best_subset(
@@ -183,7 +191,7 @@ function data_driven_rate_equation_selection(
         println(best_subset_row)
 
     end
-
+    @info "before end of data driven rate equation func"
     return (results = results, best_n_params = best_n_params, best_subset_row = best_subset_row)
 end
 
@@ -643,7 +651,7 @@ end
 """Function to calculate loss for a given `rate_equation` and `nt_fitted_params` on `data` that was not used for training"""
 function test_rate_equation(
     rate_equation::Function,
-    data,
+    data::DataFrame,
     nt_fitted_params::NamedTuple,
     metab_names::Tuple{Symbol,Vararg{Symbol}},
     param_names::Tuple{Symbol,Vararg{Symbol}},
@@ -677,7 +685,7 @@ function test_rate_equation(
     return test_loss
 end
 
-"""Generate all possibles codes for ways that mirror params for a and i states of MWC enzyme can be removed from the rate equation"""
+"""Generate all possibles codes for ways that params can be removed from the rate equation"""
 function calculate_all_parameter_removal_codes(param_names::Tuple{Symbol,Vararg{Symbol}})
     feasible_param_subset_codes = ()
     for param_name in param_names
@@ -855,12 +863,13 @@ end
 
 """
 Calculate `nt_param_removal_codes` with `num_params` including non-zero term combinations for codes (excluding alpha terms) in each `nt_previous_param_removal_codes` that has `num_params-1`
+Calculate `nt_param_removal_codes` with `num_params` including non-zero term combinations for codes (excluding alpha terms) in each `nt_previous_param_removal_codes` that has `num_params-1`
 """
 function forward_selection_next_param_removal_codes(
     nt_previous_param_removal_codes::Vector{T} where T<:NamedTuple,
     num_alpha_params::Int,
 )
-    feasible_param_subset_codes = []
+    feasible_param_subset_codes = Int[]
     param_removal_code_names = keys(nt_previous_param_removal_codes[1])
     next_param_removal_codes = Vector{Vector{Int}}()
     for previous_param_removal_code in nt_previous_param_removal_codes
@@ -892,10 +901,13 @@ function forward_selection_next_param_removal_codes(
     end
     nt_param_removal_codes =
         [NamedTuple{param_removal_code_names}(x) for x in unique(next_param_removal_codes)]
+    nt_param_removal_codes =
+        [NamedTuple{param_removal_code_names}(x) for x in unique(next_param_removal_codes)]
     return nt_param_removal_codes
 end
 
 """
+Use `nt_previous_param_removal_codes` to calculate `nt_next_param_removal_codes` that have one additional zero elements except for for elements <= `num_alpha_params` from the end
 Use `nt_previous_param_removal_codes` to calculate `nt_next_param_removal_codes` that have one additional zero elements except for for elements <= `num_alpha_params` from the end
 """
 function reverse_selection_next_param_removal_codes(
