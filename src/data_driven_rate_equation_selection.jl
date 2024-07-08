@@ -96,6 +96,8 @@ function data_driven_rate_equation_selection(
     p_val_threshold::Float64 = .4,
     save_train_results::Bool = false,
     enzyme_name::String = "Enzyme",
+    train_loss = "sse",
+    test_loss = "sse"
  )
     
     data = prepare_data(data, metab_names)
@@ -131,7 +133,9 @@ function data_driven_rate_equation_selection(
             maxiter_opt,
             all_param_removal_codes, 
             save_train_results, 
-            enzyme_name
+            enzyme_name,
+            train_loss,
+            test_loss
             )
 
         best_n_params = find_optimal_n_params(results.test_results, p_val_threshold)
@@ -277,7 +281,7 @@ function find_optimal_n_params(df_results::DataFrame, p_value_threshold::Float64
         # Perform Wilcoxon signed-rank test on test losses
         losses_current = filter(row -> row.num_params == current_n_params, df_results).test_loss
         # compare with best n params: 
-        test_result = SignedRankTest(losses_current, losses_minimal_loss)
+        test_result = SignedRankTest(log.(losses_current), log.(losses_minimal_loss))
         pval = pvalue(test_result)
 
         # If the difference is not significant, continue; else, stop and return last non-significant model's params
@@ -308,7 +312,9 @@ function fit_rate_equation_selection_current(
         maxiter_opt::Int,
         all_param_removal_codes, 
         save_train_results::Bool, 
-        enzyme_name::String
+        enzyme_name::String, 
+        train_loss,
+        test_loss
         )
 
         num_alpha_params = count(occursin.("alpha", string.([param_names...])))
@@ -363,6 +369,7 @@ function fit_rate_equation_selection_current(
                     n_iter = n_repetiotions_opt,
                     maxiter_opt = maxiter_opt,
                     nt_param_removal_code = nt_param_removal_code,
+                    train_loss = train_loss
                 ),
                 nt_param_removal_codes,
             )
@@ -390,7 +397,7 @@ function fit_rate_equation_selection_current(
             end
 
             #store top 10% for next loop as `previous_param_removal_codes`
-            filter!(row -> row.train_loss < 1.1 * minimum(df_results.train_loss), df_results)
+            filter!(row -> row.train_loss <= 1.1 * minimum(df_results.train_loss), df_results)
             # previous_param_removal_codes = values.(df_results.nt_param_removal_codes)
             nt_previous_param_removal_codes = [
                 NamedTuple{param_removal_code_names}(x) for
@@ -419,6 +426,8 @@ function fit_rate_equation_selection_current(
                 n_iter = n_repetiotions_opt,
                 maxiter_opt = maxiter_opt,
                 nt_param_removal_code = subset[1],
+                train_loss = train_loss,
+                test_loss = test_loss
             ), 
         subsets_to_fit
         )
@@ -668,6 +677,8 @@ function loocv_rate_equation(
     n_iter = 20,
     maxiter_opt = 50_000,
     nt_param_removal_code = nothing,
+    train_loss = "sse",
+    test_loss = "sse"
 )
     # Drop selected figure from data
     train_data = data[data.source.!=fig, :]
@@ -681,13 +692,15 @@ function loocv_rate_equation(
         n_iter = n_iter,
         maxiter_opt = maxiter_opt,
         nt_param_removal_code = nt_param_removal_code,
+        train_loss = train_loss
     )
     test_loss = test_rate_equation(
         rate_equation,
         test_data,
         train_res.params,
         metab_names,
-        param_names,
+        param_names;
+        test_loss = test_loss 
     )
     return (
         dropped_fig = fig,
@@ -703,7 +716,8 @@ function test_rate_equation(
     data::DataFrame,
     nt_fitted_params::NamedTuple,
     metab_names::Tuple{Symbol,Vararg{Symbol}},
-    param_names::Tuple{Symbol,Vararg{Symbol}},
+    param_names::Tuple{Symbol,Vararg{Symbol}};
+    test_loss = "sse"
 )
     filtered_data = data[.!isnan.(data.Rate), [:Rate, metab_names..., :source]]
     # Add a new column to data to assign an integer to each source/figure from publication
@@ -722,6 +736,8 @@ function test_rate_equation(
     rate_data_nt = Tables.columntable(filtered_data)
 
     fitted_params = values(nt_fitted_params)
+
+    loss_rate_equation = get_loss_function(test_loss)
     test_loss = loss_rate_equation(
         fitted_params,
         rate_equation::Function,
@@ -996,7 +1012,8 @@ function train_and_choose_best_subset(
     n_reps_opt::Int, 
     maxiter_opt::Int, 
     save_train_results::Bool, 
-    enzyme_name::String
+    enzyme_name::String,
+    train_loss
 )
     num_alpha_params = count(occursin.("alpha", string.([param_names...])))
 
@@ -1017,6 +1034,7 @@ function train_and_choose_best_subset(
             n_iter = n_reps_opt,
             maxiter_opt = maxiter_opt,
             nt_param_removal_code = nt_param_removal_code,
+            train_loss = train_loss
         ),
         nt_param_removal_codes,
     )
