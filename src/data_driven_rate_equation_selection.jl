@@ -736,7 +736,7 @@ function fit_rate_equation_selection_all_subsets(
     lengths = []
 
     for (n_params, subsets) in param_subsets_per_n_params
-        nt_param_subsets = [
+        nt_param_removal_codes = [
             NamedTuple{param_removal_code_names}(x) for
             x in unique(subsets)
         ]
