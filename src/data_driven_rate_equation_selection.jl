@@ -209,6 +209,12 @@ function data_driven_rate_equation_selection(
         println("best subset row")
         println(best_subset_row)
 
+        CSV.write(
+            "results/$(Dates.format(now(),"mmddyy"))_$(enzyme_name)_best_subset_row_method_$(model_selection_method)_niter_$(n_reps_opt)_maxiter_$(maxiter_opt)_pval_$(p_val_threshold)_end_INSIDE.csv",
+            best_subset_row,
+        )
+
+
     elseif model_selection_method == "cv_all_subsets"
 
         results = fit_rate_equation_selection_all_subsets(
@@ -580,6 +586,7 @@ function fit_rate_equation_selection_per_fig(
     println("Leftout figure: $(test_fig), About to start loop with num_params: $num_param_range")
     df_train_results = DataFrame()
     df_test_results = DataFrame()
+
     for num_params in num_param_range
         println("Running loop with num_params: $num_params")
         
@@ -660,11 +667,40 @@ function fit_rate_equation_selection_per_fig(
         
         df_test_results = vcat(df_test_results, df_results)
     end
+
+    # calculate test loss for top subsets:
+    # Prepare the data for pmap
+    subsets_to_test = [(row.params, row.nt_param_removal_codes,row.num_params) for row in eachrow(df_test_results)]
+
+    test_results = pmap(
+        best_subset_params -> test_rate_equation(
+            general_rate_equation,
+            test_data,
+            best_subset_params[1], #rescaled params 
+            metab_names, 
+            param_names
+        ), 
+        subsets_to_test
+    )
+
+    result_dfs = DataFrame[]
+    for (res, subset) in zip(test_results, subsets_to_test)
+        res_df = DataFrame(
+            test_loss = res,          
+            num_params = subset[3],          
+            nt_param_removal_code =subset[2], 
+            test_fig =test_fig,
+            params = subset[1]           
+        )
+        push!(result_dfs, res_df)
+    end
+
+    df_test_results = vcat(result_dfs...)
     return (
         train_results = df_train_results, 
-        test_results = df_test_results,
+        test_results = df_test_results, 
         practically_unidentifiable_params = practically_unidentifiable_params
-    )
+        )
 end
 
 """
