@@ -116,9 +116,6 @@ function data_driven_rate_equation_selection(
     )
 
     num_alpha_params = count(occursin.("alpha", string.([param_names...])))
-    #check that range_number_params within bounds of minimal and maximal number of parameters
-    @assert range_number_params[1] >= length(param_names) - length(param_removal_code_names) "starting range_number_params cannot be below $(length(param_names) - length(param_removal_code_names))"
-    @assert range_number_params[2] <= length(param_names) "ending range_number_params cannot be above $(length(param_names))"
 
     if isnothing(range_number_params)
         if :L in param_names
@@ -306,7 +303,7 @@ function find_optimal_n_params(df_results::DataFrame, p_value_threshold::Float64
         # Perform Wilcoxon signed-rank test on test losses
         losses_current = filter(row -> row.num_params == current_n_params, df_results).test_loss
         # compare with best n params: 
-        test_result = SignedRankTest(losses_current, losses_minimal_loss)
+        test_result = SignedRankTest(log.(losses_current), log.(losses_minimal_loss))
         pval = pvalue(test_result)
 
         # If the difference is not significant, continue; else, stop and return last non-significant model's params
@@ -336,8 +333,8 @@ function fit_rate_equation_selection_current(
         max_zero_alpha::Int,
         n_repetiotions_opt::Int,
         maxiter_opt::Int,
-        practically_unidentifiable_params, 
         all_param_removal_codes, 
+        practically_unidentifiable_params, 
         save_train_results::Bool, 
         enzyme_name::String
         )
@@ -504,7 +501,7 @@ function fit_rate_equation_selection_current(
 
         df_test_results = vcat(result_dfs...)
 
-        return (train_results = df_train_results, test_results = df_test_results, practically_unidentifiable_params = practically_unidentifiable_params)
+    return (train_results = df_train_results, test_results = df_test_results, practically_unidentifiable_params = practically_unidentifiable_params)
 end
 
 """
@@ -856,23 +853,24 @@ function calculate_all_parameter_removal_codes(
 )
     feasible_param_subset_codes = ()
     for param_name in param_names
-        param_name_str = string(param_name)
-        if param_name == :L
+        if startswith(string(param_name), "Vmax_a")
+            feasible_param_subset_codes = (feasible_param_subset_codes..., [0, 1, 2])
+        elseif startswith(string(param_name), "K_a")
+            feasible_param_subset_codes = (feasible_param_subset_codes..., [0, 1, 2, 3])
+        elseif startswith(string(param_name), "K_") &&
+               !startswith(string(param_name), "K_i") &&
+               !startswith(string(param_name), "K_a") &&
+               length(split(string(param_name), "_")) == 2
             feasible_param_subset_codes = (feasible_param_subset_codes..., [0, 1])
-        elseif startswith(param_name_str, "Vmax_a")
-            feasible_param_subset_codes = (feasible_param_subset_codes..., [0, 1,2])
-        elseif startswith(param_name_str, "K_a")
-            feasible_param_subset_codes = (feasible_param_subset_codes..., [0, 1,2,3])
-        elseif startswith(param_name_str, "K_") &&
-               !startswith(param_name_str, "K_i") &&
-               !startswith(param_name_str, "K_a") &&
-               length(split(param_name_str, "_")) == 2
-               feasible_param_subset_codes = (feasible_param_subset_codes..., [0, 1])
-        elseif startswith(param_name_str, "K_") &&
-               !startswith(param_name_str, "K_i") &&
-               !startswith(param_name_str, "K_a") &&
-               length(split(param_name_str, "_")) > 2
-               feasible_param_subset_codes = (feasible_param_subset_codes..., [0, 1,2])
+        elseif startswith(string(param_name), "K_") &&
+               !startswith(string(param_name), "K_i") &&
+               !startswith(string(param_name), "K_a") &&
+               length(split(string(param_name), "_")) > 2
+            if param_name in practically_unidentifiable_params
+                feasible_param_subset_codes = (feasible_param_subset_codes..., [1])
+            else
+                feasible_param_subset_codes = (feasible_param_subset_codes..., [0, 1, 2])
+            end
         elseif startswith(string(param_name), "alpha")
             if param_name in practically_unidentifiable_params
                 feasible_param_subset_codes = (feasible_param_subset_codes..., [1])
@@ -881,6 +879,7 @@ function calculate_all_parameter_removal_codes(
             end
         end
     end
+    # return collect(Iterators.product(feasible_param_subset_codes...))
     return Iterators.product(feasible_param_subset_codes...)
 end
 
@@ -1094,7 +1093,6 @@ function forward_selection_next_param_removal_codes(
     num_alpha_params::Int,
     max_zero_alpha::Int,
 )
-    feasible_param_subset_codes = Int[]
     param_removal_code_names = keys(nt_previous_param_removal_codes[1])
     next_param_removal_codes = Vector{Vector{Int}}()
     for previous_param_removal_code in nt_previous_param_removal_codes
@@ -1128,7 +1126,26 @@ function forward_selection_next_param_removal_codes(
     end
     nt_param_removal_codes =
         [NamedTuple{param_removal_code_names}(x) for x in unique(next_param_removal_codes)]
-    return nt_param_removal_codes
+    if isempty(nt_param_removal_codes)
+        filtered_nt_param_removal_codes = NamedTuple[]
+    else
+        filtered_nt_param_removal_codes =
+            filter_param_removal_codes_to_prevent_wrong_param_combos(
+                nt_param_removal_codes,
+                metab_names,
+            )
+    end
+    if isempty(filtered_nt_param_removal_codes)
+        filtered_nt_param_removal_codes_max_alpha = NamedTuple[]
+    else
+        filtered_nt_param_removal_codes_max_alpha =
+            filter_param_removal_codes_for_max_zero_alpha(
+                filtered_nt_param_removal_codes,
+                practically_unidentifiable_params,
+                max_zero_alpha,
+            )
+    end
+    return unique(filtered_nt_param_removal_codes_max_alpha)
 end
 
 """
