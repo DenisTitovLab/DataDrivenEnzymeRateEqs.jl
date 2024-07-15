@@ -9,7 +9,7 @@ using SafeTestsets
     @safetestset "QSSA Rate Eq Derivation" begin
         include("tests_for_qssa_general_rate_eq_derivation.jl")
     end
-    @safetestset "MWC Rate Eq Fitting" begin
+    @safetestset "MWC and QSSA Rate Eq Fitting" begin
         include("tests_for_rate_eq_fitting.jl")
     end
     @safetestset "Plotting" begin
