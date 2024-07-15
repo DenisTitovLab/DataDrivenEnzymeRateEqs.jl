@@ -209,12 +209,6 @@ function data_driven_rate_equation_selection(
         println("best subset row")
         println(best_subset_row)
 
-        CSV.write(
-            "results/$(Dates.format(now(),"mmddyy"))_$(enzyme_name)_best_subset_row_method_$(model_selection_method)_niter_$(n_reps_opt)_maxiter_$(maxiter_opt)_pval_$(p_val_threshold)_end_INSIDE.csv",
-            best_subset_row,
-        )
-
-
     elseif model_selection_method == "cv_all_subsets"
 
         results = fit_rate_equation_selection_all_subsets(
