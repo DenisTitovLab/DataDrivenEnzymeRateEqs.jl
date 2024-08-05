@@ -101,6 +101,9 @@ function data_driven_rate_equation_selection(
     p_val_threshold::Float64 = 0.4,
     save_train_results::Bool = false,
     enzyme_name::String = "Enzyme",
+    subsets_min_limit::Int = 1, 
+    subsets_max_limit::Union{Int, Nothing}=nothing,
+    subsets_filter_threshold::Float64=0.1,
  )
     
     data = prepare_data(data, metab_names)
@@ -179,7 +182,10 @@ function data_driven_rate_equation_selection(
                 maxiter_opt,
                 all_param_removal_codes,
                 practically_unidentifiable_params, 
-                dropped_fig
+                dropped_fig, 
+                subsets_min_limit,
+                subsets_max_limit, 
+                subsets_filter_threshold
                 ), 
             figs
         )
@@ -226,7 +232,7 @@ function data_driven_rate_equation_selection(
 
         # This code groups results by dropped_fig and num_params, finds the row with the minimum train_loss in each group,
         # and creates a new DataFrame with dropped_fig, test_loss, and num_params.
-        grouped = groupby(results, [:dropped_fig, :num_params])
+        grouped = groupby(results.train_test_results, [:dropped_fig, :num_params])
         agg_results = combine(grouped) do subdf
             idx = argmin(subdf.train_loss)
             subdf[idx, [:dropped_fig, :test_loss, :num_params]]
@@ -265,58 +271,132 @@ function get_nt_subset(df, num)
 
 end
 
-"""
-    select_best_n_params(df_results::DataFrame, p_value_threshold::Float64) -> Int
+# """
+#     select_best_n_params(df_results::DataFrame, p_value_threshold::Float64) -> Int
 
-Uses the Wilcoxon test across all figures' results to select the best number of parameters.
+# Uses the Wilcoxon test across all figures' results to select the best number of parameters.
 
-# Arguments
-- `df_results::DataFrame`: A DataFrame containing the results with columns including `:num_params` and `:test_loss`.
-- `p_value_threshold::Float64`: The significance threshold for the Wilcoxon test.
+# # Arguments
+# - `df_results::DataFrame`: A DataFrame containing the results with columns including `:num_params` and `:test_loss`.
+# - `p_value_threshold::Float64`: The significance threshold for the Wilcoxon test.
 
-# Returns
-- `Int`: The best number of parameters based on the test losses and the Wilcoxon test.
+# # Returns
+# - `Int`: The best number of parameters based on the test losses and the Wilcoxon test.
 
-# Description
-1. Groups the DataFrame by the number of parameters and calculates the average test loss for each group.
-2. Identifies the number of parameters with the minimal average test loss.
-3. Iterates through fewer parameters, performing the Wilcoxon signed-rank test to compare test losses with the current best number of parameters.
-4. Stops and returns the last non-significant model's n param if a significant difference is found.
-"""
-function find_optimal_n_params(df_results::DataFrame, p_value_threshold::Float64) :: Int
-    # Group by number of parameters and calculate average test loss
-    grouped = groupby(df_results, :num_params)
-    avg_losses = combine(grouped, :test_loss => mean => :avg_test_loss)
-    # Sort by number of parameters
-    sort!(avg_losses, :num_params)
-    println("Avg CV error for each n params:")
-    println(avg_losses)
-    # Find the row with the minimum average test loss
-    idx_min_loss = argmin(avg_losses.avg_test_loss)
-    n_param_minimal_loss = avg_losses[idx_min_loss, :num_params]
-    losses_minimal_loss = filter(row -> row.num_params == n_param_minimal_loss, df_results).test_loss
+# # Description
+# 1. Groups the DataFrame by the number of parameters and calculates the average test loss for each group.
+# 2. Identifies the number of parameters with the minimal average test loss.
+# 3. Iterates through fewer parameters, performing the Wilcoxon signed-rank test to compare test losses with the current best number of parameters.
+# 4. Stops and returns the last non-significant model's n param if a significant difference is found.
+# """
+# function find_optimal_n_params(df_results::DataFrame, p_value_threshold::Float64) :: Int
+#     # Group by number of parameters and calculate average test loss
+#     grouped = groupby(df_results, :num_params)
+#     avg_losses = combine(grouped, :test_loss => mean => :avg_test_loss)
+#     # Sort by number of parameters
+#     sort!(avg_losses, :num_params)
+#     println("Avg CV error for each n params:")
+#     println(avg_losses)
+#     # Find the row with the minimum average test loss
+#     idx_min_loss = argmin(avg_losses.avg_test_loss)
+#     n_param_minimal_loss = avg_losses[idx_min_loss, :num_params]
+#     losses_minimal_loss = filter(row -> row.num_params == n_param_minimal_loss, df_results).test_loss
 
+#     current_n_params = n_param_minimal_loss
+#     # Start checking from the model just below the minimal average loss model downwards
+#     for i in idx_min_loss-1:-1:1        
+#         current_n_params = avg_losses[i, :num_params]
+#         # Perform Wilcoxon signed-rank test on test losses
+#         losses_current = filter(row -> row.num_params == current_n_params, df_results).test_loss
+#         # compare with best n params: 
+#         test_result = SignedRankTest(log.(losses_current), log.(losses_minimal_loss))
+#         pval = pvalue(test_result)
+
+#         # If the difference is not significant, continue; else, stop and return last non-significant model's params
+#         if pval <= p_value_threshold
+#             current_n_params = avg_losses[i+1, :num_params]
+#             break  # Stop if a significant difference is found
+#         end
+#     end
+    
+#     best_n_params = current_n_params
+
+#     return best_n_params
+# end
+
+function find_best_n_params_wilcoxon(df_results, avg_losses,p_value_threshold, n_param_minimal_loss,losses_minimal_loss )
+    idx_min_loss = argmin(avg_losses.avg_test_log_loss)
+    
+    wilcoxon_results = DataFrame(num_params = Int[], pval= Float64[])
     current_n_params = n_param_minimal_loss
     # Start checking from the model just below the minimal average loss model downwards
     for i in idx_min_loss-1:-1:1        
         current_n_params = avg_losses[i, :num_params]
         # Perform Wilcoxon signed-rank test on test losses
-        losses_current = filter(row -> row.num_params == current_n_params, df_results).test_loss
+        losses_current = filter(row -> row.num_params == current_n_params, df_results).log_test_loss
         # compare with best n params: 
-        test_result = SignedRankTest(log.(losses_current), log.(losses_minimal_loss))
+        test_result = ExactSignedRankTest(losses_current, losses_minimal_loss)
         pval = pvalue(test_result)
-
-        # If the difference is not significant, continue; else, stop and return last non-significant model's params
-        if pval <= p_value_threshold
-            current_n_params = avg_losses[i+1, :num_params]
-            break  # Stop if a significant difference is found
+        push!(wilcoxon_results, (current_n_params, pval))
+    end
+    println(wilcoxon_results)
+    best_n_params = n_param_minimal_loss
+    
+    if !isempty(wilcoxon_results)
+        above_threshold = wilcoxon_results[wilcoxon_results.pval .> p_value_threshold, :]
+        if !isempty(above_threshold)
+        best_n_params = minimum(above_threshold.num_params)
         end
     end
-    
-    best_n_params = current_n_params
-
+    println("Best n params Wilcoxon: $(best_n_params)")
     return best_n_params
 end
+
+function find_best_n_params_within_one_se(losses_minimal_loss,avg_losses, n_param_minimal_loss )
+    best_log_avg_loss = mean(losses_minimal_loss)
+    log_best_se = std(losses_minimal_loss) / sqrt(length(losses_minimal_loss))
+    println("Best log avg loss: $(best_log_avg_loss), avg+se: $(best_log_avg_loss+log_best_se)")
+    avg_losses_filter = filter(row -> row.num_params <= n_param_minimal_loss, avg_losses)
+    avg_losses_filter[:, :within_one_se] = avg_losses_filter[:, :avg_test_log_loss] .<= best_log_avg_loss + log_best_se
+    println(avg_losses_filter)
+    best_n_prams_se = minimum(avg_losses_filter[avg_losses_filter.within_one_se .== true, :num_params])
+    println("Best n params SE: $(best_n_prams_se)")
+    
+    return best_n_prams_se
+end
+
+function find_optimal_n_params(df_results::DataFrame, p_value_threshold::Float64) :: Int
+    # Group by number of parameters and calculate average test loss
+    df_results[!, :log_test_loss] = log.(df_results.test_loss)
+    grouped = groupby(df_results, :num_params)
+    avg_losses = combine(grouped, :log_test_loss => mean => :avg_test_log_loss)
+    # Sort by number of parameters
+    sort!(avg_losses, :num_params)
+    println("Avg LOG CV error for each n params:")
+    println(avg_losses)
+    # Find the row with the minimum average test loss
+    
+    idx_min_loss = argmin(avg_losses.avg_test_log_loss)
+    n_param_minimal_loss = avg_losses[idx_min_loss, :num_params]
+    losses_minimal_loss = filter(row -> row.num_params == n_param_minimal_loss, df_results).log_test_loss
+
+    best_n_params_wilcoxon = find_best_n_params_wilcoxon(
+        df_results, 
+        avg_losses,
+        p_value_threshold,
+        n_param_minimal_loss, 
+        losses_minimal_loss
+    )
+
+    best_n_params_se = find_best_n_params_within_one_se(
+        losses_minimal_loss,
+        avg_losses, 
+        n_param_minimal_loss
+    )
+
+    return min(best_n_params_wilcoxon,best_n_params_se)
+end
+
 
 """
 This function iteratively fits models that are subsets of the top 10% from the previous iteration (loop over range num params), saving the best model for each
@@ -523,7 +603,10 @@ function fit_rate_equation_selection_per_fig(
     maxiter_opt::Int,
     all_param_removal_codes,
     practically_unidentifiable_params, 
-    test_fig
+    test_fig, 
+    subsets_min_limit, 
+    subsets_max_limit, 
+    subsets_filter_threshold
     )
 
     train_data = data[data.source.!=test_fig, :]
@@ -643,7 +726,8 @@ function fit_rate_equation_selection_per_fig(
         end
 
         #store top 10% for next loop as `previous_param_removal_codes`
-        filter!(row -> row.train_loss < 1.1 * minimum(df_results.train_loss), df_results)
+        # filter!(row -> row.train_loss < 1.1 * minimum(df_results.train_loss), df_results)
+        df_results = filter_and_limit_rows(df_results, :train_loss, subsets_min_limit, subsets_max_limit, subsets_filter_threshold)
         # previous_param_removal_codes = values.(df_results.nt_param_removal_codes)
         nt_previous_param_removal_codes = [
             NamedTuple{param_removal_code_names}(x) for
@@ -1352,5 +1436,39 @@ function train_and_choose_best_subset(
     return best_param_subset
 end
 
+function filter_and_limit_rows(df::DataFrame, train_loss_col::Symbol, min_limit::Int, max_limit::Union{Int, Nothing}=nothing, filter_threshold::Float64=0.1)
+    # Check if min_limit is greater than the size of the original df
+    if min_limit > nrow(df)
+        println("min_limit ($(min_limit)) is greater than the number of rows in the dataframe ($(nrow(df))). Using all available rows.")
+        return df
+    end
 
-
+    # Sort the dataframe by train loss
+    sorted_df = sort(df, train_loss_col)
+    
+    # Get the minimum train loss
+    min_loss = minimum(df[!, train_loss_col])
+    
+    # Calculate the threshold value based on the filter_threshold percentage
+    threshold_value = min_loss * (1 + filter_threshold)
+    
+    # Filter rows where train loss is less than or equal to the threshold value
+    filtered_df = filter(row -> row[train_loss_col] <= threshold_value, sorted_df)
+    
+    # Get the number of rows in the filtered dataframe
+    num_rows = nrow(filtered_df)
+    
+    # Handle the min limit
+    if num_rows < min_limit
+        # If we have fewer rows than the min limit, take more rows from the sorted dataframe
+        additional_rows = min(min_limit - num_rows, nrow(sorted_df) - num_rows)
+        filtered_df = sorted_df[1:(num_rows + additional_rows), :]
+    end
+    
+    # Handle the max limit only if it's not Nothing
+    if !isnothing(max_limit) && nrow(filtered_df) > max_limit
+        filtered_df = filtered_df[1:max_limit, :]
+    end
+    
+    return filtered_df
+end
