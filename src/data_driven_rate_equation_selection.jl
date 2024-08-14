@@ -37,6 +37,9 @@ end
         p_val_threshold::Float64 = 0.4,
         save_train_results::Bool = false,
         enzyme_name::String = "Enzyme",
+        subsets_min_limit::Int = 1, 
+        subsets_max_limit::Union{Int, Nothing}=nothing,
+        subsets_filter_threshold::Float64=0.1,
     )
 
 This function is used to perform data-driven rate equation selection using a general rate equation and data. 
@@ -74,12 +77,21 @@ The best equation is the subset with minimal training loss for this optimal n pa
 - `range_number_params::Tuple{Int,Int}`: A tuple of integers representing the range of the number of parameters of general_rate_equation to search over.
 - `forward_model_selection::Bool`: A boolean indicating whether to use forward model selection (true) or reverse model selection (false).
 - `max_zero_alpha::Int`: An integer representing the maximum number of alpha parameters that can be set to 0.
-- `n_reps_opt`::Int n repetitions of optimization  
-- `maxiter_opt`::Int max iterations of optimization algorithm
--  model_selection_method::String - which model selection to find best rate equation (default is current_subsets_filtering)
--  p_val_threshold::Float64 - pval threshold for Wilcoxon test
+- `n_reps_opt::Int` n repetitions of optimization  
+- `maxiter_opt::Int` max iterations of optimization algorithm
+-  `model_selection_method::String` - which model selection to find best rate equation (default is current_subsets_filtering)
+-  `p_val_threshold::Float64` - pval threshold for Wilcoxon test
 - `save_train_results::Bool`: A boolean indicating whether to save the results of the training for each number of parameters as a csv file.
 - `enzyme_name::String`: A string for enzyme name that is used to name the csv files that are saved.
+- `subsets_min_limit::Int` - The minimum number of filtered subsets (those with training loss within 10% of the minimum) 
+that must be kept for each number of parameters. These subsets are used to generate the subsets for the next iteration (only subsets of these are considered).
+Relevant to model selection methods current_subsets_filtering or cv_subsets_filtering.
+- `subsets_max_limit::Union{Int, Nothing}` - The maximum number of filtered subsets (those with training loss within 10% of the minimum) 
+that must be kept for each number of parameters. These subsets are used to generate the subsets for the next iteration (only subsets of these are considered).
+Relevant to model selection methods current_subsets_filtering or cv_subsets_filtering.
+- `subsets_filter_threshold::Float64` - This sets the percentage limit for filtering subsets in each iteration.
+ Only the subsets with a training loss close to the best (within this percentage) are kept.
+ Relevant to model selection methods current_subsets_filtering or cv_subsets_filtering.
 
 # Returns
 - `NamedTuple`: A named tuple with the following fields:
@@ -152,7 +164,10 @@ function data_driven_rate_equation_selection(
             all_param_removal_codes, 
             practically_unidentifiable_params, 
             save_train_results, 
-            enzyme_name
+            enzyme_name,
+            subsets_min_limit,
+            subsets_max_limit,
+            subsets_filter_threshold
             )
 
         best_n_params = find_optimal_n_params(results.test_results, p_val_threshold)
@@ -271,60 +286,39 @@ function get_nt_subset(df, num)
 
 end
 
-# """
-#     select_best_n_params(df_results::DataFrame, p_value_threshold::Float64) -> Int
+"""
+    find_best_n_params_wilcoxon(
+        df_results::DataFrame, 
+        avg_losses::DataFrame, 
+        p_value_threshold::Float64, 
+        n_param_minimal_loss::Int, 
+        losses_minimal_loss::Vector{Float64}
+    ) :: Int
 
-# Uses the Wilcoxon test across all figures' results to select the best number of parameters.
+This function identifies the best number of parameters for a model based on Wilcoxon signed-rank tests.
 
-# # Arguments
-# - `df_results::DataFrame`: A DataFrame containing the results with columns including `:num_params` and `:test_loss`.
-# - `p_value_threshold::Float64`: The significance threshold for the Wilcoxon test.
+## Parameters:
+- `df_results::DataFrame`: A DataFrame containing test results, including the number of parameters and corresponding log test losses.
+- `avg_losses::DataFrame`: A DataFrame with the average test log losses for different numbers of parameters.
+- `p_value_threshold::Float64`: The threshold p-value for determining if the difference in losses is statistically significant.
+- `n_param_minimal_loss::Int`: The number of parameters for the model with the minimal average test log loss.
+- `losses_minimal_loss::Vector{Float64}`: The log test losses for the model with the minimal average test log loss.
 
-# # Returns
-# - `Int`: The best number of parameters based on the test losses and the Wilcoxon test.
+## Returns:
+- `best_n_params::Int`: The number of parameters that provides the best model performance based on the Wilcoxon test results.
 
-# # Description
-# 1. Groups the DataFrame by the number of parameters and calculates the average test loss for each group.
-# 2. Identifies the number of parameters with the minimal average test loss.
-# 3. Iterates through fewer parameters, performing the Wilcoxon signed-rank test to compare test losses with the current best number of parameters.
-# 4. Stops and returns the last non-significant model's n param if a significant difference is found.
-# """
-# function find_optimal_n_params(df_results::DataFrame, p_value_threshold::Float64) :: Int
-#     # Group by number of parameters and calculate average test loss
-#     grouped = groupby(df_results, :num_params)
-#     avg_losses = combine(grouped, :test_loss => mean => :avg_test_loss)
-#     # Sort by number of parameters
-#     sort!(avg_losses, :num_params)
-#     println("Avg CV error for each n params:")
-#     println(avg_losses)
-#     # Find the row with the minimum average test loss
-#     idx_min_loss = argmin(avg_losses.avg_test_loss)
-#     n_param_minimal_loss = avg_losses[idx_min_loss, :num_params]
-#     losses_minimal_loss = filter(row -> row.num_params == n_param_minimal_loss, df_results).test_loss
-
-#     current_n_params = n_param_minimal_loss
-#     # Start checking from the model just below the minimal average loss model downwards
-#     for i in idx_min_loss-1:-1:1        
-#         current_n_params = avg_losses[i, :num_params]
-#         # Perform Wilcoxon signed-rank test on test losses
-#         losses_current = filter(row -> row.num_params == current_n_params, df_results).test_loss
-#         # compare with best n params: 
-#         test_result = SignedRankTest(log.(losses_current), log.(losses_minimal_loss))
-#         pval = pvalue(test_result)
-
-#         # If the difference is not significant, continue; else, stop and return last non-significant model's params
-#         if pval <= p_value_threshold
-#             current_n_params = avg_losses[i+1, :num_params]
-#             break  # Stop if a significant difference is found
-#         end
-#     end
-    
-#     best_n_params = current_n_params
-
-#     return best_n_params
-# end
-
-function find_best_n_params_wilcoxon(df_results, avg_losses,p_value_threshold, n_param_minimal_loss,losses_minimal_loss )
+## Description:
+The function starts by finding the model with the minimal average test log loss and then iterates through models with fewer parameters. 
+    For each model, it performs a Wilcoxon signed-rank test comparing its test losses to those of the minimal loss model. 
+    The p-values from these tests are stored, and the function determines the best number of parameters based on the smallest model that has a p-value above the given threshold.
+"""
+function find_best_n_params_wilcoxon(
+    df_results::DataFrame, 
+    avg_losses::DataFrame, 
+    p_value_threshold::Float64, 
+    n_param_minimal_loss::Int, 
+    losses_minimal_loss::Vector{Float64}
+) :: Int
     idx_min_loss = argmin(avg_losses.avg_test_log_loss)
     
     wilcoxon_results = DataFrame(num_params = Int[], pval= Float64[])
@@ -352,7 +346,35 @@ function find_best_n_params_wilcoxon(df_results, avg_losses,p_value_threshold, n
     return best_n_params
 end
 
-function find_best_n_params_within_one_se(losses_minimal_loss,avg_losses, n_param_minimal_loss )
+
+"""
+    find_best_n_params_within_one_se(
+        losses_minimal_loss::Vector{Float64}, 
+        avg_losses::DataFrame, 
+        n_param_minimal_loss::Int
+    ) :: Int
+
+This function identifies the best number of parameters based on the "one standard error" (1-SE) rule.
+
+## Parameters:
+- `losses_minimal_loss::Vector{Float64}`: The log test losses for the model with the minimal average test log loss.
+- `avg_losses::DataFrame`: A DataFrame containing the average test log losses for different numbers of parameters.
+- `n_param_minimal_loss::Int`: The number of parameters for the model with the minimal average test log loss.
+
+## Returns:
+- `best_n_prams_se::Int`: The number of parameters that provides the best model performance within one standard error of the minimal average loss.
+
+## Description:
+This function applies the 1-SE rule to select the best number of parameters. 
+    It calculates the average test log loss and the standard error (SE) for the model with the minimal loss. 
+        It then filters models that have fewer or equal parameters and whose average loss is within one standard error of the minimal average loss. 
+        Finally, it selects and returns the model with the fewest parameters that satisfies this condition.
+"""
+function find_best_n_params_within_one_se(
+    losses_minimal_loss::Vector{Float64}, 
+    avg_losses::DataFrame, 
+    n_param_minimal_loss::Int
+) :: Int
     best_log_avg_loss = mean(losses_minimal_loss)
     log_best_se = std(losses_minimal_loss) / sqrt(length(losses_minimal_loss))
     println("Best log avg loss: $(best_log_avg_loss), avg+se: $(best_log_avg_loss+log_best_se)")
@@ -365,6 +387,30 @@ function find_best_n_params_within_one_se(losses_minimal_loss,avg_losses, n_para
     return best_n_prams_se
 end
 
+"""
+    find_optimal_n_params(
+        df_results::DataFrame, 
+        p_value_threshold::Float64
+    ) :: Int
+
+This function determines the optimal number of parameters for a model by considering both the Wilcoxon signed-rank test and the "one standard error" (1-SE) rule.
+
+## Parameters:
+- `df_results::DataFrame`: A DataFrame containing test results, including the number of parameters and corresponding test losses.
+- `p_value_threshold::Float64`: The threshold p-value used in the Wilcoxon signed-rank test to assess statistical significance.
+
+## Returns:
+- `best_n_params::Int`: The optimal number of parameters based on the combined results of the Wilcoxon test and the 1-SE rule.
+
+## Description:
+The function first groups the results by the number of parameters and calculates the average log test loss for each group. It then identifies the model with the minimal average test loss and calculates its corresponding test losses.
+
+Two methods are applied to determine the best number of parameters:
+1. **Wilcoxon signed-rank test**: This method compares models with fewer parameters to the model with the minimal average loss, selecting the best model based on statistical significance.
+2. **One standard error (1-SE) rule**: This method selects the model with the fewest parameters whose average loss is within one standard error of the minimal average loss.
+
+The function returns the smaller of the two best numbers of parameters from these methods.
+"""
 function find_optimal_n_params(df_results::DataFrame, p_value_threshold::Float64) :: Int
     # Group by number of parameters and calculate average test loss
     df_results[!, :log_test_loss] = log.(df_results.test_loss)
@@ -416,7 +462,10 @@ function fit_rate_equation_selection_current(
         all_param_removal_codes, 
         practically_unidentifiable_params, 
         save_train_results::Bool, 
-        enzyme_name::String
+        enzyme_name::String,
+        subsets_min_limit::Int, 
+        subsets_max_limit::Union{Int, Nothing},
+        subsets_filter_threshold::Float64
         )
 
         num_alpha_params = count(occursin.("alpha", string.([param_names...])))
@@ -538,7 +587,8 @@ function fit_rate_equation_selection_current(
             end
 
             #store top 10% for next loop as `previous_param_removal_codes`
-            filter!(row -> row.train_loss < 1.1 * minimum(df_results.train_loss), df_results)
+            df_results = filter_and_limit_rows(df_results, :train_loss, subsets_min_limit, subsets_max_limit, subsets_filter_threshold)
+
             # previous_param_removal_codes = values.(df_results.nt_param_removal_codes)
             nt_previous_param_removal_codes = [
                 NamedTuple{param_removal_code_names}(x) for
@@ -726,7 +776,6 @@ function fit_rate_equation_selection_per_fig(
         end
 
         #store top 10% for next loop as `previous_param_removal_codes`
-        # filter!(row -> row.train_loss < 1.1 * minimum(df_results.train_loss), df_results)
         df_results = filter_and_limit_rows(df_results, :train_loss, subsets_min_limit, subsets_max_limit, subsets_filter_threshold)
         # previous_param_removal_codes = values.(df_results.nt_param_removal_codes)
         nt_previous_param_removal_codes = [
@@ -1436,7 +1485,44 @@ function train_and_choose_best_subset(
     return best_param_subset
 end
 
-function filter_and_limit_rows(df::DataFrame, train_loss_col::Symbol, min_limit::Int, max_limit::Union{Int, Nothing}=nothing, filter_threshold::Float64=0.1)
+"""
+    filter_and_limit_rows(
+        df::DataFrame, 
+        train_loss_col::Symbol, 
+        min_limit::Int, 
+        max_limit::Union{Int, Nothing}=nothing, 
+        filter_threshold::Float64=0.1
+    ) :: DataFrame
+
+This function filters and limits the rows of a DataFrame based on a specified training loss column, ensuring the number of rows falls within a given range.
+
+## Parameters:
+- `df::DataFrame`: The input DataFrame containing the data to be filtered and limited.
+- `train_loss_col::Symbol`: The column symbol representing the training loss in the DataFrame.
+- `min_limit::Int`: The minimum number of rows to keep in the filtered DataFrame.
+- `max_limit::Union{Int, Nothing}`: The maximum number of rows to keep in the filtered DataFrame. If `Nothing`, no maximum limit is applied.
+- `filter_threshold::Float64`: The percentage threshold used to filter rows based on the minimum training loss. Rows with a training loss within this threshold of the minimum loss are kept.
+
+## Returns:
+- `filtered_df::DataFrame`: The filtered and limited DataFrame based on the specified criteria.
+
+## Description:
+This function performs the following steps:
+1. **Sorting**: The DataFrame is sorted by the specified training loss column.
+2. **Filtering**: Rows are filtered based on a threshold percentage of the minimum training loss. Only rows with a training loss within this percentage of the minimum are retained.
+3. **Ensuring Minimum Rows**: If the filtered DataFrame has fewer rows than `min_limit`, additional rows are taken from the sorted DataFrame to meet the minimum requirement.
+4. **Applying Maximum Limit**: If `max_limit` is specified and the filtered DataFrame exceeds this limit, the DataFrame is truncated to `max_limit` rows.
+
+The function ensures that the resulting DataFrame has at least `min_limit` rows and, if applicable, no more than `max_limit` rows.
+"""
+function filter_and_limit_rows(
+    df::DataFrame, 
+    train_loss_col::Symbol, 
+    min_limit::Int, 
+    max_limit::Union{Int, Nothing}=nothing, 
+    filter_threshold::Float64=0.1
+) :: DataFrame
+# function filter_and_limit_rows(df::DataFrame, train_loss_col::Symbol, min_limit::Int, max_limit::Union{Int, Nothing}=nothing, filter_threshold::Float64=0.1)
     # Check if min_limit is greater than the size of the original df
     if min_limit > nrow(df)
         println("min_limit ($(min_limit)) is greater than the number of rows in the dataframe ($(nrow(df))). Using all available rows.")
