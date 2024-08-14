@@ -1,5 +1,5 @@
-# using TestEnv
-# TestEnv.activate()
+using TestEnv
+TestEnv.activate()
 
 ##
 using DataDrivenEnzymeRateEqs, Test
@@ -337,7 +337,7 @@ data_gen_param_names = (:Vmax_a, :L, :K_a_S, :K_a_P)
 metab_names = (:S, :P)
 params = (Vmax = 10.0, L = 10000, K_a_S = 1e-3, K_a_P = 5e-3)
 #create DataFrame of simulated data
-num_datapoints = 80
+num_datapoints = 60
 num_figures = 4
 S_concs = Float64[]
 P_concs = Float64[]
@@ -533,7 +533,7 @@ data_gen_param_names = (:Vmax, :K_S, :K_P)
 metab_names = (:S, :P)
 params = (Vmax = 10.0, K_S = 1e-3, K_P = 5e-3)
 #create DataFrame of simulated data
-num_datapoints = 80
+num_datapoints = 60
 num_figures = 4
 S_concs = Float64[]
 P_concs = Float64[]
@@ -589,12 +589,15 @@ reverse_selection_result = @time data_driven_rate_equation_selection(
 
 #Display best equation with 3 parameters. Compare with data_gen_rate_equation with Vmax=1
 #TODO: remove the filtering for 3 parameters after we add the automatic determination of the best number of parameters
-nt_param_removal_code =
-    filter(x -> x.num_params .== 3, selection_result.test_results).nt_param_removal_codes[1]
-nt_reverse_param_removal_code = filter(
-    x -> x.num_params .== 3,
-    reverse_selection_result.test_results,
-).nt_param_removal_codes[1]
+# nt_param_removal_code =
+#     filter(x -> x.num_params .== 3, selection_result).nt_param_removal_codes[1]
+# nt_reverse_param_removal_code = filter(
+#     x -> x.num_params .== 3,
+#     reverse_selection_result,
+# ).nt_param_removal_codes[1]
+
+nt_param_removal_code = selection_result.best_subset_row.nt_param_removal_codes[1]
+nt_reverse_param_removal_code = reverse_selection_result.best_subset_row.nt_param_removal_codes[1]
 
 using Symbolics
 selected_sym_rate_equation = display_rate_equation(
