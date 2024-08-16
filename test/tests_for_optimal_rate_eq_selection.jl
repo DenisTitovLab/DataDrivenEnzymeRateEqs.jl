@@ -337,7 +337,7 @@ data_gen_param_names = (:Vmax_a, :L, :K_a_S, :K_a_P)
 metab_names = (:S, :P)
 params = (Vmax = 10.0, L = 10000, K_a_S = 1e-3, K_a_P = 5e-3)
 #create DataFrame of simulated data
-num_datapoints = 60
+num_datapoints = 40
 num_figures = 4
 S_concs = Float64[]
 P_concs = Float64[]
@@ -533,7 +533,7 @@ data_gen_param_names = (:Vmax, :K_S, :K_P)
 metab_names = (:S, :P)
 params = (Vmax = 10.0, K_S = 1e-3, K_P = 5e-3)
 #create DataFrame of simulated data
-num_datapoints = 60
+num_datapoints = 40
 num_figures = 4
 S_concs = Float64[]
 P_concs = Float64[]
