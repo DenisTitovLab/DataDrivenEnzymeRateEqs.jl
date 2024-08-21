@@ -1,7 +1,7 @@
 #=
 CODE FOR RATE EQUATION FITTING
 =#
-using CMAEvolutionStrategy, DataFrames, Statistics
+using CMAEvolutionStrategy, DataFrames, Statistics, MixedModels, Distributions, LinearAlgebra
 
 #TODO; add optimization_kwargs and use Optimization.jl
 #TODO: add an option to set different ranges for L, Vmax, K and alpha
@@ -70,7 +70,10 @@ function train_rate_equation(
     n_iter = 20,
     maxiter_opt = 50_000,
     nt_param_removal_code = nothing,
+    train_loss = "sse",
+    test_loss = "sse"
  )
+    sigma_nt = nothing
     # Add a new column to data to assign an integer to each source/figure from publication
     data.fig_num = vcat(
         [
@@ -85,6 +88,7 @@ function train_rate_equation(
     # Convert DF to NamedTuple for better type stability / speed
     rate_data_nt = Tables.columntable(data)
 
+    loss_rate_equation = get_loss_function(train_loss)
     # Check if nt_param_removal_code makes loss returns NaN and abort early if it does. The latter
     # could happens due to nt_param_removal_code making params=Inf
     if isnan(
@@ -102,6 +106,7 @@ function train_rate_equation(
         return (
             train_loss = Inf,
             params = NamedTuple{param_names}(Tuple(fill(NaN, length(param_names)))),
+            sigma_nt = sigma_nt
         )
     end
 
@@ -145,6 +150,7 @@ function train_rate_equation(
         return (
             train_loss = Inf,
             params = NamedTuple{param_names}(Tuple(fill(NaN, length(param_names)))),
+            sigma_nt = sigma_nt
         )
     end
     index_best_sol = argmin([fbest(sol) for sol in solns])
@@ -180,11 +186,65 @@ function train_rate_equation(
         rescaled_params =
             param_subset_select(rescaled_params, param_names, nt_param_removal_code)
     end
-    return (train_loss = fbest(best_sol), params = NamedTuple{param_names}(rescaled_params))
+
+    if test_loss == "likelihood"
+        sigma_nt = get_sigmas_of_bes_sol(
+            rescaled_params,
+            rate_equation, 
+            rate_data_nt,
+            param_names
+        )
+    end
+    return (train_loss = fbest(best_sol), params = NamedTuple{param_names}(rescaled_params), sigma_nt = sigma_nt)
 end
 
 "Loss function used for fitting that calculate log of ratio of rate equation predicting of rate and rate data"
-function loss_rate_equation(
+# function loss_rate_equation(
+#     params,
+#     rate_equation::Function,
+#     rate_data_nt::NamedTuple,
+#     param_names::Tuple{Symbol,Vararg{Symbol}},
+#     fig_point_indexes::Vector{Vector{Int}};
+#     rescale_params_from_0_10_scale = true,
+#     nt_param_removal_code = nothing,
+#  )
+#     if rescale_params_from_0_10_scale
+#         kinetic_params = param_rescaling(params, param_names)
+#     else
+#         !rescale_params_from_0_10_scale
+#         kinetic_params = params
+#     end
+#     if !isnothing(nt_param_removal_code)
+#         kinetic_params .=
+#             param_subset_select(kinetic_params, param_names, nt_param_removal_code)
+#     end
+
+#     #precalculate log_pred_vs_data_ratios for all points as it is expensive and reuse it for weights and loss
+#     kinetic_params_nt =
+#         NamedTuple{param_names}(ntuple(i -> kinetic_params[i], Val(length(kinetic_params))))
+#     log_pred_vs_data_ratios =
+#         log_ratio_predict_vs_data(rate_equation, rate_data_nt, kinetic_params_nt)
+
+#     #calculate figures weights and loss on per figure basis
+#     loss = zero(eltype(log_pred_vs_data_ratios))
+#     for i = 1:maximum(rate_data_nt.fig_num)
+#         log_fig_weight = zero(eltype(log_pred_vs_data_ratios))
+#         counter = 0
+#         for j in fig_point_indexes[i]
+#             log_fig_weight += log_pred_vs_data_ratios[j]
+#             counter += 1
+#         end
+#         log_fig_weight /= counter
+#         for j in fig_point_indexes[i]
+#             loss += abs2(log_fig_weight - log_pred_vs_data_ratios[j])
+#         end
+#     end
+#     return loss / length(rate_data_nt.Rate)
+# end
+
+
+"Loss function used for fitting that calculate log of ratio of rate equation predicting of rate and rate data"
+function loss_sse_rate_equation(
     params,
     rate_equation::Function,
     rate_data_nt::NamedTuple,
@@ -192,7 +252,7 @@ function loss_rate_equation(
     fig_point_indexes::Vector{Vector{Int}};
     rescale_params_from_0_10_scale = true,
     nt_param_removal_code = nothing,
-)
+ )
     if rescale_params_from_0_10_scale
         kinetic_params = param_rescaling(params, param_names)
     else
@@ -225,6 +285,104 @@ function loss_rate_equation(
         end
     end
     return loss / length(rate_data_nt.Rate)
+end
+
+function log_likelihood_calc(sigma,sigma_re, data)
+    
+    log_likelihood_total = 0.0
+
+    for j in 1:maximum(data.figure)
+        figure = data.figure[j]
+        rates_for_figure = data.log_ratios[data.figure .== j]
+
+        n_j = length(rates_for_figure)
+
+        # Construct the covariance matrix for the figure
+        Sigma_j = (sigma^2) * I(n_j) + (sigma_re^2) *  ones(n_j, n_j)
+
+        # Calculate the log-likelihood for the figure using the multivariate normal distribution
+        dist_j = MvNormal(zeros(n_j), Sigma_j) 
+        log_likelihood_total += logpdf(dist_j, rates_for_figure)
+    end
+
+    return log_likelihood_total  
+end
+
+function get_sigmas_of_bes_sol(
+    kinetic_params,
+    rate_equation::Function,
+    rate_data_nt::NamedTuple,
+    param_names::Tuple{Symbol,Vararg{Symbol}},
+ )
+    #precalculate log_pred_vs_data_ratios for all points as it is expensive and reuse it for weights and loss
+    kinetic_params_nt =
+    NamedTuple{param_names}(ntuple(i -> kinetic_params[i], Val(length(kinetic_params))))
+    log_pred_vs_data_ratios =
+        log_ratio_predict_vs_data(rate_equation, rate_data_nt, kinetic_params_nt)
+
+    df = DataFrame(figure=rate_data_nt.fig_num, log_ratios=log_pred_vs_data_ratios)
+    if length(unique(df.log_ratios))==1
+        return (sigma = nothing, sigma_re = nothing)
+    end
+    
+    model_formula = @formula(-log_ratios ~ 0+ (1|figure)) # - since it suppose to be log(actual/pred)
+    model = fit!(LinearMixedModel(model_formula, df))
+    fitted_sigma = model.σ
+    fitted_sigma_rand = model.σs.figure[1]
+    return (sigma = fitted_sigma, sigma_re = fitted_sigma_rand)
+end
+
+function loss_likelihood_rate_equation(
+    params,
+    rate_equation::Function,
+    rate_data_nt::NamedTuple,
+    param_names::Tuple{Symbol,Vararg{Symbol}},
+    fig_point_indexes::Vector{Vector{Int}};
+    rescale_params_from_0_10_scale = true,
+    nt_param_removal_code = nothing,
+    sigma = nothing,
+    sigma_re = nothing,
+    is_test = false
+ )
+    if rescale_params_from_0_10_scale
+        kinetic_params = param_rescaling(params, param_names)
+    else
+        !rescale_params_from_0_10_scale
+        kinetic_params = params
+    end
+    if !isnothing(nt_param_removal_code)
+        kinetic_params .=
+            param_subset_select(kinetic_params, param_names, nt_param_removal_code)
+    end
+
+    #precalculate log_pred_vs_data_ratios for all points as it is expensive and reuse it for weights and loss
+    kinetic_params_nt =
+        NamedTuple{param_names}(ntuple(i -> kinetic_params[i], Val(length(kinetic_params))))
+    log_pred_vs_data_ratios =
+        log_ratio_predict_vs_data(rate_equation, rate_data_nt, kinetic_params_nt)
+
+    df = DataFrame(figure=rate_data_nt.fig_num, log_ratios=log_pred_vs_data_ratios)
+    
+    if is_test == false
+        model_formula = @formula(-log_ratios ~ 0+ (1|figure)) # - since it suppose to be log(actual/pred)
+
+        if length(unique(df.log_ratios))==1
+            return Inf
+        else
+            model = fit!(LinearMixedModel(model_formula, df))
+            return -loglikelihood(model)
+        end
+    elseif is_test == true
+        return log_likelihood_calc(sigma,sigma_re, df)
+    end
+end
+
+function get_loss_function(loss_choice = "sse")
+    if loss_choice == "sse"
+        return loss_sse_rate_equation
+    elseif loss_choice == "likelihood"
+        return loss_likelihood_rate_equation
+    end
 end
 
 function log_ratio_predict_vs_data(

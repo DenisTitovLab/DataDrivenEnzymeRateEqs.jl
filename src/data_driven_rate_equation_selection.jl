@@ -110,12 +110,14 @@ function data_driven_rate_equation_selection(
     n_reps_opt::Int = 20, 
     maxiter_opt::Int = 50_000,
     model_selection_method::String = "current_subsets_filtering",
-    p_val_threshold::Float64 = 0.4,
+    p_val_threshold::Float64 = 0.05,
     save_train_results::Bool = false,
     enzyme_name::String = "Enzyme",
     subsets_min_limit::Int = 1, 
     subsets_max_limit::Union{Int, Nothing}=nothing,
     subsets_filter_threshold::Float64=0.1,
+    train_loss = "sse",
+    test_loss = "sse"
  )
     
     data = prepare_data(data, metab_names)
@@ -167,7 +169,9 @@ function data_driven_rate_equation_selection(
             enzyme_name,
             subsets_min_limit,
             subsets_max_limit,
-            subsets_filter_threshold
+            subsets_filter_threshold,
+            train_loss,
+            test_loss
             )
 
         best_n_params = find_optimal_n_params(results.test_results, p_val_threshold)
@@ -465,7 +469,9 @@ function fit_rate_equation_selection_current(
         enzyme_name::String,
         subsets_min_limit::Int, 
         subsets_max_limit::Union{Int, Nothing},
-        subsets_filter_threshold::Float64
+        subsets_filter_threshold::Float64,
+        train_loss,
+        test_loss
         )
 
         num_alpha_params = count(occursin.("alpha", string.([param_names...])))
@@ -551,7 +557,7 @@ function fit_rate_equation_selection_current(
             end
 
             #pmap over nt_param_removal_codes for a given `num_params` return rescaled and nt_param_subset added
-            results_array = pmap(
+            results_array = map(
                 nt_param_removal_code -> train_rate_equation(
                     general_rate_equation,
                     data,
@@ -560,6 +566,8 @@ function fit_rate_equation_selection_current(
                     n_iter = n_repetiotions_opt,
                     maxiter_opt = maxiter_opt,
                     nt_param_removal_code = nt_param_removal_code,
+                    train_loss = train_loss,
+                    test_loss = test_loss
                 ),
                 nt_param_removal_codes,
             )
@@ -617,6 +625,8 @@ function fit_rate_equation_selection_current(
                 n_iter = n_repetiotions_opt,
                 maxiter_opt = maxiter_opt,
                 nt_param_removal_code = subset[1],
+                train_loss = train_loss,
+                test_loss = test_loss
             ), 
         subsets_to_fit
         )
@@ -943,6 +953,8 @@ function loocv_rate_equation(
     n_iter = 20,
     maxiter_opt = 50_000,
     nt_param_removal_code = nothing,
+    train_loss = "sse",
+    test_loss = "sse"
 )
     # Drop selected figure from data
     train_data = data[data.source.!=fig, :]
@@ -956,14 +968,31 @@ function loocv_rate_equation(
         n_iter = n_iter,
         maxiter_opt = maxiter_opt,
         nt_param_removal_code = nt_param_removal_code,
+        train_loss = train_loss,
+        test_loss = test_loss
     )
-    test_loss = test_rate_equation(
-        rate_equation,
-        test_data,
-        train_res.params,
-        metab_names,
-        param_names,
-    )
+    if test_loss == "sse"
+        test_loss = test_rate_equation(
+            rate_equation,
+            test_data,
+            train_res.params,
+            metab_names,
+            param_names;
+            test_loss = test_loss 
+        )
+    elseif test_loss == "likelihhod"
+        test_loss = test_rate_equation(
+            rate_equation,
+            test_data,
+            train_res.params,
+            metab_names,
+            param_names;
+            test_loss = test_loss,
+            sigma = train_res.sigma_nt.sigma,
+            sigma_re = train_res.sigme_nt.sigma_re
+        )
+    end 
+    # TODO: check if I need to return sigma here 
     return (
         dropped_fig = fig,
         train_loss = train_res.train_loss,
@@ -978,7 +1007,10 @@ function test_rate_equation(
     data::DataFrame,
     nt_fitted_params::NamedTuple,
     metab_names::Tuple{Symbol,Vararg{Symbol}},
-    param_names::Tuple{Symbol,Vararg{Symbol}},
+    param_names::Tuple{Symbol,Vararg{Symbol}};
+    test_loss = "sse",
+    sigma = nothing,
+    sigma_re = nothing
 )
     filtered_data = data[.!isnan.(data.Rate), [:Rate, metab_names..., :source]]
     # Add a new column to data to assign an integer to each source/figure from publication
@@ -997,15 +1029,33 @@ function test_rate_equation(
     rate_data_nt = Tables.columntable(filtered_data)
 
     fitted_params = values(nt_fitted_params)
-    test_loss = loss_rate_equation(
-        fitted_params,
-        rate_equation::Function,
-        rate_data_nt::NamedTuple,
-        param_names::Tuple{Symbol,Vararg{Symbol}},
-        fig_point_indexes::Vector{Vector{Int64}};
-        rescale_params_from_0_10_scale = false,
-        nt_param_removal_code = nothing,
-    )
+    loss_rate_equation = get_loss_function(test_loss)
+
+    if test_loss == "sse"
+        test_loss = loss_rate_equation(
+            fitted_params,
+            rate_equation::Function,
+            rate_data_nt::NamedTuple,
+            param_names::Tuple{Symbol,Vararg{Symbol}},
+            fig_point_indexes::Vector{Vector{Int64}};
+            rescale_params_from_0_10_scale = false,
+            nt_param_removal_code = nothing,
+        )
+    elseif test_loss == "likelihood"
+        test_loss = loss_rate_equation(
+            fitted_params,
+            rate_equation::Function,
+            rate_data_nt::NamedTuple,
+            param_names::Tuple{Symbol,Vararg{Symbol}},
+            fig_point_indexes::Vector{Vector{Int64}};
+            rescale_params_from_0_10_scale = false,
+            nt_param_removal_code = nothing,
+            sigma = sigma,
+            sigma_re = sigma_re,
+            is_test = true
+        )
+    end
+
     return test_loss
 end
 
@@ -1438,7 +1488,8 @@ function train_and_choose_best_subset(
     n_reps_opt::Int, 
     maxiter_opt::Int, 
     save_train_results::Bool, 
-    enzyme_name::String
+    enzyme_name::String;
+    train_loss = "sse"
 )
     num_alpha_params = count(occursin.("alpha", string.([param_names...])))
 
@@ -1462,6 +1513,7 @@ function train_and_choose_best_subset(
             n_iter = n_reps_opt,
             maxiter_opt = maxiter_opt,
             nt_param_removal_code = nt_param_removal_code,
+            train_loss = train_loss
         ),
         nt_param_removal_codes,
     )
