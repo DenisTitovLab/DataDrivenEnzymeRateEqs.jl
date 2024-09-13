@@ -1996,7 +1996,1995 @@ end
             )
         )
 
-    six_metab_bound = 0
+    six_metab_bound =
+        (S1 / K_S1) * (
+            (S2 / K_S2) * (
+                (S3 / K_S3) * (
+                    (alpha_S1_P1 * alpha_S2_P1 * alpha_S3_P1 * P1 / K_P1) * (
+                        alpha_S1_P2 * alpha_S2_P2 * alpha_S3_P2 * P2 / K_P2 * (
+                            alpha_S1_P3 * alpha_S2_P3 * alpha_S3_P3 * P3 / K_P3 +
+                            alpha_S1_I1 *
+                            alpha_S2_I1 *
+                            alpha_S3_I1 *
+                            alpha_P1_I1 *
+                            alpha_P2_I1 *
+                            I1 / K_I1 +
+                            alpha_S1_I2 *
+                            alpha_S2_I2 *
+                            alpha_S3_I2 *
+                            alpha_P1_I2 *
+                            alpha_P2_I2 *
+                            I2 / K_I2 +
+                            alpha_S1_I3 *
+                            alpha_S2_I3 *
+                            alpha_S3_I3 *
+                            alpha_P1_I3 *
+                            alpha_P2_I3 *
+                            I3 / K_I3 +
+                            alpha_S1_I4 *
+                            alpha_S2_I4 *
+                            alpha_S3_I4 *
+                            alpha_P1_I4 *
+                            alpha_P2_I4 *
+                            I4 / K_I4
+                        ) +
+                        alpha_S1_P3 * alpha_S2_P3 * alpha_S3_P3 * P3 / K_P3 * (
+                            alpha_S1_I1 *
+                            alpha_S2_I1 *
+                            alpha_S3_I1 *
+                            alpha_P1_I1 *
+                            alpha_P3_I1 *
+                            I1 / K_I1 +
+                            alpha_S1_I2 *
+                            alpha_S2_I2 *
+                            alpha_S3_I2 *
+                            alpha_P1_I2 *
+                            alpha_P3_I2 *
+                            I2 / K_I2 +
+                            alpha_S1_I3 *
+                            alpha_S2_I3 *
+                            alpha_S3_I3 *
+                            alpha_P1_I3 *
+                            alpha_P3_I3 *
+                            I3 / K_I3 +
+                            alpha_S1_I4 *
+                            alpha_S2_I4 *
+                            alpha_S3_I4 *
+                            alpha_P1_I4 *
+                            alpha_P3_I4 *
+                            I4 / K_I4
+                        ) +
+                        alpha_S1_I1 * alpha_S2_I1 * alpha_S3_I1 * alpha_P1_I1 * I1 / K_I1 *
+                        (
+                            alpha_S1_I2 *
+                            alpha_S2_I2 *
+                            alpha_S3_I2 *
+                            alpha_P1_I2 *
+                            alpha_I1_I2 *
+                            I2 / K_I2 +
+                            alpha_S1_I3 *
+                            alpha_S2_I3 *
+                            alpha_S3_I3 *
+                            alpha_P1_I3 *
+                            alpha_I1_I3 *
+                            I3 / K_I3 +
+                            alpha_S1_I4 *
+                            alpha_S2_I4 *
+                            alpha_S3_I4 *
+                            alpha_P1_I4 *
+                            alpha_I1_I4 *
+                            I4 / K_I4
+                        ) +
+                        alpha_S1_I2 * alpha_S2_I2 * alpha_S3_I2 * alpha_P1_I2 * I2 / K_I2 *
+                        (
+                            alpha_S1_I3 *
+                            alpha_S2_I3 *
+                            alpha_S3_I3 *
+                            alpha_P1_I3 *
+                            alpha_I2_I3 *
+                            I3 / K_I3 +
+                            alpha_S1_I4 *
+                            alpha_S2_I4 *
+                            alpha_S3_I4 *
+                            alpha_P1_I4 *
+                            alpha_I2_I4 *
+                            I4 / K_I4
+                        ) +
+                        alpha_S1_I3 * alpha_S2_I3 * alpha_S3_I3 * alpha_P1_I3 * I3 / K_I3 *
+                        (
+                            alpha_S1_I4 *
+                            alpha_S2_I4 *
+                            alpha_S3_I4 *
+                            alpha_P1_I4 *
+                            alpha_I3_I4 *
+                            I4 / K_I4
+                        )
+                    ) +
+                    alpha_S1_P2 * alpha_S2_P2 * alpha_S3_P2 * P2 / K_P2 * (
+                        alpha_S1_P3 * alpha_S2_P3 * alpha_S3_P3 * P3 / K_P3 * (
+                            alpha_S1_I1 *
+                            alpha_S2_I1 *
+                            alpha_S3_I1 *
+                            alpha_P2_I1 *
+                            alpha_P3_I1 *
+                            I1 / K_I1 +
+                            alpha_S1_I2 *
+                            alpha_S2_I2 *
+                            alpha_S3_I2 *
+                            alpha_P2_I2 *
+                            alpha_P3_I2 *
+                            I2 / K_I2 +
+                            alpha_S1_I3 *
+                            alpha_S2_I3 *
+                            alpha_S3_I3 *
+                            alpha_P2_I3 *
+                            alpha_P3_I3 *
+                            I3 / K_I3 +
+                            alpha_S1_I4 *
+                            alpha_S2_I4 *
+                            alpha_S3_I4 *
+                            alpha_P2_I4 *
+                            alpha_P3_I4 *
+                            I4 / K_I4
+                        ) +
+                        alpha_S1_I1 * alpha_S2_I1 * alpha_S3_I1 * alpha_P2_I1 * I1 / K_I1 *
+                        (
+                            alpha_S1_I2 *
+                            alpha_S2_I2 *
+                            alpha_S3_I2 *
+                            alpha_P2_I2 *
+                            alpha_I1_I2 *
+                            I2 / K_I2 +
+                            alpha_S1_I3 *
+                            alpha_S2_I3 *
+                            alpha_S3_I3 *
+                            alpha_P2_I3 *
+                            alpha_I1_I3 *
+                            I3 / K_I3 +
+                            alpha_S1_I4 *
+                            alpha_S2_I4 *
+                            alpha_S3_I4 *
+                            alpha_P2_I4 *
+                            alpha_I1_I4 *
+                            I4 / K_I4
+                        ) +
+                        alpha_S1_I2 * alpha_S2_I2 * alpha_S3_I2 * alpha_P2_I2 * I2 / K_I2 *
+                        (
+                            alpha_S1_I3 *
+                            alpha_S2_I3 *
+                            alpha_S3_I3 *
+                            alpha_P2_I3 *
+                            alpha_I2_I3 *
+                            I3 / K_I3 +
+                            alpha_S1_I4 *
+                            alpha_S2_I4 *
+                            alpha_S3_I4 *
+                            alpha_P2_I4 *
+                            alpha_I2_I4 *
+                            I4 / K_I4
+                        ) +
+                        alpha_S1_I3 * alpha_S2_I3 * alpha_S3_I3 * alpha_P2_I3 * I3 / K_I3 *
+                        (
+                            alpha_S1_I4 *
+                            alpha_S2_I4 *
+                            alpha_S3_I4 *
+                            alpha_P2_I4 *
+                            alpha_I3_I4 *
+                            I4 / K_I4
+                        )
+                    ) +
+                    alpha_S1_P3 * alpha_S2_P3 * alpha_S3_P3 * P3 / K_P3 * (
+                        alpha_S1_I1 * alpha_S2_I1 * alpha_S3_I1 * alpha_P3_I1 * I1 / K_I1 *
+                        (
+                            alpha_S1_I2 *
+                            alpha_S2_I2 *
+                            alpha_S3_I2 *
+                            alpha_P3_I2 *
+                            alpha_I1_I2 *
+                            I2 / K_I2 +
+                            alpha_S1_I3 *
+                            alpha_S2_I3 *
+                            alpha_S3_I3 *
+                            alpha_P3_I3 *
+                            alpha_I1_I3 *
+                            I3 / K_I3 +
+                            alpha_S1_I4 *
+                            alpha_S2_I4 *
+                            alpha_S3_I4 *
+                            alpha_P3_I4 *
+                            alpha_I1_I4 *
+                            I4 / K_I4
+                        ) +
+                        alpha_S1_I1 * alpha_S2_I1 * alpha_S3_I1 * alpha_P3_I1 * I1 / K_I1 *
+                        (
+                            alpha_S1_I2 *
+                            alpha_S2_I2 *
+                            alpha_S3_I2 *
+                            alpha_P3_I2 *
+                            alpha_I1_I2 *
+                            I2 / K_I2 +
+                            alpha_S1_I3 *
+                            alpha_S2_I3 *
+                            alpha_S3_I3 *
+                            alpha_P3_I3 *
+                            alpha_I1_I3 *
+                            I3 / K_I3 +
+                            alpha_S1_I4 *
+                            alpha_S2_I4 *
+                            alpha_S3_I4 *
+                            alpha_P3_I4 *
+                            alpha_I1_I4 *
+                            I4 / K_I4
+                        ) +
+                        alpha_S1_I2 * alpha_S2_I2 * alpha_S3_I2 * alpha_P3_I2 * I2 / K_I2 *
+                        (
+                            alpha_S1_I3 *
+                            alpha_S2_I3 *
+                            alpha_S3_I3 *
+                            alpha_P3_I3 *
+                            alpha_I2_I3 *
+                            I3 / K_I3 +
+                            alpha_S1_I4 *
+                            alpha_S2_I4 *
+                            alpha_S3_I4 *
+                            alpha_P3_I4 *
+                            alpha_I2_I4 *
+                            I4 / K_I4
+                        ) +
+                        alpha_S1_I3 * alpha_S2_I3 * alpha_S3_I3 * alpha_P3_I3 * I3 / K_I3 *
+                        (
+                            alpha_S1_I4 *
+                            alpha_S2_I4 *
+                            alpha_S3_I4 *
+                            alpha_P3_I4 *
+                            alpha_I3_I4 *
+                            I4 / K_I4
+                        )
+                    ) +
+                    alpha_S1_I1 * alpha_S2_I1 * alpha_S3_I1 * I1 / K_I1 * (
+                        alpha_S1_I2 * alpha_S2_I2 * alpha_S3_I2 * alpha_I1_I2 * I2 / K_I2 *
+                        (
+                            alpha_S1_I3 *
+                            alpha_S2_I3 *
+                            alpha_S3_I3 *
+                            alpha_I1_I3 *
+                            alpha_I2_I3 *
+                            I3 / K_I3 +
+                            alpha_S1_I4 *
+                            alpha_S2_I4 *
+                            alpha_S3_I4 *
+                            alpha_I1_I4 *
+                            alpha_I2_I4 *
+                            I4 / K_I4
+                        ) +
+                        alpha_S1_I3 * alpha_S2_I3 * alpha_S3_I3 * alpha_I1_I3 * I3 / K_I3 *
+                        (
+                            alpha_S1_I4 *
+                            alpha_S2_I4 *
+                            alpha_S3_I4 *
+                            alpha_I1_I4 *
+                            alpha_I3_I4 *
+                            I4 / K_I4
+                        )
+                    ) +
+                    alpha_S1_I2 * alpha_S2_I2 * alpha_S3_I2 * I2 / K_I2 * (
+                        alpha_S1_I3 * alpha_S2_I3 * alpha_S3_I3 * alpha_I2_I3 * I3 / K_I3 *
+                        (
+                            alpha_S1_I4 *
+                            alpha_S2_I4 *
+                            alpha_S3_I4 *
+                            alpha_I2_I4 *
+                            alpha_I3_I4 *
+                            I4 / K_I4
+                        )
+                    )
+                ) +
+                alpha_S1_P1 * alpha_S2_P1 * P1 / K_P1 * (
+                    alpha_S1_P2 * alpha_S2_P2 * P2 / K_P2 * (
+                        alpha_S1_P3 * alpha_S2_P3 * P3 / K_P3 * (
+                            alpha_S1_I1 *
+                            alpha_S2_I1 *
+                            alpha_P1_I1 *
+                            alpha_P2_I1 *
+                            alpha_P3_I1 *
+                            I1 / K_I1 +
+                            alpha_S1_I2 *
+                            alpha_S2_I2 *
+                            alpha_P1_I2 *
+                            alpha_P2_I2 *
+                            alpha_P3_I2 *
+                            I2 / K_I2 +
+                            alpha_S1_I3 *
+                            alpha_S2_I3 *
+                            alpha_P1_I3 *
+                            alpha_P2_I3 *
+                            alpha_P3_I3 *
+                            I3 / K_I3 +
+                            alpha_S1_I4 *
+                            alpha_S2_I4 *
+                            alpha_P1_I4 *
+                            alpha_P2_I4 *
+                            alpha_P3_I4 *
+                            I4 / K_I4
+                        ) +
+                        alpha_S1_I1 * alpha_S2_I1 * alpha_P1_I1 * alpha_P2_I1 * I1 / K_I1 *
+                        (
+                            alpha_S1_I2 *
+                            alpha_S2_I2 *
+                            alpha_P1_I2 *
+                            alpha_P2_I2 *
+                            alpha_I1_I2 *
+                            I2 / K_I2 +
+                            alpha_S1_I3 *
+                            alpha_S2_I3 *
+                            alpha_P1_I3 *
+                            alpha_P2_I3 *
+                            alpha_I1_I3 *
+                            I3 / K_I3 +
+                            alpha_S1_I4 *
+                            alpha_S2_I4 *
+                            alpha_P1_I4 *
+                            alpha_P2_I4 *
+                            alpha_I1_I4 *
+                            I4 / K_I4
+                        ) +
+                        alpha_S1_I2 * alpha_S2_I2 * alpha_P1_I2 * alpha_P2_I2 * I2 / K_I2 *
+                        (
+                            alpha_S1_I3 *
+                            alpha_S2_I3 *
+                            alpha_P1_I3 *
+                            alpha_P2_I3 *
+                            alpha_I2_I3 *
+                            I3 / K_I3 +
+                            alpha_S1_I4 *
+                            alpha_S2_I4 *
+                            alpha_P1_I4 *
+                            alpha_P2_I4 *
+                            alpha_I2_I4 *
+                            I4 / K_I4
+                        ) +
+                        alpha_S1_I3 * alpha_S2_I3 * alpha_P1_I3 * alpha_P2_I3 * I3 / K_I3 *
+                        (
+                            alpha_S1_I4 *
+                            alpha_S2_I4 *
+                            alpha_P1_I4 *
+                            alpha_P2_I4 *
+                            alpha_I3_I4 *
+                            I4 / K_I4
+                        )
+                    ) +
+                    alpha_S1_P3 * alpha_S2_P3 * P3 / K_P3 * (
+                        alpha_S1_I1 * alpha_S2_I1 * alpha_P1_I1 * alpha_P3_I1 * I1 / K_I1 *
+                        (
+                            alpha_S1_I2 *
+                            alpha_S2_I2 *
+                            alpha_P1_I2 *
+                            alpha_P3_I2 *
+                            alpha_I1_I2 *
+                            I2 / K_I2 +
+                            alpha_S1_I3 *
+                            alpha_S2_I3 *
+                            alpha_P1_I3 *
+                            alpha_P3_I3 *
+                            alpha_I1_I3 *
+                            I3 / K_I3 +
+                            alpha_S1_I4 *
+                            alpha_S2_I4 *
+                            alpha_P1_I4 *
+                            alpha_P3_I4 *
+                            alpha_I1_I4 *
+                            I4 / K_I4
+                        ) +
+                        alpha_S1_I2 * alpha_S2_I2 * alpha_P1_I2 * alpha_P3_I2 * I2 / K_I2 *
+                        (
+                            alpha_S1_I3 *
+                            alpha_S2_I3 *
+                            alpha_P1_I3 *
+                            alpha_P3_I3 *
+                            alpha_I2_I3 *
+                            I3 / K_I3 +
+                            alpha_S1_I4 *
+                            alpha_S2_I4 *
+                            alpha_P1_I4 *
+                            alpha_P3_I4 *
+                            alpha_I2_I4 *
+                            I4 / K_I4
+                        ) +
+                        alpha_S1_I3 * alpha_S2_I3 * alpha_P1_I3 * alpha_P3_I3 * I3 / K_I3 *
+                        (
+                            alpha_S1_I4 *
+                            alpha_S2_I4 *
+                            alpha_P1_I4 *
+                            alpha_P3_I4 *
+                            alpha_I3_I4 *
+                            I4 / K_I4
+                        )
+                    ) +
+                    alpha_S1_I1 * alpha_S2_I1 * alpha_P1_I1 * I1 / K_I1 * (
+                        alpha_S1_I2 * alpha_S2_I2 * alpha_P1_I2 * alpha_I1_I2 * I2 / K_I2 *
+                        (
+                            alpha_S1_I3 *
+                            alpha_S2_I3 *
+                            alpha_P1_I3 *
+                            alpha_I1_I3 *
+                            alpha_I2_I3 *
+                            I3 / K_I3 +
+                            alpha_S1_I4 *
+                            alpha_S2_I4 *
+                            alpha_P1_I4 *
+                            alpha_I1_I4 *
+                            alpha_I2_I4 *
+                            I4 / K_I4
+                        ) +
+                        alpha_S1_I2 * alpha_S2_I2 * alpha_P1_I2 * I2 / K_I2 * (
+                            alpha_S1_I3 *
+                            alpha_S2_I3 *
+                            alpha_P1_I3 *
+                            alpha_I1_I3 *
+                            alpha_I2_I3 *
+                            I3 / K_I3 +
+                            alpha_S1_I4 *
+                            alpha_S2_I4 *
+                            alpha_P1_I4 *
+                            alpha_I1_I4 *
+                            alpha_I2_I4 *
+                            I4 / K_I4
+                        ) +
+                        alpha_S1_I3 * alpha_S2_I3 * alpha_P1_I3 * I3 / K_I3 * (
+                            alpha_S1_I4 *
+                            alpha_S2_I4 *
+                            alpha_P1_I4 *
+                            alpha_I1_I4 *
+                            alpha_I3_I4 *
+                            I4 / K_I4
+                        )
+                    ) +
+                    alpha_S1_I2 * alpha_S2_I2 * alpha_P1_I2 * I2 / K_I2 * (
+                        alpha_S1_I3 * alpha_S2_I3 * alpha_P1_I3 * alpha_I2_I3 * I3 / K_I3 *
+                        (
+                            alpha_S1_I4 *
+                            alpha_S2_I4 *
+                            alpha_P1_I4 *
+                            alpha_I2_I4 *
+                            alpha_I3_I4 *
+                            I4 / K_I4
+                        )
+                    )
+                ) +
+                alpha_S1_P2 * alpha_S2_P2 * P2 / K_P2 * (
+                    alpha_S1_P3 * alpha_S2_P3 * P3 / K_P3 * (
+                        alpha_S1_I1 * alpha_S2_I1 * alpha_P2_I1 * alpha_P3_I1 * I1 / K_I1 *
+                        (
+                            alpha_S1_I2 *
+                            alpha_S2_I2 *
+                            alpha_P2_I2 *
+                            alpha_P3_I2 *
+                            alpha_I1_I2 *
+                            I2 / K_I2 +
+                            alpha_S1_I3 *
+                            alpha_S2_I3 *
+                            alpha_P2_I3 *
+                            alpha_P3_I3 *
+                            alpha_I1_I3 *
+                            I3 / K_I3 +
+                            alpha_S1_I4 *
+                            alpha_S2_I4 *
+                            alpha_P2_I4 *
+                            alpha_P3_I4 *
+                            alpha_I1_I4 *
+                            I4 / K_I4
+                        ) +
+                        alpha_S1_I2 * alpha_S2_I2 * alpha_P2_I2 * alpha_P3_I2 * I2 / K_I2 *
+                        (
+                            alpha_S1_I3 *
+                            alpha_S2_I3 *
+                            alpha_P2_I3 *
+                            alpha_P3_I3 *
+                            alpha_I2_I3 *
+                            I3 / K_I3 +
+                            alpha_S1_I4 *
+                            alpha_S2_I4 *
+                            alpha_P2_I4 *
+                            alpha_P3_I4 *
+                            alpha_I2_I4 *
+                            I4 / K_I4
+                        ) +
+                        alpha_S1_I3 * alpha_S2_I3 * alpha_P2_I3 * alpha_P3_I3 * I3 / K_I3 *
+                        (
+                            alpha_S1_I4 *
+                            alpha_S2_I4 *
+                            alpha_P2_I4 *
+                            alpha_P3_I4 *
+                            alpha_I3_I4 *
+                            I4 / K_I4
+                        )
+                    ) +
+                    alpha_S1_I1 * alpha_S2_I1 * alpha_P2_I1 * I1 / K_I1 * (
+                        alpha_S1_I2 * alpha_S2_I2 * alpha_P2_I2 * alpha_I1_I2 * I2 / K_I2 *
+                        (
+                            alpha_S1_I3 *
+                            alpha_S2_I3 *
+                            alpha_P2_I3 *
+                            alpha_I1_I3 *
+                            alpha_I2_I3 *
+                            I3 / K_I3 +
+                            alpha_S1_I4 *
+                            alpha_S2_I4 *
+                            alpha_P2_I4 *
+                            alpha_I1_I4 *
+                            alpha_I2_I4 *
+                            I4 / K_I4
+                        ) +
+                        alpha_S1_I2 * alpha_S2_I2 * alpha_P2_I2 * I2 / K_I2 * (
+                            alpha_S1_I3 *
+                            alpha_S2_I3 *
+                            alpha_P2_I3 *
+                            alpha_I1_I3 *
+                            alpha_I2_I3 *
+                            I3 / K_I3 +
+                            alpha_S1_I4 *
+                            alpha_S2_I4 *
+                            alpha_P2_I4 *
+                            alpha_I1_I4 *
+                            alpha_I2_I4 *
+                            I4 / K_I4
+                        ) +
+                        alpha_S1_I3 * alpha_S2_I3 * alpha_P2_I3 * I3 / K_I3 * (
+                            alpha_S1_I4 *
+                            alpha_S2_I4 *
+                            alpha_P2_I4 *
+                            alpha_I1_I4 *
+                            alpha_I3_I4 *
+                            I4 / K_I4
+                        )
+                    ) +
+                    alpha_S1_I2 * alpha_S2_I2 * alpha_P2_I2 * I2 / K_I2 * (
+                        alpha_S1_I3 * alpha_S2_I3 * alpha_P2_I3 * alpha_I2_I3 * I3 / K_I3 *
+                        (
+                            alpha_S1_I4 *
+                            alpha_S2_I4 *
+                            alpha_P2_I4 *
+                            alpha_I2_I4 *
+                            alpha_I3_I4 *
+                            I4 / K_I4
+                        )
+                    )
+                ) +
+                alpha_S1_P3 * alpha_S2_P3 * P3 / K_P3 * (
+                    alpha_S1_I1 * alpha_S2_I1 * alpha_P3_I1 * I1 / K_I1 * (
+                        alpha_S1_I2 * alpha_S2_I2 * alpha_P3_I2 * alpha_I1_I2 * I2 / K_I2 *
+                        (
+                            alpha_S1_I3 *
+                            alpha_S2_I3 *
+                            alpha_P3_I3 *
+                            alpha_I1_I3 *
+                            alpha_I2_I3 *
+                            I3 / K_I3 +
+                            alpha_S1_I4 *
+                            alpha_S2_I4 *
+                            alpha_P3_I4 *
+                            alpha_I1_I4 *
+                            alpha_I2_I4 *
+                            I4 / K_I4
+                        ) +
+                        alpha_S1_I3 * alpha_S2_I3 * alpha_P3_I3 * alpha_I1_I3 * I3 / K_I3 *
+                        (
+                            alpha_S1_I4 *
+                            alpha_S2_I4 *
+                            alpha_P3_I4 *
+                            alpha_I1_I4 *
+                            alpha_I3_I4 *
+                            I4 / K_I4
+                        )
+                    ) +
+                    alpha_S1_I2 * alpha_S2_I2 * alpha_P3_I2 * I2 / K_I2 * (
+                        alpha_S1_I3 * alpha_S2_I3 * alpha_P3_I3 * alpha_I2_I3 * I3 / K_I3 *
+                        (
+                            alpha_S1_I4 *
+                            alpha_S2_I4 *
+                            alpha_P3_I4 *
+                            alpha_I2_I4 *
+                            alpha_I3_I4 *
+                            I4 / K_I4
+                        )
+                    )
+                ) +
+                alpha_S1_I1 * alpha_S2_I1 * I1 / K_I1 * (
+                    alpha_S1_I2 * alpha_S2_I2 * alpha_I1_I2 * I2 / K_I2 * (
+                        alpha_S1_I3 * alpha_S2_I3 * alpha_I1_I3 * alpha_I2_I3 * I3 / K_I3 *
+                        (
+                            alpha_S1_I4 *
+                            alpha_S2_I4 *
+                            alpha_I1_I4 *
+                            alpha_I2_I4 *
+                            alpha_I3_I4 *
+                            I4 / K_I4
+                        )
+                    )
+                )
+            ) +
+            (S3 / K_S3) * (
+                (alpha_S1_P1 * alpha_S3_P1 * P1 / K_P1) * (
+                    (alpha_S1_P2 * alpha_S3_P2 * P2 / K_P2) * (
+                        (alpha_S1_P3 * alpha_S3_P3 * P3 / K_P3) * (
+                            alpha_S1_I1 *
+                            alpha_S3_I1 *
+                            alpha_P1_I1 *
+                            alpha_P2_I1 *
+                            alpha_P3_I1 *
+                            I1 / K_I1 +
+                            alpha_S1_I2 *
+                            alpha_S3_I2 *
+                            alpha_P1_I2 *
+                            alpha_P2_I2 *
+                            alpha_P3_I2 *
+                            I2 / K_I2 +
+                            alpha_S1_I3 *
+                            alpha_S3_I3 *
+                            alpha_P1_I3 *
+                            alpha_P2_I3 *
+                            alpha_P3_I3 *
+                            I3 / K_I3 +
+                            alpha_S1_I4 *
+                            alpha_S3_I4 *
+                            alpha_P1_I4 *
+                            alpha_P2_I4 *
+                            alpha_P3_I4 *
+                            I4 / K_I4
+                        ) +
+                        alpha_S1_I1 * alpha_S3_I1 * alpha_P1_I1 * alpha_P2_I1 * I1 / K_I1 *
+                        (
+                            alpha_S1_I2 *
+                            alpha_S3_I2 *
+                            alpha_P1_I2 *
+                            alpha_P2_I2 *
+                            alpha_I1_I2 *
+                            I2 / K_I2 +
+                            alpha_S1_I3 *
+                            alpha_S3_I3 *
+                            alpha_P1_I3 *
+                            alpha_P2_I3 *
+                            alpha_I1_I3 *
+                            I3 / K_I3 +
+                            alpha_S1_I4 *
+                            alpha_S3_I4 *
+                            alpha_P1_I4 *
+                            alpha_P2_I4 *
+                            alpha_I1_I4 *
+                            I4 / K_I4
+                        ) +
+                        alpha_S1_I2 * alpha_S3_I2 * alpha_P1_I2 * alpha_P2_I2 * I2 / K_I2 *
+                        (
+                            alpha_S1_I3 *
+                            alpha_S3_I3 *
+                            alpha_P1_I3 *
+                            alpha_P2_I3 *
+                            alpha_I2_I3 *
+                            I3 / K_I3 +
+                            alpha_S1_I4 *
+                            alpha_S3_I4 *
+                            alpha_P1_I4 *
+                            alpha_P2_I4 *
+                            alpha_I2_I4 *
+                            I4 / K_I4
+                        ) +
+                        alpha_S1_I3 * alpha_S3_I3 * alpha_P1_I3 * alpha_P2_I3 * I3 / K_I3 *
+                        (
+                            alpha_S1_I4 *
+                            alpha_S3_I4 *
+                            alpha_P1_I4 *
+                            alpha_P2_I4 *
+                            alpha_I3_I4 *
+                            I4 / K_I4
+                        )
+                    ) +
+                    alpha_S1_P3 * alpha_S3_P3 * P3 / K_P3 * (
+                        alpha_S1_I1 * alpha_S3_I1 * alpha_P1_I1 * alpha_P3_I1 * I1 / K_I1 *
+                        (
+                            alpha_S1_I2 *
+                            alpha_S3_I2 *
+                            alpha_P1_I2 *
+                            alpha_P3_I2 *
+                            alpha_I1_I2 *
+                            I2 / K_I2 +
+                            alpha_S1_I3 *
+                            alpha_S3_I3 *
+                            alpha_P1_I3 *
+                            alpha_P3_I3 *
+                            alpha_I1_I3 *
+                            I3 / K_I3 +
+                            alpha_S1_I4 *
+                            alpha_S3_I4 *
+                            alpha_P1_I4 *
+                            alpha_P3_I4 *
+                            alpha_I1_I4 *
+                            I4 / K_I4
+                        ) +
+                        alpha_S1_I2 * alpha_S3_I2 * alpha_P1_I2 * alpha_P3_I2 * I2 / K_I2 *
+                        (
+                            alpha_S1_I3 *
+                            alpha_S3_I3 *
+                            alpha_P1_I3 *
+                            alpha_P3_I3 *
+                            alpha_I2_I3 *
+                            I3 / K_I3 +
+                            alpha_S1_I4 *
+                            alpha_S3_I4 *
+                            alpha_P1_I4 *
+                            alpha_P3_I4 *
+                            alpha_I2_I4 *
+                            I4 / K_I4
+                        ) +
+                        alpha_S1_I3 * alpha_S3_I3 * alpha_P1_I3 * alpha_P3_I3 * I3 / K_I3 *
+                        (
+                            alpha_S1_I4 *
+                            alpha_S3_I4 *
+                            alpha_P1_I4 *
+                            alpha_P3_I4 *
+                            alpha_I3_I4 *
+                            I4 / K_I4
+                        )
+                    ) +
+                    alpha_S1_I1 * alpha_S3_I1 * alpha_P1_I1 * I1 / K_I1 * (
+                        alpha_S1_I2 * alpha_S3_I2 * alpha_P1_I2 * alpha_I1_I2 * I2 / K_I2 *
+                        (
+                            alpha_S1_I3 *
+                            alpha_S3_I3 *
+                            alpha_P1_I3 *
+                            alpha_I1_I3 *
+                            alpha_I2_I3 *
+                            I3 / K_I3 +
+                            alpha_S1_I4 *
+                            alpha_S3_I4 *
+                            alpha_P1_I4 *
+                            alpha_I1_I4 *
+                            alpha_I2_I4 *
+                            I4 / K_I4
+                        ) +
+                        alpha_S1_I2 * alpha_S3_I2 * alpha_P1_I2 * I2 / K_I2 * (
+                            alpha_S1_I3 *
+                            alpha_S3_I3 *
+                            alpha_P1_I3 *
+                            alpha_I1_I3 *
+                            alpha_I2_I3 *
+                            I3 / K_I3 +
+                            alpha_S1_I4 *
+                            alpha_S3_I4 *
+                            alpha_P1_I4 *
+                            alpha_I1_I4 *
+                            alpha_I2_I4 *
+                            I4 / K_I4
+                        ) +
+                        alpha_S1_I3 * alpha_S3_I3 * alpha_P1_I3 * I3 / K_I3 * (
+                            alpha_S1_I4 *
+                            alpha_S3_I4 *
+                            alpha_P1_I4 *
+                            alpha_I1_I4 *
+                            alpha_I3_I4 *
+                            I4 / K_I4
+                        )
+                    ) +
+                    alpha_S1_I2 * alpha_S3_I2 * alpha_P1_I2 * I2 / K_I2 * (
+                        alpha_S1_I3 * alpha_S3_I3 * alpha_P1_I3 * alpha_I2_I3 * I3 / K_I3 *
+                        (
+                            alpha_S1_I4 *
+                            alpha_S3_I4 *
+                            alpha_P1_I4 *
+                            alpha_I2_I4 *
+                            alpha_I3_I4 *
+                            I4 / K_I4
+                        )
+                    )
+                ) +
+                alpha_S1_P2 * alpha_S3_P2 * P2 / K_P2 * (
+                    alpha_S1_P3 * alpha_S3_P3 * P3 / K_P3 * (
+                        alpha_S1_I1 * alpha_S3_I1 * alpha_P2_I1 * alpha_P3_I1 * I1 / K_I1 *
+                        (
+                            alpha_S1_I2 *
+                            alpha_S3_I2 *
+                            alpha_P2_I2 *
+                            alpha_P3_I2 *
+                            alpha_I1_I2 *
+                            I2 / K_I2 +
+                            alpha_S1_I3 *
+                            alpha_S3_I3 *
+                            alpha_P2_I3 *
+                            alpha_P3_I3 *
+                            alpha_I1_I3 *
+                            I3 / K_I3 +
+                            alpha_S1_I4 *
+                            alpha_S3_I4 *
+                            alpha_P2_I4 *
+                            alpha_P3_I4 *
+                            alpha_I1_I4 *
+                            I4 / K_I4
+                        ) +
+                        alpha_S1_I2 * alpha_S3_I2 * alpha_P2_I2 * alpha_P3_I2 * I2 / K_I2 *
+                        (
+                            alpha_S1_I3 *
+                            alpha_S3_I3 *
+                            alpha_P2_I3 *
+                            alpha_P3_I3 *
+                            alpha_I2_I3 *
+                            I3 / K_I3 +
+                            alpha_S1_I4 *
+                            alpha_S3_I4 *
+                            alpha_P2_I4 *
+                            alpha_P3_I4 *
+                            alpha_I2_I4 *
+                            I4 / K_I4
+                        ) +
+                        alpha_S1_I3 * alpha_S3_I3 * alpha_P2_I3 * alpha_P3_I3 * I3 / K_I3 *
+                        (
+                            alpha_S1_I4 *
+                            alpha_S3_I4 *
+                            alpha_P2_I4 *
+                            alpha_P3_I4 *
+                            alpha_I3_I4 *
+                            I4 / K_I4
+                        )
+                    ) +
+                    alpha_S1_I1 * alpha_S3_I1 * alpha_P2_I1 * I1 / K_I1 * (
+                        alpha_S1_I2 * alpha_S3_I2 * alpha_P2_I2 * alpha_I1_I2 * I2 / K_I2 *
+                        (
+                            alpha_S1_I3 *
+                            alpha_S3_I3 *
+                            alpha_P2_I3 *
+                            alpha_I1_I3 *
+                            alpha_I2_I3 *
+                            I3 / K_I3 +
+                            alpha_S1_I4 *
+                            alpha_S3_I4 *
+                            alpha_P2_I4 *
+                            alpha_I1_I4 *
+                            alpha_I2_I4 *
+                            I4 / K_I4
+                        )
+                    ) +
+                    alpha_S1_I2 * alpha_S3_I2 * alpha_P2_I2 * I2 / K_I2 * (
+                        alpha_S1_I3 * alpha_S3_I3 * alpha_P2_I3 * alpha_I2_I3 * I3 / K_I3 *
+                        (
+                            alpha_S1_I4 *
+                            alpha_S3_I4 *
+                            alpha_P2_I4 *
+                            alpha_I2_I4 *
+                            alpha_I3_I4 *
+                            I4 / K_I4
+                        )
+                    )
+                ) +
+                alpha_S1_P3 * alpha_S3_P3 * P3 / K_P3 * (
+                    alpha_S1_I1 * alpha_S3_I1 * alpha_P3_I1 * I1 / K_I1 * (
+                        alpha_S1_I2 * alpha_S3_I2 * alpha_P3_I2 * alpha_I1_I2 * I2 / K_I2 *
+                        (
+                            alpha_S1_I3 *
+                            alpha_S3_I3 *
+                            alpha_P3_I3 *
+                            alpha_I1_I3 *
+                            alpha_I2_I3 *
+                            I3 / K_I3 +
+                            alpha_S1_I4 *
+                            alpha_S3_I4 *
+                            alpha_P3_I4 *
+                            alpha_I1_I4 *
+                            alpha_I2_I4 *
+                            I4 / K_I4
+                        ) +
+                        alpha_S1_I3 * alpha_S3_I3 * alpha_P3_I3 * alpha_I1_I3 * I3 / K_I3 *
+                        (
+                            alpha_S1_I4 *
+                            alpha_S3_I4 *
+                            alpha_P3_I4 *
+                            alpha_I1_I4 *
+                            alpha_I3_I4 *
+                            I4 / K_I4
+                        )
+                    ) +
+                    alpha_S1_I2 * alpha_S3_I2 * alpha_P3_I2 * I2 / K_I2 * (
+                        alpha_S1_I3 * alpha_S3_I3 * alpha_P3_I3 * alpha_I2_I3 * I3 / K_I3 *
+                        (
+                            alpha_S1_I4 *
+                            alpha_S3_I4 *
+                            alpha_P3_I4 *
+                            alpha_I2_I4 *
+                            alpha_I3_I4 *
+                            I4 / K_I4
+                        )
+                    )
+                ) +
+                alpha_S1_I1 * alpha_S3_I1 * I1 / K_I1 * (
+                    alpha_S1_I2 * alpha_S3_I2 * alpha_I1_I2 * I2 / K_I2 * (
+                        alpha_S1_I3 * alpha_S3_I3 * alpha_I1_I3 * alpha_I2_I3 * I3 / K_I3 *
+                        (
+                            alpha_S1_I4 *
+                            alpha_S3_I4 *
+                            alpha_I1_I4 *
+                            alpha_I2_I4 *
+                            alpha_I3_I4 *
+                            I4 / K_I4
+                        )
+                    )
+                )
+            ) +
+            (alpha_S1_P1 * P1 / K_P1) * (
+                (alpha_S1_P2 * P2 / K_P2) * (
+                    (alpha_S1_P3 * P3 / K_P3) * (
+                        alpha_S1_I1 * alpha_P1_I1 * alpha_P2_I1 * alpha_P3_I1 * I1 / K_I1 *
+                        (
+                            alpha_S1_I2 *
+                            alpha_P1_I2 *
+                            alpha_P2_I2 *
+                            alpha_P3_I2 *
+                            alpha_I1_I2 *
+                            I2 / K_I2 +
+                            alpha_S1_I3 *
+                            alpha_P1_I3 *
+                            alpha_P2_I3 *
+                            alpha_P3_I3 *
+                            alpha_I1_I2 *
+                            I3 / K_I3 +
+                            alpha_S1_I4 *
+                            alpha_P1_I4 *
+                            alpha_P2_I4 *
+                            alpha_P3_I4 *
+                            alpha_I1_I2 *
+                            I4 / K_I4
+                        ) +
+                        alpha_S1_I2 * alpha_P1_I2 * alpha_P2_I2 * alpha_P3_I2 * I2 / K_I2 *
+                        (
+                            alpha_S1_I3 *
+                            alpha_P1_I3 *
+                            alpha_P2_I3 *
+                            alpha_P3_I3 *
+                            alpha_I2_I3 *
+                            I3 / K_I3 +
+                            alpha_S1_I4 *
+                            alpha_P1_I4 *
+                            alpha_P2_I4 *
+                            alpha_P3_I4 *
+                            alpha_I2_I4 *
+                            I4 / K_I4
+                        ) +
+                        alpha_S1_I3 * alpha_P1_I3 * alpha_P2_I3 * alpha_P3_I3 * I3 / K_I3 *
+                        (
+                            alpha_S1_I4 *
+                            alpha_P1_I4 *
+                            alpha_P2_I4 *
+                            alpha_P3_I4 *
+                            alpha_I3_I4 *
+                            I4 / K_I4
+                        )
+                    ) +
+                    alpha_S1_I1 * alpha_P1_I1 * alpha_P2_I1 * I1 / K_I1 * (
+                        alpha_S1_I2 * alpha_P1_I2 * alpha_P2_I2 * alpha_I1_I2 * I2 / K_I2 *
+                        (
+                            alpha_S1_I3 *
+                            alpha_P1_I3 *
+                            alpha_P2_I3 *
+                            alpha_I1_I3 *
+                            alpha_I2_I3 *
+                            I3 / K_I3 +
+                            alpha_S1_I4 *
+                            alpha_P1_I4 *
+                            alpha_P2_I4 *
+                            alpha_I1_I4 *
+                            alpha_I2_I4 *
+                            I4 / K_I4
+                        )
+                    ) +
+                    alpha_S1_I2 * alpha_P1_I2 * alpha_P2_I2 * I2 / K_I2 * (
+                        alpha_S1_I3 * alpha_P1_I3 * alpha_P2_I3 * alpha_I2_I3 * I3 / K_I3 *
+                        (
+                            alpha_S1_I4 *
+                            alpha_P1_I4 *
+                            alpha_P2_I4 *
+                            alpha_I2_I4 *
+                            alpha_I3_I4 *
+                            I4 / K_I4
+                        )
+                    )
+                ) +
+                alpha_S1_P3 * P3 / K_P3 * (
+                    alpha_S1_I1 * alpha_P1_I1 * alpha_P3_I1 * I1 / K_I1 * (
+                        alpha_S1_I2 * alpha_P1_I2 * alpha_P3_I2 * alpha_I1_I2 * I2 / K_I2 *
+                        (
+                            alpha_S1_I3 *
+                            alpha_P1_I3 *
+                            alpha_P3_I3 *
+                            alpha_I1_I3 *
+                            alpha_I2_I3 *
+                            I3 / K_I3 +
+                            alpha_S1_I4 *
+                            alpha_P1_I4 *
+                            alpha_P3_I4 *
+                            alpha_I1_I4 *
+                            alpha_I2_I4 *
+                            I4 / K_I4
+                        ) +
+                        alpha_S1_I3 * alpha_P1_I3 * alpha_P3_I3 * alpha_I1_I3 * I3 / K_I3 *
+                        (
+                            alpha_S1_I4 *
+                            alpha_P1_I4 *
+                            alpha_P3_I4 *
+                            alpha_I1_I4 *
+                            alpha_I3_I4 *
+                            I4 / K_I4
+                        )
+                    ) +
+                    alpha_S1_I2 * alpha_P1_I2 * alpha_P3_I2 * I2 / K_I2 * (
+                        alpha_S1_I3 * alpha_P1_I3 * alpha_P3_I3 * alpha_I2_I3 * I3 / K_I3 *
+                        (
+                            alpha_S1_I4 *
+                            alpha_P1_I4 *
+                            alpha_P3_I4 *
+                            alpha_I2_I4 *
+                            alpha_I3_I4 *
+                            I4 / K_I4
+                        )
+                    )
+                ) +
+                alpha_S1_I1 * alpha_P1_I1 * I1 / K_I1 * (
+                    alpha_S1_I2 * alpha_P1_I2 * alpha_I1_I2 * I2 / K_I2 * (
+                        alpha_S1_I3 * alpha_P1_I3 * alpha_I1_I3 * alpha_I2_I3 * I3 / K_I3 *
+                        (
+                            alpha_S1_I4 *
+                            alpha_P1_I4 *
+                            alpha_I1_I4 *
+                            alpha_I2_I4 *
+                            alpha_I3_I4 *
+                            I4 / K_I4
+                        )
+                    )
+                )
+            ) +
+            (alpha_S1_P2 * P2 / K_P2) * (
+                (alpha_S1_P3 * P3 / K_P3) * (
+                    alpha_S1_I1 * alpha_P2_I1 * alpha_P3_I1 * I1 / K_I1 * (
+                        alpha_S1_I2 * alpha_P2_I2 * alpha_P3_I2 * alpha_I1_I2 * I2 / K_I2 *
+                        (
+                            alpha_S1_I3 *
+                            alpha_P2_I3 *
+                            alpha_P3_I3 *
+                            alpha_I1_I3 *
+                            alpha_I2_I3 *
+                            I3 / K_I3 +
+                            alpha_S1_I4 *
+                            alpha_P2_I4 *
+                            alpha_P3_I4 *
+                            alpha_I1_I4 *
+                            alpha_I2_I4 *
+                            I4 / K_I4
+                        ) +
+                        alpha_S1_I3 * alpha_P2_I3 * alpha_P3_I3 * alpha_I1_I3 * I3 / K_I3 *
+                        (
+                            alpha_S1_I4 *
+                            alpha_P2_I4 *
+                            alpha_P3_I4 *
+                            alpha_I1_I4 *
+                            alpha_I3_I4 *
+                            I4 / K_I4
+                        )
+                    ) +
+                    alpha_S1_I2 * alpha_P2_I2 * alpha_P3_I2 * I2 / K_I2 * (
+                        alpha_S1_I3 * alpha_P2_I3 * alpha_P3_I3 * alpha_I2_I3 * I3 / K_I3 *
+                        (
+                            alpha_S1_I4 *
+                            alpha_P2_I4 *
+                            alpha_P3_I4 *
+                            alpha_I2_I4 *
+                            alpha_I3_I4 *
+                            I4 / K_I4
+                        )
+                    )
+                ) +
+                alpha_S1_I1 * alpha_P2_I1 * I1 / K_I1 * (
+                    alpha_S1_I2 * alpha_P2_I2 * alpha_I1_I2 * I2 / K_I2 * (
+                        alpha_S1_I3 * alpha_P2_I3 * alpha_I1_I3 * alpha_I2_I3 * I3 / K_I3 *
+                        (
+                            alpha_S1_I4 *
+                            alpha_P2_I4 *
+                            alpha_I1_I4 *
+                            alpha_I2_I4 *
+                            alpha_I3_I4 *
+                            I4 / K_I4
+                        )
+                    )
+                )
+            ) +
+            (alpha_S1_P3 * P3 / K_P3) * (
+                alpha_S1_I1 * alpha_P3_I1 * I1 / K_I1 * (
+                    alpha_S1_I2 * alpha_P3_I2 * alpha_I1_I2 * I2 / K_I2 * (
+                        alpha_S1_I3 * alpha_P3_I3 * alpha_I1_I3 * alpha_I2_I3 * I3 / K_I3 *
+                        (
+                            alpha_S1_I4 *
+                            alpha_P3_I4 *
+                            alpha_I1_I4 *
+                            alpha_I2_I4 *
+                            alpha_I3_I4 *
+                            I4 / K_I4
+                        )
+                    )
+                )
+            )
+        ) +
+        (S2 / K_S2) * (
+            (S3 / K_S3) * (
+                (alpha_S2_P1 * alpha_S3_P1 * P1 / K_P1) * (
+                    (alpha_S2_P2 * alpha_S3_P2 * P2 / K_P2) * (
+                        (alpha_S2_P3 * alpha_S3_P3 * P3 / K_P3) * (
+                            alpha_S2_I1 *
+                            alpha_S3_I1 *
+                            alpha_P1_I1 *
+                            alpha_P2_I1 *
+                            alpha_P3_I1 *
+                            I1 / K_I1 +
+                            alpha_S2_I2 *
+                            alpha_S3_I2 *
+                            alpha_P1_I2 *
+                            alpha_P2_I2 *
+                            alpha_P3_I2 *
+                            I2 / K_I2 +
+                            alpha_S2_I3 *
+                            alpha_S3_I3 *
+                            alpha_P1_I3 *
+                            alpha_P2_I3 *
+                            alpha_P3_I3 *
+                            I3 / K_I3 +
+                            alpha_S2_I4 *
+                            alpha_S3_I4 *
+                            alpha_P1_I4 *
+                            alpha_P2_I4 *
+                            alpha_P3_I4 *
+                            I4 / K_I4
+                        ) +
+                        alpha_S2_I1 * alpha_S3_I1 * alpha_P1_I1 * alpha_P2_I1 * I1 / K_I1 *
+                        (
+                            alpha_S2_I2 *
+                            alpha_S3_I2 *
+                            alpha_P1_I2 *
+                            alpha_P2_I2 *
+                            alpha_I1_I2 *
+                            I2 / K_I2 +
+                            alpha_S2_I3 *
+                            alpha_S3_I3 *
+                            alpha_P1_I3 *
+                            alpha_P2_I3 *
+                            alpha_I1_I3 *
+                            I3 / K_I3 +
+                            alpha_S2_I4 *
+                            alpha_S3_I4 *
+                            alpha_P1_I4 *
+                            alpha_P2_I4 *
+                            alpha_I1_I4 *
+                            I4 / K_I4
+                        ) +
+                        alpha_S2_I2 * alpha_S3_I2 * alpha_P1_I2 * alpha_P2_I2 * I2 / K_I2 *
+                        (
+                            alpha_S2_I3 *
+                            alpha_S3_I3 *
+                            alpha_P1_I3 *
+                            alpha_P2_I3 *
+                            alpha_I2_I3 *
+                            I3 / K_I3 +
+                            alpha_S2_I4 *
+                            alpha_S3_I4 *
+                            alpha_P1_I4 *
+                            alpha_P2_I4 *
+                            alpha_I2_I4 *
+                            I4 / K_I4
+                        ) +
+                        alpha_S2_I3 * alpha_S3_I3 * alpha_P1_I3 * alpha_P2_I3 * I3 / K_I3 *
+                        (
+                            alpha_S2_I4 *
+                            alpha_S3_I4 *
+                            alpha_P1_I4 *
+                            alpha_P2_I4 *
+                            alpha_I3_I4 *
+                            I4 / K_I4
+                        )
+                    ) +
+                    alpha_S2_P3 * alpha_S3_P3 * P3 / K_P3 * (
+                        alpha_S2_I1 * alpha_S3_I1 * alpha_P1_I1 * alpha_P3_I1 * I1 / K_I1 *
+                        (
+                            alpha_S2_I2 *
+                            alpha_S3_I2 *
+                            alpha_P1_I2 *
+                            alpha_P3_I2 *
+                            alpha_I1_I2 *
+                            I2 / K_I2 +
+                            alpha_S2_I3 *
+                            alpha_S3_I3 *
+                            alpha_P1_I3 *
+                            alpha_P3_I3 *
+                            alpha_I1_I3 *
+                            I3 / K_I3 +
+                            alpha_S2_I4 *
+                            alpha_S3_I4 *
+                            alpha_P1_I4 *
+                            alpha_P3_I4 *
+                            alpha_I1_I4 *
+                            I4 / K_I4
+                        ) +
+                        alpha_S2_I2 * alpha_S3_I2 * alpha_P1_I2 * alpha_P3_I2 * I2 / K_I2 *
+                        (
+                            alpha_S2_I3 *
+                            alpha_S3_I3 *
+                            alpha_P1_I3 *
+                            alpha_P3_I3 *
+                            alpha_I2_I3 *
+                            I3 / K_I3 +
+                            alpha_S2_I4 *
+                            alpha_S3_I4 *
+                            alpha_P1_I4 *
+                            alpha_P3_I4 *
+                            alpha_I2_I4 *
+                            I4 / K_I4
+                        ) +
+                        alpha_S2_I3 * alpha_S3_I3 * alpha_P1_I3 * alpha_P3_I3 * I3 / K_I3 *
+                        (
+                            alpha_S2_I4 *
+                            alpha_S3_I4 *
+                            alpha_P1_I4 *
+                            alpha_P3_I4 *
+                            alpha_I3_I4 *
+                            I4 / K_I4
+                        )
+                    ) +
+                    alpha_S2_I1 * alpha_S3_I1 * alpha_P1_I1 * I1 / K_I1 * (
+                        alpha_S2_I2 * alpha_S3_I2 * alpha_P1_I2 * alpha_I1_I2 * I2 / K_I2 *
+                        (
+                            alpha_S2_I3 *
+                            alpha_S3_I3 *
+                            alpha_P1_I3 *
+                            alpha_I1_I3 *
+                            alpha_I2_I3 *
+                            I3 / K_I3 +
+                            alpha_S2_I4 *
+                            alpha_S3_I4 *
+                            alpha_P1_I4 *
+                            alpha_I1_I4 *
+                            alpha_I2_I4 *
+                            I4 / K_I4
+                        ) +
+                        alpha_S2_I2 * alpha_S3_I2 * alpha_P1_I2 * I2 / K_I2 * (
+                            alpha_S2_I3 *
+                            alpha_S3_I3 *
+                            alpha_P1_I3 *
+                            alpha_I1_I3 *
+                            alpha_I2_I3 *
+                            I3 / K_I3 +
+                            alpha_S2_I4 *
+                            alpha_S3_I4 *
+                            alpha_P1_I4 *
+                            alpha_I1_I4 *
+                            alpha_I2_I4 *
+                            I4 / K_I4
+                        ) +
+                        alpha_S2_I3 * alpha_S3_I3 * alpha_P1_I3 * I3 / K_I3 * (
+                            alpha_S2_I4 *
+                            alpha_S3_I4 *
+                            alpha_P1_I4 *
+                            alpha_I1_I4 *
+                            alpha_I3_I4 *
+                            I4 / K_I4
+                        )
+                    ) +
+                    alpha_S2_I2 * alpha_S3_I2 * alpha_P1_I2 * I2 / K_I2 * (
+                        alpha_S2_I3 * alpha_S3_I3 * alpha_P1_I3 * alpha_I2_I3 * I3 / K_I3 *
+                        (
+                            alpha_S2_I4 *
+                            alpha_S3_I4 *
+                            alpha_P1_I4 *
+                            alpha_I2_I4 *
+                            alpha_I3_I4 *
+                            I4 / K_I4
+                        )
+                    )
+                ) +
+                alpha_S2_P2 * alpha_S3_P2 * P2 / K_P2 * (
+                    alpha_S2_P3 * alpha_S3_P3 * P3 / K_P3 * (
+                        alpha_S2_I1 * alpha_S3_I1 * alpha_P2_I1 * alpha_P3_I1 * I1 / K_I1 *
+                        (
+                            alpha_S2_I2 *
+                            alpha_S3_I2 *
+                            alpha_P2_I2 *
+                            alpha_P3_I2 *
+                            alpha_I1_I2 *
+                            I2 / K_I2 +
+                            alpha_S2_I3 *
+                            alpha_S3_I3 *
+                            alpha_P2_I3 *
+                            alpha_P3_I3 *
+                            alpha_I1_I3 *
+                            I3 / K_I3 +
+                            alpha_S2_I4 *
+                            alpha_S3_I4 *
+                            alpha_P2_I4 *
+                            alpha_P3_I4 *
+                            alpha_I1_I4 *
+                            I4 / K_I4
+                        ) +
+                        alpha_S2_I2 * alpha_S3_I2 * alpha_P2_I2 * alpha_P3_I2 * I2 / K_I2 *
+                        (
+                            alpha_S2_I3 *
+                            alpha_S3_I3 *
+                            alpha_P2_I3 *
+                            alpha_P3_I3 *
+                            alpha_I2_I3 *
+                            I3 / K_I3 +
+                            alpha_S2_I4 *
+                            alpha_S3_I4 *
+                            alpha_P2_I4 *
+                            alpha_P3_I4 *
+                            alpha_I2_I4 *
+                            I4 / K_I4
+                        ) +
+                        alpha_S2_I3 * alpha_S3_I3 * alpha_P2_I3 * alpha_P3_I3 * I3 / K_I3 *
+                        (
+                            alpha_S2_I4 *
+                            alpha_S3_I4 *
+                            alpha_P2_I4 *
+                            alpha_P3_I4 *
+                            alpha_I3_I4 *
+                            I4 / K_I4
+                        )
+                    ) +
+                    alpha_S2_I1 * alpha_S3_I1 * alpha_P2_I1 * I1 / K_I1 * (
+                        alpha_S2_I2 * alpha_S3_I2 * alpha_P2_I2 * alpha_I1_I2 * I2 / K_I2 *
+                        (
+                            alpha_S2_I3 *
+                            alpha_S3_I3 *
+                            alpha_P2_I3 *
+                            alpha_I1_I3 *
+                            alpha_I2_I3 *
+                            I3 / K_I3 +
+                            alpha_S2_I4 *
+                            alpha_S3_I4 *
+                            alpha_P2_I4 *
+                            alpha_I1_I4 *
+                            alpha_I2_I4 *
+                            I4 / K_I4
+                        )
+                    ) +
+                    alpha_S2_I2 * alpha_S3_I2 * alpha_P2_I2 * I2 / K_I2 * (
+                        alpha_S2_I3 * alpha_S3_I3 * alpha_P2_I3 * alpha_I2_I3 * I3 / K_I3 *
+                        (
+                            alpha_S2_I4 *
+                            alpha_S3_I4 *
+                            alpha_P2_I4 *
+                            alpha_I2_I4 *
+                            alpha_I3_I4 *
+                            I4 / K_I4
+                        )
+                    )
+                ) +
+                alpha_S2_P3 * alpha_S3_P3 * P3 / K_P3 * (
+                    alpha_S2_I1 * alpha_S3_I1 * alpha_P3_I1 * I1 / K_I1 * (
+                        alpha_S2_I2 * alpha_S3_I2 * alpha_P3_I2 * alpha_I1_I2 * I2 / K_I2 *
+                        (
+                            alpha_S2_I3 *
+                            alpha_S3_I3 *
+                            alpha_P3_I3 *
+                            alpha_I1_I3 *
+                            alpha_I2_I3 *
+                            I3 / K_I3 +
+                            alpha_S2_I4 *
+                            alpha_S3_I4 *
+                            alpha_P3_I4 *
+                            alpha_I1_I4 *
+                            alpha_I2_I4 *
+                            I4 / K_I4
+                        ) +
+                        alpha_S2_I3 * alpha_S3_I3 * alpha_P3_I3 * alpha_I1_I3 * I3 / K_I3 *
+                        (
+                            alpha_S2_I4 *
+                            alpha_S3_I4 *
+                            alpha_P3_I4 *
+                            alpha_I1_I4 *
+                            alpha_I3_I4 *
+                            I4 / K_I4
+                        )
+                    ) +
+                    alpha_S2_I2 * alpha_S3_I2 * alpha_P3_I2 * I2 / K_I2 * (
+                        alpha_S2_I3 * alpha_S3_I3 * alpha_P3_I3 * alpha_I2_I3 * I3 / K_I3 *
+                        (
+                            alpha_S2_I4 *
+                            alpha_S3_I4 *
+                            alpha_P3_I4 *
+                            alpha_I2_I4 *
+                            alpha_I3_I4 *
+                            I4 / K_I4
+                        )
+                    )
+                ) +
+                alpha_S2_I1 * alpha_S3_I1 * I1 / K_I1 * (
+                    alpha_S2_I2 * alpha_S3_I2 * alpha_I1_I2 * I2 / K_I2 * (
+                        alpha_S2_I3 * alpha_S3_I3 * alpha_I1_I3 * alpha_I2_I3 * I3 / K_I3 *
+                        (
+                            alpha_S2_I4 *
+                            alpha_S3_I4 *
+                            alpha_I1_I4 *
+                            alpha_I2_I4 *
+                            alpha_I3_I4 *
+                            I4 / K_I4
+                        )
+                    )
+                )
+            ) +
+            (alpha_S2_P1 * P1 / K_P1) * (
+                (alpha_S2_P2 * P2 / K_P2) * (
+                    (alpha_S2_P3 * P3 / K_P3) * (
+                        alpha_S2_I1 * alpha_P1_I1 * alpha_P2_I1 * alpha_P3_I1 * I1 / K_I1 *
+                        (
+                            alpha_S2_I2 *
+                            alpha_P1_I2 *
+                            alpha_P2_I2 *
+                            alpha_P3_I2 *
+                            alpha_I1_I2 *
+                            I2 / K_I2 +
+                            alpha_S2_I3 *
+                            alpha_P1_I3 *
+                            alpha_P2_I3 *
+                            alpha_P3_I3 *
+                            alpha_I1_I2 *
+                            I3 / K_I3 +
+                            alpha_S2_I4 *
+                            alpha_P1_I4 *
+                            alpha_P2_I4 *
+                            alpha_P3_I4 *
+                            alpha_I1_I2 *
+                            I4 / K_I4
+                        ) +
+                        alpha_S2_I2 * alpha_P1_I2 * alpha_P2_I2 * alpha_P3_I2 * I2 / K_I2 *
+                        (
+                            alpha_S2_I3 *
+                            alpha_P1_I3 *
+                            alpha_P2_I3 *
+                            alpha_P3_I3 *
+                            alpha_I2_I3 *
+                            I3 / K_I3 +
+                            alpha_S2_I4 *
+                            alpha_P1_I4 *
+                            alpha_P2_I4 *
+                            alpha_P3_I4 *
+                            alpha_I2_I4 *
+                            I4 / K_I4
+                        ) +
+                        alpha_S2_I3 * alpha_P1_I3 * alpha_P2_I3 * alpha_P3_I3 * I3 / K_I3 *
+                        (
+                            alpha_S2_I4 *
+                            alpha_P1_I4 *
+                            alpha_P2_I4 *
+                            alpha_P3_I4 *
+                            alpha_I3_I4 *
+                            I4 / K_I4
+                        )
+                    ) +
+                    alpha_S2_I1 * alpha_P1_I1 * alpha_P2_I1 * I1 / K_I1 * (
+                        alpha_S2_I2 * alpha_P1_I2 * alpha_P2_I2 * alpha_I1_I2 * I2 / K_I2 *
+                        (
+                            alpha_S2_I3 *
+                            alpha_P1_I3 *
+                            alpha_P2_I3 *
+                            alpha_I1_I3 *
+                            alpha_I2_I3 *
+                            I3 / K_I3 +
+                            alpha_S2_I4 *
+                            alpha_P1_I4 *
+                            alpha_P2_I4 *
+                            alpha_I1_I4 *
+                            alpha_I2_I4 *
+                            I4 / K_I4
+                        ) +
+                        alpha_S2_I2 * alpha_P1_I2 * alpha_P2_I2 * I2 / K_I2 * (
+                            alpha_S2_I3 *
+                            alpha_P1_I3 *
+                            alpha_P2_I3 *
+                            alpha_I1_I3 *
+                            alpha_I2_I3 *
+                            I3 / K_I3 +
+                            alpha_S2_I4 *
+                            alpha_P1_I4 *
+                            alpha_P2_I4 *
+                            alpha_I1_I4 *
+                            alpha_I2_I4 *
+                            I4 / K_I4
+                        ) +
+                        alpha_S2_I3 * alpha_P1_I3 * alpha_P2_I3 * I3 / K_I3 * (
+                            alpha_S2_I4 *
+                            alpha_P1_I4 *
+                            alpha_P2_I4 *
+                            alpha_I1_I4 *
+                            alpha_I3_I4 *
+                            I4 / K_I4
+                        )
+                    ) +
+                    alpha_S2_I2 * alpha_P1_I2 * alpha_P2_I2 * I2 / K_I2 * (
+                        alpha_S2_I3 * alpha_P1_I3 * alpha_P2_I3 * alpha_I2_I3 * I3 / K_I3 *
+                        (
+                            alpha_S2_I4 *
+                            alpha_P1_I4 *
+                            alpha_P2_I4 *
+                            alpha_I2_I4 *
+                            alpha_I3_I4 *
+                            I4 / K_I4
+                        )
+                    )
+                ) +
+                alpha_S2_P3 * P3 / K_P3 * (
+                    alpha_S2_I1 * alpha_P1_I1 * alpha_P3_I1 * I1 / K_I1 * (
+                        alpha_S2_I2 * alpha_P1_I2 * alpha_P3_I2 * alpha_I1_I2 * I2 / K_I2 *
+                        (
+                            alpha_S2_I3 *
+                            alpha_P1_I3 *
+                            alpha_P3_I3 *
+                            alpha_I1_I3 *
+                            alpha_I2_I3 *
+                            I3 / K_I3 +
+                            alpha_S2_I4 *
+                            alpha_P1_I4 *
+                            alpha_P3_I4 *
+                            alpha_I1_I4 *
+                            alpha_I2_I4 *
+                            I4 / K_I4
+                        ) +
+                        alpha_S2_I3 * alpha_P1_I3 * alpha_P3_I3 * alpha_I1_I3 * I3 / K_I3 *
+                        (
+                            alpha_S2_I4 *
+                            alpha_P1_I4 *
+                            alpha_P3_I4 *
+                            alpha_I1_I4 *
+                            alpha_I3_I4 *
+                            I4 / K_I4
+                        )
+                    ) +
+                    alpha_S2_I2 * alpha_P1_I2 * alpha_P3_I2 * I2 / K_I2 * (
+                        alpha_S2_I3 * alpha_P1_I3 * alpha_P3_I3 * alpha_I2_I3 * I3 / K_I3 *
+                        (
+                            alpha_S2_I4 *
+                            alpha_P1_I4 *
+                            alpha_P3_I4 *
+                            alpha_I2_I4 *
+                            alpha_I3_I4 *
+                            I4 / K_I4
+                        )
+                    )
+                ) +
+                alpha_S2_I1 * alpha_P1_I1 * I1 / K_I1 * (
+                    alpha_S2_I2 * alpha_P1_I2 * alpha_I1_I2 * I2 / K_I2 * (
+                        alpha_S2_I3 * alpha_P1_I3 * alpha_I1_I3 * alpha_I2_I3 * I3 / K_I3 *
+                        (
+                            alpha_S2_I4 *
+                            alpha_P1_I4 *
+                            alpha_I1_I4 *
+                            alpha_I2_I4 *
+                            alpha_I3_I4 *
+                            I4 / K_I4
+                        )
+                    )
+                )
+            ) +
+            (alpha_S2_P2 * P2 / K_P2) * (
+                (alpha_S2_P3 * P3 / K_P3) * (
+                    alpha_S2_I1 * alpha_P2_I1 * alpha_P3_I1 * I1 / K_I1 * (
+                        alpha_S2_I2 * alpha_P2_I2 * alpha_P3_I2 * alpha_I1_I2 * I2 / K_I2 *
+                        (
+                            alpha_S2_I3 *
+                            alpha_P2_I3 *
+                            alpha_P3_I3 *
+                            alpha_I1_I3 *
+                            alpha_I2_I3 *
+                            I3 / K_I3 +
+                            alpha_S2_I4 *
+                            alpha_P2_I4 *
+                            alpha_P3_I4 *
+                            alpha_I1_I4 *
+                            alpha_I2_I4 *
+                            I4 / K_I4
+                        ) +
+                        alpha_S2_I3 * alpha_P2_I3 * alpha_P3_I3 * alpha_I1_I3 * I3 / K_I3 *
+                        (
+                            alpha_S2_I4 *
+                            alpha_P2_I4 *
+                            alpha_P3_I4 *
+                            alpha_I1_I4 *
+                            alpha_I3_I4 *
+                            I4 / K_I4
+                        )
+                    ) +
+                    alpha_S2_I2 * alpha_P2_I2 * alpha_P3_I2 * I2 / K_I2 * (
+                        alpha_S2_I3 * alpha_P2_I3 * alpha_P3_I3 * alpha_I2_I3 * I3 / K_I3 *
+                        (
+                            alpha_S2_I4 *
+                            alpha_P2_I4 *
+                            alpha_P3_I4 *
+                            alpha_I2_I4 *
+                            alpha_I3_I4 *
+                            I4 / K_I4
+                        )
+                    )
+                ) +
+                alpha_S2_I1 * alpha_P2_I1 * I1 / K_I1 * (
+                    alpha_S2_I2 * alpha_P2_I2 * alpha_I1_I2 * I2 / K_I2 * (
+                        alpha_S2_I3 * alpha_P2_I3 * alpha_I1_I3 * alpha_I2_I3 * I3 / K_I3 *
+                        (
+                            alpha_S2_I4 *
+                            alpha_P2_I4 *
+                            alpha_I1_I4 *
+                            alpha_I2_I4 *
+                            alpha_I3_I4 *
+                            I4 / K_I4
+                        )
+                    )
+                )
+            ) +
+            (alpha_S2_P3 * P3 / K_P3) * (
+                alpha_S2_I1 * alpha_P3_I1 * I1 / K_I1 * (
+                    alpha_S2_I2 * alpha_P3_I2 * alpha_I1_I2 * I2 / K_I2 * (
+                        alpha_S2_I3 * alpha_P3_I3 * alpha_I1_I3 * alpha_I2_I3 * I3 / K_I3 *
+                        (
+                            alpha_S2_I4 *
+                            alpha_P3_I4 *
+                            alpha_I1_I4 *
+                            alpha_I2_I4 *
+                            alpha_I3_I4 *
+                            I4 / K_I4
+                        )
+                    )
+                )
+            )
+        ) +
+        (S3 / K_S3) * (
+            (alpha_S3_P1 * P1 / K_P1) * (
+                (alpha_S3_P2 * P2 / K_P2) * (
+                    (alpha_S3_P3 * P3 / K_P3) * (
+                        alpha_S3_I1 * alpha_P1_I1 * alpha_P2_I1 * alpha_P3_I1 * I1 / K_I1 *
+                        (
+                            alpha_S3_I2 *
+                            alpha_P1_I2 *
+                            alpha_P2_I2 *
+                            alpha_P3_I2 *
+                            alpha_I1_I2 *
+                            I2 / K_I2 +
+                            alpha_S3_I3 *
+                            alpha_P1_I3 *
+                            alpha_P2_I3 *
+                            alpha_P3_I3 *
+                            alpha_I1_I3 *
+                            I3 / K_I3 +
+                            alpha_S3_I4 *
+                            alpha_P1_I4 *
+                            alpha_P2_I4 *
+                            alpha_P3_I4 *
+                            alpha_I1_I4 *
+                            I4 / K_I4
+                        ) +
+                        alpha_S3_I2 * alpha_P1_I2 * alpha_P2_I2 * alpha_P3_I2 * I2 / K_I2 *
+                        (
+                            alpha_S3_I3 *
+                            alpha_P1_I3 *
+                            alpha_P2_I3 *
+                            alpha_P3_I3 *
+                            alpha_I2_I3 *
+                            I3 / K_I3 +
+                            alpha_S3_I4 *
+                            alpha_P1_I4 *
+                            alpha_P2_I4 *
+                            alpha_P3_I4 *
+                            alpha_I2_I4 *
+                            I4 / K_I4
+                        ) +
+                        alpha_S3_I3 * alpha_P1_I3 * alpha_P2_I3 * alpha_P3_I3 * I3 / K_I3 *
+                        (
+                            alpha_S3_I4 *
+                            alpha_P1_I4 *
+                            alpha_P2_I4 *
+                            alpha_P3_I4 *
+                            alpha_I3_I4 *
+                            I4 / K_I4
+                        )
+                    ) +
+                    alpha_S3_I1 * alpha_P1_I1 * alpha_P2_I1 * I1 / K_I1 * (
+                        alpha_S3_I2 * alpha_P1_I2 * alpha_P2_I2 * alpha_I1_I2 * I2 / K_I2 *
+                        (
+                            alpha_S3_I3 *
+                            alpha_P1_I3 *
+                            alpha_P2_I3 *
+                            alpha_I1_I3 *
+                            alpha_I2_I3 *
+                            I3 / K_I3 +
+                            alpha_S3_I4 *
+                            alpha_P1_I4 *
+                            alpha_P2_I4 *
+                            alpha_I1_I4 *
+                            alpha_I2_I4 *
+                            I4 / K_I4
+                        ) +
+                        alpha_S3_I3 * alpha_P1_I3 * alpha_P2_I3 * I3 / K_I3 * (
+                            alpha_S3_I4 *
+                            alpha_P1_I4 *
+                            alpha_P2_I4 *
+                            alpha_I1_I4 *
+                            alpha_I3_I4 *
+                            I4 / K_I4
+                        )
+                    ) +
+                    alpha_S3_I2 * alpha_P1_I2 * alpha_P2_I2 * I2 / K_I2 * (
+                        alpha_S3_I3 * alpha_P1_I3 * alpha_P2_I3 * alpha_I2_I3 * I3 / K_I3 *
+                        (
+                            alpha_S3_I4 *
+                            alpha_P1_I4 *
+                            alpha_P2_I4 *
+                            alpha_I2_I4 *
+                            alpha_I3_I4 *
+                            I4 / K_I4
+                        )
+                    )
+                ) +
+                alpha_S3_P3 * P3 / K_P3 * (
+                    alpha_S3_I1 * alpha_P1_I1 * alpha_P3_I1 * I1 / K_I1 * (
+                        alpha_S3_I2 * alpha_P1_I2 * alpha_P3_I2 * alpha_I1_I2 * I2 / K_I2 *
+                        (
+                            alpha_S3_I3 *
+                            alpha_P1_I3 *
+                            alpha_P3_I3 *
+                            alpha_I1_I3 *
+                            alpha_I2_I3 *
+                            I3 / K_I3 +
+                            alpha_S3_I4 *
+                            alpha_P1_I4 *
+                            alpha_P3_I4 *
+                            alpha_I1_I4 *
+                            alpha_I2_I4 *
+                            I4 / K_I4
+                        ) +
+                        alpha_S3_I2 * alpha_P1_I2 * alpha_P3_I2 * I2 / K_I2 * (
+                            alpha_S3_I3 *
+                            alpha_P1_I3 *
+                            alpha_P3_I3 *
+                            alpha_I1_I3 *
+                            alpha_I2_I3 *
+                            I3 / K_I3 +
+                            alpha_S3_I4 *
+                            alpha_P1_I4 *
+                            alpha_P3_I4 *
+                            alpha_I1_I4 *
+                            alpha_I2_I4 *
+                            I4 / K_I4
+                        ) +
+                        alpha_S3_I3 * alpha_P1_I3 * alpha_P3_I3 * I3 / K_I3 * (
+                            alpha_S3_I4 *
+                            alpha_P1_I4 *
+                            alpha_P3_I4 *
+                            alpha_I1_I4 *
+                            alpha_I3_I4 *
+                            I4 / K_I4
+                        )
+                    ) +
+                    alpha_S3_I1 * alpha_P1_I1 * alpha_P3_I1 * I1 / K_I1 * (
+                        alpha_S3_I2 * alpha_P1_I2 * alpha_P3_I2 * I2 / K_I2 * (
+                            alpha_S3_I3 *
+                            alpha_P1_I3 *
+                            alpha_P3_I3 *
+                            alpha_I1_I3 *
+                            alpha_I2_I3 *
+                            I3 / K_I3 +
+                            alpha_S3_I4 *
+                            alpha_P1_I4 *
+                            alpha_P3_I4 *
+                            alpha_I1_I4 *
+                            alpha_I2_I4 *
+                            I4 / K_I4
+                        ) +
+                        alpha_S3_I3 * alpha_P1_I3 * alpha_P3_I3 * I3 / K_I3 * (
+                            alpha_S3_I4 *
+                            alpha_P1_I4 *
+                            alpha_P3_I4 *
+                            alpha_I1_I4 *
+                            alpha_I3_I4 *
+                            I4 / K_I4
+                        )
+                    ) +
+                    alpha_S3_I2 * alpha_P1_I2 * alpha_P3_I2 * I2 / K_I2 * (
+                        alpha_S3_I3 * alpha_P1_I3 * alpha_P3_I3 * alpha_I2_I3 * I3 / K_I3 *
+                        (
+                            alpha_S3_I4 *
+                            alpha_P1_I4 *
+                            alpha_P3_I4 *
+                            alpha_I2_I4 *
+                            alpha_I3_I4 *
+                            I4 / K_I4
+                        )
+                    )
+                ) +
+                alpha_S3_I1 * alpha_P1_I1 * I1 / K_I1 * (
+                    alpha_S3_I2 * alpha_P1_I2 * alpha_I1_I2 * I2 / K_I2 * (
+                        alpha_S3_I3 * alpha_P1_I3 * alpha_I1_I3 * alpha_I2_I3 * I3 / K_I3 *
+                        (
+                            alpha_S3_I4 *
+                            alpha_P1_I4 *
+                            alpha_I1_I4 *
+                            alpha_I2_I4 *
+                            alpha_I3_I4 *
+                            I4 / K_I4
+                        )
+                    )
+                )
+            ) +
+            (alpha_S3_P2 * P2 / K_P2) * (
+                (alpha_S3_P3 * P3 / K_P3) * (
+                    alpha_S3_I1 * alpha_P2_I1 * alpha_P3_I1 * I1 / K_I1 * (
+                        alpha_S3_I2 * alpha_P2_I2 * alpha_P3_I2 * alpha_I1_I2 * I2 / K_I2 *
+                        (
+                            alpha_S3_I3 *
+                            alpha_P2_I3 *
+                            alpha_P3_I3 *
+                            alpha_I1_I3 *
+                            alpha_I2_I3 *
+                            I3 / K_I3 +
+                            alpha_S3_I4 *
+                            alpha_P2_I4 *
+                            alpha_P3_I4 *
+                            alpha_I1_I4 *
+                            alpha_I2_I4 *
+                            I4 / K_I4
+                        ) +
+                        alpha_S3_I2 * alpha_P2_I2 * alpha_P3_I2 * I2 / K_I2 * (
+                            alpha_S3_I3 *
+                            alpha_P2_I3 *
+                            alpha_P3_I3 *
+                            alpha_I1_I3 *
+                            alpha_I2_I3 *
+                            I3 / K_I3 +
+                            alpha_S3_I4 *
+                            alpha_P2_I4 *
+                            alpha_P3_I4 *
+                            alpha_I1_I4 *
+                            alpha_I2_I4 *
+                            I4 / K_I4
+                        ) +
+                        alpha_S3_I3 * alpha_P2_I3 * alpha_P3_I3 * I3 / K_I3 * (
+                            alpha_S3_I4 *
+                            alpha_P2_I4 *
+                            alpha_P3_I4 *
+                            alpha_I1_I4 *
+                            alpha_I3_I4 *
+                            I4 / K_I4
+                        )
+                    ) +
+                    alpha_S3_I1 * alpha_P2_I1 * I1 / K_I1 * (
+                        alpha_S3_I2 * alpha_P2_I2 * alpha_I1_I2 * I2 / K_I2 * (
+                            alpha_S3_I3 * alpha_P2_I3 * alpha_I1_I3 * alpha_I2_I3 * I3 /
+                            K_I3 +
+                            alpha_S3_I4 * alpha_P2_I4 * alpha_I1_I4 * alpha_I2_I4 * I4 /
+                            K_I4
+                        )
+                    ) +
+                    alpha_S3_I2 * alpha_P2_I2 * I2 / K_I2 * (
+                        alpha_S3_I3 * alpha_P2_I3 * alpha_I2_I3 * I3 / K_I3 *
+                        (alpha_S3_I4 * alpha_P2_I4 * alpha_I2_I4 * alpha_I3_I4 * I4 / K_I4)
+                    )
+                ) +
+                alpha_S3_I1 * alpha_P2_I1 * I1 / K_I1 * (
+                    alpha_S3_I2 * alpha_P2_I2 * alpha_I1_I2 * I2 / K_I2 * (
+                        alpha_S3_I3 * alpha_P2_I3 * alpha_I1_I3 * alpha_I2_I3 * I3 / K_I3 *
+                        (
+                            alpha_S3_I4 *
+                            alpha_P2_I4 *
+                            alpha_I1_I4 *
+                            alpha_I2_I4 *
+                            alpha_I3_I4 *
+                            I4 / K_I4
+                        )
+                    )
+                )
+            ) +
+            (alpha_S3_P3 * P3 / K_P3) * (
+                alpha_S3_I1 * alpha_P3_I1 * I1 / K_I1 * (
+                    alpha_S3_I2 * alpha_P3_I2 * alpha_I1_I2 * I2 / K_I2 * (
+                        alpha_S3_I3 * alpha_P3_I3 * alpha_I1_I3 * alpha_I2_I3 * I3 / K_I3 *
+                        (
+                            alpha_S3_I4 *
+                            alpha_P3_I4 *
+                            alpha_I1_I4 *
+                            alpha_I2_I4 *
+                            alpha_I3_I4 *
+                            I4 / K_I4
+                        )
+                    )
+                )
+            )
+        ) +
+        (P1 / K_P1) * (
+            (P2 / K_P2) * (
+                (P3 / K_P3) * (
+                    alpha_P1_I1 * alpha_P2_I1 * alpha_P3_I1 * I1 / K_I1 * (
+                        alpha_P1_I2 * alpha_P2_I2 * alpha_P3_I2 * alpha_I1_I2 * I2 / K_I2 *
+                        (
+                            alpha_P1_I3 *
+                            alpha_P2_I3 *
+                            alpha_P3_I3 *
+                            alpha_I1_I3 *
+                            alpha_I2_I3 *
+                            I3 / K_I3 +
+                            alpha_P1_I4 *
+                            alpha_P2_I4 *
+                            alpha_P3_I4 *
+                            alpha_I1_I4 *
+                            alpha_I2_I4 *
+                            I4 / K_I4
+                        ) +
+                        alpha_P1_I3 * alpha_P2_I3 * alpha_P3_I3 * alpha_I1_I3 * I3 / K_I3 *
+                        (
+                            alpha_P1_I4 *
+                            alpha_P2_I4 *
+                            alpha_P3_I4 *
+                            alpha_I1_I4 *
+                            alpha_I3_I4 *
+                            I4 / K_I4
+                        )
+                    ) +
+                    alpha_P1_I2 * alpha_P2_I2 * alpha_P3_I2 * I2 / K_I2 * (
+                        alpha_P1_I3 * alpha_P2_I3 * alpha_P3_I3 * alpha_I2_I3 * I3 / K_I3 *
+                        (
+                            alpha_P1_I4 *
+                            alpha_P2_I4 *
+                            alpha_P3_I4 *
+                            alpha_I2_I4 *
+                            alpha_I3_I4 *
+                            I4 / K_I4
+                        )
+                    )
+                ) +
+                alpha_P1_I1 * alpha_P2_I1 * I1 / K_I1 * (
+                    alpha_P1_I2 * alpha_P2_I2 * alpha_I1_I2 * I2 / K_I2 * (
+                        alpha_P1_I3 * alpha_P2_I3 * alpha_I1_I3 * alpha_I2_I3 * I3 / K_I3 *
+                        (
+                            alpha_P1_I4 *
+                            alpha_P2_I4 *
+                            alpha_I1_I4 *
+                            alpha_I2_I4 *
+                            alpha_I3_I4 *
+                            I4 / K_I4
+                        )
+                    )
+                )
+            ) +
+            (P3 / K_P3) * (
+                alpha_P1_I1 * alpha_P3_I1 * I1 / K_I1 * (
+                    alpha_P1_I2 * alpha_P3_I2 * alpha_I1_I2 * I2 / K_I2 * (
+                        alpha_P1_I3 * alpha_P3_I3 * alpha_I1_I3 * alpha_I2_I3 * I3 / K_I3 *
+                        (
+                            alpha_P1_I4 *
+                            alpha_P3_I4 *
+                            alpha_I1_I4 *
+                            alpha_I2_I4 *
+                            alpha_I3_I4 *
+                            I4 / K_I4
+                        )
+                    )
+                )
+            )
+        ) +
+        (P2 / K_P2) * (
+            (P3 / K_P3) * (
+                alpha_P2_I1 * alpha_P3_I1 * I1 / K_I1 * (
+                    alpha_P2_I2 * alpha_P3_I2 * alpha_I1_I2 * I2 / K_I2 * (
+                        alpha_P2_I3 * alpha_P3_I3 * alpha_I1_I3 * alpha_I2_I3 * I3 / K_I3 *
+                        (
+                            alpha_P2_I4 *
+                            alpha_P3_I4 *
+                            alpha_I1_I4 *
+                            alpha_I2_I4 *
+                            alpha_I3_I4 *
+                            I4 / K_I4
+                        )
+                    )
+                )
+            )
+        )
+
+
     seven_metab_bound = 0
     eight_metab_bound = 0
     nine_metab_bound = 0
