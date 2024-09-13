@@ -322,10 +322,6 @@ macro derive_general_mwc_rate_eq(metabs_and_regulators_kwargs)
                     params.$(Symbol("alpha_", enz.I2, "_", enz.I3)) : 1.0,
                     $(enz.I2 isa Symbol && enz.I4 isa Symbol) ?
                     params.$(Symbol("alpha_", enz.I2, "_", enz.I4)) : 1.0,
-                    $(enz.I2 isa Symbol && enz.I5 isa Symbol) ?
-                    params.$(Symbol("alpha_", enz.I2, "_", enz.I5)) : 1.0,
-                    $(enz.I2 isa Symbol && enz.I6 isa Symbol) ?
-                    params.$(Symbol("alpha_", enz.I2, "_", enz.I6)) : 1.0,
                     $(enz.I3 isa Symbol && enz.I4 isa Symbol) ?
                     params.$(Symbol("alpha_", enz.I3, "_", enz.I4)) : 1.0,
                 ),
@@ -343,78 +339,6 @@ macro derive_general_mwc_rate_eq(metabs_and_regulators_kwargs)
                     $(enz.R4 isa Symbol) ? params.$(Symbol("K_a_", enz.R4, "_reg")) : Inf,
                     $(enz.R5 isa Symbol) ? params.$(Symbol("K_a_", enz.R5, "_reg")) : Inf,
                     $(enz.R6 isa Symbol) ? params.$(Symbol("K_a_", enz.R6, "_reg")) : Inf,
-                    $(enz.S1 isa Symbol && enz.R1 isa Symbol) ?
-                    params.$(Symbol("alpha_", enz.S1, "_", enz.R1)) : 1.0,
-                    $(enz.S1 isa Symbol && enz.R2 isa Symbol) ?
-                    params.$(Symbol("alpha_", enz.S1, "_", enz.R2)) : 1.0,
-                    $(enz.S1 isa Symbol && enz.R3 isa Symbol) ?
-                    params.$(Symbol("alpha_", enz.S1, "_", enz.R3)) : 1.0,
-                    $(enz.S1 isa Symbol && enz.R4 isa Symbol) ?
-                    params.$(Symbol("alpha_", enz.S1, "_", enz.R4)) : 1.0,
-                    $(enz.S1 isa Symbol && enz.R5 isa Symbol) ?
-                    params.$(Symbol("alpha_", enz.S1, "_", enz.R5)) : 1.0,
-                    $(enz.S1 isa Symbol && enz.R6 isa Symbol) ?
-                    params.$(Symbol("alpha_", enz.S1, "_", enz.R6)) : 1.0,
-                    $(enz.S2 isa Symbol && enz.R1 isa Symbol) ?
-                    params.$(Symbol("alpha_", enz.S2, "_", enz.R1)) : 1.0,
-                    $(enz.S2 isa Symbol && enz.R2 isa Symbol) ?
-                    params.$(Symbol("alpha_", enz.S2, "_", enz.R2)) : 1.0,
-                    $(enz.S2 isa Symbol && enz.R3 isa Symbol) ?
-                    params.$(Symbol("alpha_", enz.S2, "_", enz.R3)) : 1.0,
-                    $(enz.S2 isa Symbol && enz.R4 isa Symbol) ?
-                    params.$(Symbol("alpha_", enz.S2, "_", enz.R4)) : 1.0,
-                    $(enz.S2 isa Symbol && enz.R5 isa Symbol) ?
-                    params.$(Symbol("alpha_", enz.S2, "_", enz.R5)) : 1.0,
-                    $(enz.S2 isa Symbol && enz.R6 isa Symbol) ?
-                    params.$(Symbol("alpha_", enz.S2, "_", enz.R6)) : 1.0,
-                    $(enz.S3 isa Symbol && enz.R1 isa Symbol) ?
-                    params.$(Symbol("alpha_", enz.S3, "_", enz.R1)) : 1.0,
-                    $(enz.S3 isa Symbol && enz.R2 isa Symbol) ?
-                    params.$(Symbol("alpha_", enz.S3, "_", enz.R2)) : 1.0,
-                    $(enz.S3 isa Symbol && enz.R3 isa Symbol) ?
-                    params.$(Symbol("alpha_", enz.S3, "_", enz.R3)) : 1.0,
-                    $(enz.S3 isa Symbol && enz.R4 isa Symbol) ?
-                    params.$(Symbol("alpha_", enz.S3, "_", enz.R4)) : 1.0,
-                    $(enz.S3 isa Symbol && enz.R5 isa Symbol) ?
-                    params.$(Symbol("alpha_", enz.S3, "_", enz.R5)) : 1.0,
-                    $(enz.S3 isa Symbol && enz.R6 isa Symbol) ?
-                    params.$(Symbol("alpha_", enz.S3, "_", enz.R6)) : 1.0,
-                    $(enz.P1 isa Symbol && enz.R1 isa Symbol) ?
-                    params.$(Symbol("alpha_", enz.P1, "_", enz.R1)) : 1.0,
-                    $(enz.P1 isa Symbol && enz.R2 isa Symbol) ?
-                    params.$(Symbol("alpha_", enz.P1, "_", enz.R2)) : 1.0,
-                    $(enz.P1 isa Symbol && enz.R3 isa Symbol) ?
-                    params.$(Symbol("alpha_", enz.P1, "_", enz.R3)) : 1.0,
-                    $(enz.P1 isa Symbol && enz.R4 isa Symbol) ?
-                    params.$(Symbol("alpha_", enz.P1, "_", enz.R4)) : 1.0,
-                    $(enz.P1 isa Symbol && enz.R5 isa Symbol) ?
-                    params.$(Symbol("alpha_", enz.P1, "_", enz.R5)) : 1.0,
-                    $(enz.P1 isa Symbol && enz.R6 isa Symbol) ?
-                    params.$(Symbol("alpha_", enz.P1, "_", enz.R6)) : 1.0,
-                    $(enz.P2 isa Symbol && enz.R1 isa Symbol) ?
-                    params.$(Symbol("alpha_", enz.P2, "_", enz.R1)) : 1.0,
-                    $(enz.P2 isa Symbol && enz.R2 isa Symbol) ?
-                    params.$(Symbol("alpha_", enz.P2, "_", enz.R2)) : 1.0,
-                    $(enz.P2 isa Symbol && enz.R3 isa Symbol) ?
-                    params.$(Symbol("alpha_", enz.P2, "_", enz.R3)) : 1.0,
-                    $(enz.P2 isa Symbol && enz.R4 isa Symbol) ?
-                    params.$(Symbol("alpha_", enz.P2, "_", enz.R4)) : 1.0,
-                    $(enz.P2 isa Symbol && enz.R5 isa Symbol) ?
-                    params.$(Symbol("alpha_", enz.P2, "_", enz.R5)) : 1.0,
-                    $(enz.P2 isa Symbol && enz.R6 isa Symbol) ?
-                    params.$(Symbol("alpha_", enz.P2, "_", enz.R6)) : 1.0,
-                    $(enz.P3 isa Symbol && enz.R1 isa Symbol) ?
-                    params.$(Symbol("alpha_", enz.P3, "_", enz.R1)) : 1.0,
-                    $(enz.P3 isa Symbol && enz.R2 isa Symbol) ?
-                    params.$(Symbol("alpha_", enz.P3, "_", enz.R2)) : 1.0,
-                    $(enz.P3 isa Symbol && enz.R3 isa Symbol) ?
-                    params.$(Symbol("alpha_", enz.P3, "_", enz.R3)) : 1.0,
-                    $(enz.P3 isa Symbol && enz.R4 isa Symbol) ?
-                    params.$(Symbol("alpha_", enz.P3, "_", enz.R4)) : 1.0,
-                    $(enz.P3 isa Symbol && enz.R5 isa Symbol) ?
-                    params.$(Symbol("alpha_", enz.P3, "_", enz.R5)) : 1.0,
-                    $(enz.P3 isa Symbol && enz.R6 isa Symbol) ?
-                    params.$(Symbol("alpha_", enz.P3, "_", enz.R6)) : 1.0,
                     $(enz.R1 isa Symbol && enz.R2 isa Symbol) ?
                     params.$(Symbol("alpha_", enz.R1, "_", enz.R2)) : 1.0,
                     $(enz.R1 isa Symbol && enz.R3 isa Symbol) ?
@@ -460,78 +384,6 @@ macro derive_general_mwc_rate_eq(metabs_and_regulators_kwargs)
                     $(enz.R4 isa Symbol) ? params.$(Symbol("K_i_", enz.R4, "_reg")) : Inf,
                     $(enz.R5 isa Symbol) ? params.$(Symbol("K_i_", enz.R5, "_reg")) : Inf,
                     $(enz.R6 isa Symbol) ? params.$(Symbol("K_i_", enz.R6, "_reg")) : Inf,
-                    $(enz.S1 isa Symbol && enz.R1 isa Symbol) ?
-                    params.$(Symbol("alpha_", enz.S1, "_", enz.R1)) : 1.0,
-                    $(enz.S1 isa Symbol && enz.R2 isa Symbol) ?
-                    params.$(Symbol("alpha_", enz.S1, "_", enz.R2)) : 1.0,
-                    $(enz.S1 isa Symbol && enz.R3 isa Symbol) ?
-                    params.$(Symbol("alpha_", enz.S1, "_", enz.R3)) : 1.0,
-                    $(enz.S1 isa Symbol && enz.R4 isa Symbol) ?
-                    params.$(Symbol("alpha_", enz.S1, "_", enz.R4)) : 1.0,
-                    $(enz.S1 isa Symbol && enz.R5 isa Symbol) ?
-                    params.$(Symbol("alpha_", enz.S1, "_", enz.R5)) : 1.0,
-                    $(enz.S1 isa Symbol && enz.R6 isa Symbol) ?
-                    params.$(Symbol("alpha_", enz.S1, "_", enz.R6)) : 1.0,
-                    $(enz.S2 isa Symbol && enz.R1 isa Symbol) ?
-                    params.$(Symbol("alpha_", enz.S2, "_", enz.R1)) : 1.0,
-                    $(enz.S2 isa Symbol && enz.R2 isa Symbol) ?
-                    params.$(Symbol("alpha_", enz.S2, "_", enz.R2)) : 1.0,
-                    $(enz.S2 isa Symbol && enz.R3 isa Symbol) ?
-                    params.$(Symbol("alpha_", enz.S2, "_", enz.R3)) : 1.0,
-                    $(enz.S2 isa Symbol && enz.R4 isa Symbol) ?
-                    params.$(Symbol("alpha_", enz.S2, "_", enz.R4)) : 1.0,
-                    $(enz.S2 isa Symbol && enz.R5 isa Symbol) ?
-                    params.$(Symbol("alpha_", enz.S2, "_", enz.R5)) : 1.0,
-                    $(enz.S2 isa Symbol && enz.R6 isa Symbol) ?
-                    params.$(Symbol("alpha_", enz.S2, "_", enz.R6)) : 1.0,
-                    $(enz.S3 isa Symbol && enz.R1 isa Symbol) ?
-                    params.$(Symbol("alpha_", enz.S3, "_", enz.R1)) : 1.0,
-                    $(enz.S3 isa Symbol && enz.R2 isa Symbol) ?
-                    params.$(Symbol("alpha_", enz.S3, "_", enz.R2)) : 1.0,
-                    $(enz.S3 isa Symbol && enz.R3 isa Symbol) ?
-                    params.$(Symbol("alpha_", enz.S3, "_", enz.R3)) : 1.0,
-                    $(enz.S3 isa Symbol && enz.R4 isa Symbol) ?
-                    params.$(Symbol("alpha_", enz.S3, "_", enz.R4)) : 1.0,
-                    $(enz.S3 isa Symbol && enz.R5 isa Symbol) ?
-                    params.$(Symbol("alpha_", enz.S3, "_", enz.R5)) : 1.0,
-                    $(enz.S3 isa Symbol && enz.R6 isa Symbol) ?
-                    params.$(Symbol("alpha_", enz.S3, "_", enz.R6)) : 1.0,
-                    $(enz.P1 isa Symbol && enz.R1 isa Symbol) ?
-                    params.$(Symbol("alpha_", enz.P1, "_", enz.R1)) : 1.0,
-                    $(enz.P1 isa Symbol && enz.R2 isa Symbol) ?
-                    params.$(Symbol("alpha_", enz.P1, "_", enz.R2)) : 1.0,
-                    $(enz.P1 isa Symbol && enz.R3 isa Symbol) ?
-                    params.$(Symbol("alpha_", enz.P1, "_", enz.R3)) : 1.0,
-                    $(enz.P1 isa Symbol && enz.R4 isa Symbol) ?
-                    params.$(Symbol("alpha_", enz.P1, "_", enz.R4)) : 1.0,
-                    $(enz.P1 isa Symbol && enz.R5 isa Symbol) ?
-                    params.$(Symbol("alpha_", enz.P1, "_", enz.R5)) : 1.0,
-                    $(enz.P1 isa Symbol && enz.R6 isa Symbol) ?
-                    params.$(Symbol("alpha_", enz.P1, "_", enz.R6)) : 1.0,
-                    $(enz.P2 isa Symbol && enz.R1 isa Symbol) ?
-                    params.$(Symbol("alpha_", enz.P2, "_", enz.R1)) : 1.0,
-                    $(enz.P2 isa Symbol && enz.R2 isa Symbol) ?
-                    params.$(Symbol("alpha_", enz.P2, "_", enz.R2)) : 1.0,
-                    $(enz.P2 isa Symbol && enz.R3 isa Symbol) ?
-                    params.$(Symbol("alpha_", enz.P2, "_", enz.R3)) : 1.0,
-                    $(enz.P2 isa Symbol && enz.R4 isa Symbol) ?
-                    params.$(Symbol("alpha_", enz.P2, "_", enz.R4)) : 1.0,
-                    $(enz.P2 isa Symbol && enz.R5 isa Symbol) ?
-                    params.$(Symbol("alpha_", enz.P2, "_", enz.R5)) : 1.0,
-                    $(enz.P2 isa Symbol && enz.R6 isa Symbol) ?
-                    params.$(Symbol("alpha_", enz.P2, "_", enz.R6)) : 1.0,
-                    $(enz.P3 isa Symbol && enz.R1 isa Symbol) ?
-                    params.$(Symbol("alpha_", enz.P3, "_", enz.R1)) : 1.0,
-                    $(enz.P3 isa Symbol && enz.R2 isa Symbol) ?
-                    params.$(Symbol("alpha_", enz.P3, "_", enz.R2)) : 1.0,
-                    $(enz.P3 isa Symbol && enz.R3 isa Symbol) ?
-                    params.$(Symbol("alpha_", enz.P3, "_", enz.R3)) : 1.0,
-                    $(enz.P3 isa Symbol && enz.R4 isa Symbol) ?
-                    params.$(Symbol("alpha_", enz.P3, "_", enz.R4)) : 1.0,
-                    $(enz.P3 isa Symbol && enz.R5 isa Symbol) ?
-                    params.$(Symbol("alpha_", enz.P3, "_", enz.R5)) : 1.0,
-                    $(enz.P3 isa Symbol && enz.R6 isa Symbol) ?
-                    params.$(Symbol("alpha_", enz.P3, "_", enz.R6)) : 1.0,
                     $(enz.R1 isa Symbol && enz.R2 isa Symbol) ?
                     params.$(Symbol("alpha_", enz.R1, "_", enz.R2)) : 1.0,
                     $(enz.R1 isa Symbol && enz.R3 isa Symbol) ?
@@ -4279,18 +4131,27 @@ function generate_param_names(processed_input)
     for metab in [processed_input[:substrates]..., processed_input[:products]...]
         param_names = (param_names..., Symbol("K_a_", metab), Symbol("K_i_", metab))
     end
+    for metab in processed_input[:inhibitors]
+        param_names =
+            (param_names..., Symbol("K_a_", metab, "_cat"), Symbol("K_i_", metab, "_cat"))
+    end
     for metab in processed_input[:regulators]
         param_names =
             (param_names..., Symbol("K_a_", metab, "_reg"), Symbol("K_i_", metab, "_reg"))
     end
     for substrate in processed_input[:substrates]
-        for metabolite in [processed_input[:products]..., processed_input[:regulators]...]
+        for metabolite in [processed_input[:products]..., processed_input[:inhibitors]...]
             param_names = (param_names..., Symbol("alpha_", substrate, "_", metabolite))
         end
     end
     for product in processed_input[:products]
-        for regulator in processed_input[:regulators]
+        for regulator in processed_input[:inhibitors]
             param_names = (param_names..., Symbol("alpha_", product, "_", regulator))
+        end
+    end
+    for (i, inhibitor1) in enumerate(processed_input[:inhibitors][1:(end-1)])
+        for inhibitor2 in processed_input[:inhibitors][(i+1):end]
+            param_names = (param_names..., Symbol("alpha_", inhibitor1, "_", inhibitor2))
         end
     end
     for (i, regulator1) in enumerate(processed_input[:regulators][1:(end-1)])
@@ -4305,7 +4166,7 @@ end
 function generate_metab_names(processed_input)
     metab_names = ()
     for field in keys(processed_input)
-        if field ∈ [:substrates, :products, :regulators]
+        if field ∈ [:substrates, :products, :inhibitors, :regulators]
             metab_names = (metab_names..., processed_input[field]...)
         end
     end
