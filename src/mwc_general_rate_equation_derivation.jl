@@ -52,9 +52,9 @@ macro derive_general_mwc_rate_eq(metabs_and_regulators_kwargs)
         :rate_equation_name,
     ]
     if !haskey(processed_input, :regulators)
-        processed_input.regulators = []
+        processed_input = merge(processed_input, (; regulators = []))
     elseif !haskey(processed_input, :inhibitors)
-        processed_input.inhibitors = []
+        processed_input = merge(processed_input, (; inhibitors = []))
     end
     for kwarg in keys(processed_input)
         kwarg ∈ expected_input_kwargs || error(

@@ -1,5 +1,5 @@
-# using TestEnv
-# TestEnv.activate()
+using TestEnv
+TestEnv.activate()
 
 #test `@derive_general_mwc_rate_eq`, `loss_rate_equation` and `fit_rate_equation` on real PKM2 data
 using DataDrivenEnzymeRateEqs, Test
