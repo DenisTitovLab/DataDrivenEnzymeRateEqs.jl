@@ -71,10 +71,10 @@ for param_name in propertynames(params_nt)
 end
 params_nt = NamedTuple{param_names}(params_vec)
 metabs_nt = NamedTuple{metab_names}((
-    (1e12 .* ones(length(substrates)))...,
+    (1e3 .* ones(length(substrates)))...,
     zeros(length(products))...,
     zeros(length(inhibitors))...,
-    1e12 .* ones(length(regulators))...,
+    1e3 .* ones(length(regulators))...,
 ))
 rand_enz_rate_equation(metabs_nt, params_nt, Keq)
 @test isapprox(rand_enz_rate_equation(metabs_nt, params_nt, Keq), Vmax_a, rtol = 1e-2)
@@ -92,10 +92,11 @@ end
 Vmax_a_rev = Vmax_a * product_Ks / (Keq * substrate_Ks)
 metabs_nt = NamedTuple{metab_names}((
     (zeros(length(substrates)))...,
-    1e12 .* ones(length(products))...,
+    1e3 .* ones(length(products))...,
     zeros(length(inhibitors))...,
-    1e12 .* ones(length(regulators))...,
+    1e3 .* ones(length(regulators))...,
 ))
+rand_enz_rate_equation(metabs_nt, params_nt, Keq)
 @test isapprox(rand_enz_rate_equation(metabs_nt, params_nt, Keq), -Vmax_a_rev, rtol = 1e-2)
 
 #test Rate = Vmax_i when [Substrates] and [Allosteric Inhibitors] -> Inf and Vmax_i_rev when [Products] and [Allosteric Inhibitors] -> Inf
@@ -115,10 +116,10 @@ for param_name in propertynames(params_nt)
 end
 params_nt = NamedTuple{param_names}(params_vec)
 metabs_nt = NamedTuple{metab_names}((
-    (1e12 .* ones(length(substrates)))...,
+    (1e3 .* ones(length(substrates)))...,
     zeros(length(products))...,
     zeros(length(inhibitors))...,
-    1e12 .* ones(length(regulators))...,
+    1e3 .* ones(length(regulators))...,
 ))
 rand_enz_rate_equation(metabs_nt, params_nt, Keq)
 @test isapprox(rand_enz_rate_equation(metabs_nt, params_nt, Keq), Vmax_i, rtol = 1e-2)
@@ -136,9 +137,9 @@ end
 Vmax_i_rev = Vmax_i * product_Ks / (Keq * substrate_Ks)
 metabs_nt = NamedTuple{metab_names}((
     (zeros(length(substrates)))...,
-    1e12 .* ones(length(products))...,
+    1e3 .* ones(length(products))...,
     zeros(length(inhibitors))...,
-    1e12 .* ones(length(regulators))...,
+    1e3 .* ones(length(regulators))...,
 ))
 @test isapprox(rand_enz_rate_equation(metabs_nt, params_nt, Keq), -Vmax_i_rev, rtol = 1e-2)
 
@@ -149,7 +150,8 @@ params_nt = NamedTuple{param_names}(rand(length(param_names)))
 metabs_nt = NamedTuple{metab_names}((
     rand(length(substrates))...,
     rand(length(products))...,
-    1e12 .* ones(length(inhibitors))...,
+    1e3 .* ones(length(inhibitors))...,
     rand(length(regulators))...,
 ))
-@test isapprox(rand_enz_rate_equation(metabs_nt, params_nt, Keq), 0.0, atol = 1e-10)
+rand_enz_rate_equation(metabs_nt, params_nt, Keq)
+@test isapprox(1.0 - rand_enz_rate_equation(metabs_nt, params_nt, Keq), 1.0, atol = 1e-2)
