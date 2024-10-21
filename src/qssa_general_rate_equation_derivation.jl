@@ -34,7 +34,7 @@ macro derive_general_qssa_rate_eq(metabs_and_regulators_kwargs)
     processed_input = getfield(__module__, Symbol(metabs_and_regulators_kwargs))
     expected_input_kwargs = [:substrates, :products, :regulators, :Keq, :rate_equation_name]
     if !haskey(processed_input, :regulators)
-        processed_input.regulators = []
+        processed_input = merge(processed_input, (; regulators = []))
     end
     for kwarg in keys(processed_input)
         kwarg ∈ expected_input_kwargs || error(
