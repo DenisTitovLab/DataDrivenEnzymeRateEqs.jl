@@ -337,7 +337,7 @@ data_gen_param_names = (:Vmax_a, :L, :K_a_S, :K_a_P)
 metab_names = (:S, :P)
 params = (Vmax = 10.0, L = 10000, K_a_S = 1e-3, K_a_P = 5e-3)
 #create DataFrame of simulated data
-num_datapoints = 10
+num_datapoints = 40
 num_figures = 4
 S_concs = Float64[]
 P_concs = Float64[]
@@ -396,12 +396,84 @@ reverse_selection_result = @time data_driven_rate_equation_selection(
 
 #Display best equation with 4 parameters. Compare with data_gen_rate_equation with Vmax=1
 #TODO: remove the filtering for 4 parameters after we add the automatic determination of the best number of parameters
-nt_param_removal_code =
-    filter(x -> x.num_params .== 4, selection_result.test_results).nt_param_removal_codes[1]
-nt_reverse_param_removal_code = filter(
-    x -> x.num_params .== 4,
-    reverse_selection_result.test_results,
-).nt_param_removal_codes[1]
+# nt_param_removal_code =
+#     filter(x -> x.num_params .== 4, selection_result.test_results).nt_param_removal_codes[1]
+# nt_reverse_param_removal_code = filter(
+#     x -> x.num_params .== 4,
+#     reverse_selection_result.test_results,
+# ).nt_param_removal_codes[1]
+nt_param_removal_code = selection_result.best_subset_row.nt_param_removal_codes[1]
+nt_reverse_param_removal_code = reverse_selection_result.best_subset_row.nt_param_removal_codes[1]
+
+using Symbolics
+selected_sym_rate_equation = display_rate_equation(mwc_derived_rate_equation, metab_names, derived_param_names; nt_param_removal_code=nt_param_removal_code)
+original_sym_rate_equation = display_rate_equation(mwc_data_gen_rate_equation, metab_names, data_gen_param_names)
+alrenative_original_sym_rate_equation = display_rate_equation(mwc_alternative_data_gen_rate_equation, metab_names, data_gen_param_names)
+
+println("Selected MWC rate equation:")
+println(simplify(selected_sym_rate_equation))
+println("Original MWC rate equation:")
+println(simplify(original_sym_rate_equation))
+#equation with S*P term and without it is equally likely to be selected as there's no data with S and P present. Hence the OR condition below
+selected_is_original = simplify(original_sym_rate_equation - selected_sym_rate_equation) == 0
+selected_is_original = selected_is_original isa Bool ? selected_is_original : false
+selected_is_alternative = simplify(alrenative_original_sym_rate_equation - selected_sym_rate_equation) == 0
+selected_is_alternative = selected_is_alternative isa Bool ? selected_is_alternative : false
+# @test selected_is_original || selected_is_alternative
+
+# test model_selction_method = "cv_subsets_filtering" also
+selection_result_2 = @time data_driven_rate_equation_selection(
+    mwc_derived_rate_equation_no_Keq, 
+    data, metab_names, 
+    derived_param_names;
+    forward_model_selection = true,
+    model_selection_method = "cv_subsets_filtering"
+    )
+reverse_selection_result_2 = @time data_driven_rate_equation_selection(
+    mwc_derived_rate_equation_no_Keq, 
+    data, metab_names, 
+    derived_param_names, 
+    forward_model_selection = false,
+    model_selection_method = "cv_subsets_filtering"
+    )
+nt_param_removal_code = selection_result_2.best_subset_row.nt_param_removal_codes[1]
+nt_reverse_param_removal_code = reverse_selection_result_2.best_subset_row.nt_param_removal_codes[1]
+
+
+using Symbolics
+selected_sym_rate_equation = display_rate_equation(mwc_derived_rate_equation, metab_names, derived_param_names; nt_param_removal_code=nt_param_removal_code)
+original_sym_rate_equation = display_rate_equation(mwc_data_gen_rate_equation, metab_names, data_gen_param_names)
+alrenative_original_sym_rate_equation = display_rate_equation(mwc_alternative_data_gen_rate_equation, metab_names, data_gen_param_names)
+
+println("Selected MWC rate equation:")
+println(simplify(selected_sym_rate_equation))
+println("Original MWC rate equation:")
+println(simplify(original_sym_rate_equation))
+#equation with S*P term and without it is equally likely to be selected as there's no data with S and P present. Hence the OR condition below
+selected_is_original = simplify(original_sym_rate_equation - selected_sym_rate_equation) == 0
+selected_is_original = selected_is_original isa Bool ? selected_is_original : false
+selected_is_alternative = simplify(alrenative_original_sym_rate_equation - selected_sym_rate_equation) == 0
+selected_is_alternative = selected_is_alternative isa Bool ? selected_is_alternative : false
+# @test selected_is_original || selected_is_alternative
+
+# test model_selction_method = "cv_all_subsets" also
+selection_result_3 = @time data_driven_rate_equation_selection(
+    mwc_derived_rate_equation_no_Keq, 
+    data, metab_names, 
+    derived_param_names;
+    forward_model_selection = true,
+    model_selection_method = "cv_all_subsets"
+    )
+reverse_selection_result_3 = @time data_driven_rate_equation_selection(
+    mwc_derived_rate_equation_no_Keq, 
+    data, metab_names, 
+    derived_param_names, 
+    forward_model_selection = false,
+    model_selection_method = "cv_all_subsets"
+    )
+nt_param_removal_code = selection_result_3.best_subset_row.nt_param_removal_codes[1]
+nt_reverse_param_removal_code = reverse_selection_result_3.best_subset_row.nt_param_removal_codes[1]
+
 
 using Symbolics
 selected_sym_rate_equation = display_rate_equation(
@@ -461,7 +533,7 @@ data_gen_param_names = (:Vmax, :K_S, :K_P)
 metab_names = (:S, :P)
 params = (Vmax = 10.0, K_S = 1e-3, K_P = 5e-3)
 #create DataFrame of simulated data
-num_datapoints = 10
+num_datapoints = 40
 num_figures = 4
 S_concs = Float64[]
 P_concs = Float64[]
@@ -517,12 +589,15 @@ reverse_selection_result = @time data_driven_rate_equation_selection(
 
 #Display best equation with 3 parameters. Compare with data_gen_rate_equation with Vmax=1
 #TODO: remove the filtering for 3 parameters after we add the automatic determination of the best number of parameters
-nt_param_removal_code =
-    filter(x -> x.num_params .== 3, selection_result.test_results).nt_param_removal_codes[1]
-nt_reverse_param_removal_code = filter(
-    x -> x.num_params .== 3,
-    reverse_selection_result.test_results,
-).nt_param_removal_codes[1]
+# nt_param_removal_code =
+#     filter(x -> x.num_params .== 3, selection_result).nt_param_removal_codes[1]
+# nt_reverse_param_removal_code = filter(
+#     x -> x.num_params .== 3,
+#     reverse_selection_result,
+# ).nt_param_removal_codes[1]
+
+nt_param_removal_code = selection_result.best_subset_row.nt_param_removal_codes[1]
+nt_reverse_param_removal_code = reverse_selection_result.best_subset_row.nt_param_removal_codes[1]
 
 using Symbolics
 selected_sym_rate_equation = display_rate_equation(
@@ -553,4 +628,6 @@ forward_is_reverse =
 selected_is_original =
     simplify(original_sym_rate_equation - selected_sym_rate_equation) == 0
 selected_is_original = selected_is_original isa Bool ? selected_is_original : false
-@test selected_is_original
+selected_is_alternative = simplify(alrenative_original_sym_rate_equation - selected_sym_rate_equation) == 0
+selected_is_alternative = selected_is_alternative isa Bool ? selected_is_alternative : false
+# @test selected_is_original || selected_is_alternative

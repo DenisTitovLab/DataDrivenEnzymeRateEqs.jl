@@ -46,13 +46,15 @@ function fit_rate_equation(
     metab_names::Tuple{Symbol,Vararg{Symbol}},
     param_names::Tuple{Symbol,Vararg{Symbol}};
     n_iter = 20,
-)
+    maxiter_opt = 50_000,
+ )
     train_results = train_rate_equation(
         rate_equation::Function,
         data::DataFrame,
         metab_names::Tuple{Symbol,Vararg{Symbol}},
         param_names::Tuple{Symbol,Vararg{Symbol}};
         n_iter = n_iter,
+        maxiter_opt = maxiter_opt,
         nt_param_removal_code = nothing,
     )
     # rescaled_params = param_rescaling(train_results[2], param_names)
@@ -66,25 +68,22 @@ function train_rate_equation(
     metab_names::Tuple{Symbol,Vararg{Symbol}},
     param_names::Tuple{Symbol,Vararg{Symbol}};
     n_iter = 20,
+    maxiter_opt = 50_000,
     nt_param_removal_code = nothing,
-)
-    filtered_data = data[.!isnan.(data.Rate), [:Rate, metab_names..., :source]]
-    #Only include Rate > 0 because otherwise log_ratio_predict_vs_data() will have to divide by 0
-    filter!(row -> row.Rate != 0, filtered_data)
+ )
     # Add a new column to data to assign an integer to each source/figure from publication
-    filtered_data.fig_num = vcat(
+    data.fig_num = vcat(
         [
             i * ones(
                 Int64,
-                count(==(unique(filtered_data.source)[i]), filtered_data.source),
-            ) for i = 1:length(unique(filtered_data.source))
+                count(==(unique(data.source)[i]), data.source),
+            ) for i = 1:length(unique(data.source))
         ]...,
     )
     # Add a column containing indexes of points corresponding to each figure
-    fig_point_indexes =
-        [findall(filtered_data.fig_num .== i) for i in unique(filtered_data.fig_num)]
+    fig_point_indexes = [findall(data.fig_num .== i) for i in unique(data.fig_num)]
     # Convert DF to NamedTuple for better type stability / speed
-    rate_data_nt = Tables.columntable(filtered_data)
+    rate_data_nt = Tables.columntable(data)
 
     # Check if nt_param_removal_code makes loss returns NaN and abort early if it does. The latter
     # could happens due to nt_param_removal_code making params=Inf
@@ -125,7 +124,7 @@ function train_rate_equation(
                 lower = repeat([0.0], length(x0)),
                 upper = repeat([10.0], length(x0)),
                 popsize = 4 * (4 + floor(Int, 3 * log(length(x0)))),
-                maxiter = 50_000,
+                maxiter = maxiter_opt,
                 verbosity = 0,
                 ftol = 1e-10,
             )
@@ -165,7 +164,7 @@ function train_rate_equation(
             lower = repeat([0.0], length(xbest(solns[index_best_sol]))),
             upper = repeat([10.0], length(xbest(solns[index_best_sol]))),
             popsize = 4 * (4 + floor(Int, 3 * log(length(xbest(solns[index_best_sol]))))),
-            maxiter = 50_000,
+            maxiter = maxiter_opt,
             verbosity = 0,
             ftol = 1e-14,
         )
