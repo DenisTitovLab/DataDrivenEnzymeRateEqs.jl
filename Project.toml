@@ -23,7 +23,7 @@ CairoMakie = "0.11, 0.12"
 DataFrames = "1.6"
 HypothesisTests = "0.11"
 Statistics = "1.6"
-Symbolics = "5.25"
+Symbolics = "5.25, 6"
 TestEnv = "1"
 julia = "1.10"
 
