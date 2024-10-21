@@ -34,7 +34,7 @@ macro derive_general_qssa_rate_eq(metabs_and_regulators_kwargs)
     processed_input = getfield(__module__, Symbol(metabs_and_regulators_kwargs))
     expected_input_kwargs = [:substrates, :products, :regulators, :Keq, :rate_equation_name]
     if !haskey(processed_input, :regulators)
-        processed_input.regulators = []
+        processed_input = merge(processed_input, (; regulators = []))
     end
     for kwarg in keys(processed_input)
         kwarg ∈ expected_input_kwargs || error(
@@ -2787,14 +2787,18 @@ end
     Keq,
 )
     Vmax = 1.0
-    Vmax_rev =
+    Vmax_rev = ifelse(
+        !isinf(product_K_products),
         Vmax * (product_K_products)^num_products /
-        (Keq * (product_K_substrates)^num_substrates)
+        (Keq * (product_K_substrates)^num_substrates),
+        0.0,
+    )
     Rate =
         (
             Vmax * (S1 * S2 * S3 / (product_K_substrates)^num_substrates) -
             Vmax_rev * (P1 * P2 * P3 / (product_K_products)^num_products)
         ) / Z
+
     return Rate
 end
 
