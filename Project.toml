@@ -19,7 +19,7 @@ TestEnv = "1e6cf692-eddd-4d53-88a5-2d735e33781b"
 [compat]
 CMAEvolutionStrategy = "0.2.6"
 CSV = "0.10"
-CairoMakie = "0.11"
+CairoMakie = "0.11, 0.12"
 DataFrames = "1.6"
 HypothesisTests = "0.11"
 Statistics = "1.6"
