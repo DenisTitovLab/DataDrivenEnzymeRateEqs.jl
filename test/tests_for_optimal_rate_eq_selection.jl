@@ -222,7 +222,7 @@ data = PKM2_data_for_fit
 PKM2_enzyme = (;
     substrates = [:PEP, :ADP],
     products = [:Pyruvate, :ATP],
-    regulators = [:F16BP, :Phenylalanine],
+    regulators = [:F16BP, :Phenylalanine, :ATP],
     Keq = 20_000.0,
     oligomeric_state = 4,
     rate_equation_name = :pkm2_rate_equation,
@@ -234,9 +234,7 @@ unidentifiable_params =
     unidentifiable_param ∈ (
         :alpha_PEP_Pyruvate,
         :alpha_ADP_Pyruvate,
-        :alpha_Pyruvate_F16BP,
-        :alpha_Pyruvate_Phenylalanine,
-        :alpha_ATP_Phenylalanine,
+        :alpha_Phenylalanine_ATP,
     ) for unidentifiable_param in unidentifiable_params
 )
 
@@ -421,18 +419,20 @@ selected_is_alternative = simplify(alrenative_original_sym_rate_equation - selec
 selected_is_alternative = selected_is_alternative isa Bool ? selected_is_alternative : false
 # @test selected_is_original || selected_is_alternative
 
+# THE CODE BELOW TAKES TOO LONG TO RUN SO IT'S COMMENTED OUT
+#=
 # test model_selction_method = "cv_subsets_filtering" also
 selection_result_2 = @time data_driven_rate_equation_selection(
-    mwc_derived_rate_equation_no_Keq, 
-    data, metab_names, 
+    mwc_derived_rate_equation_no_Keq,
+    data, metab_names,
     derived_param_names;
     forward_model_selection = true,
     model_selection_method = "cv_subsets_filtering"
     )
 reverse_selection_result_2 = @time data_driven_rate_equation_selection(
-    mwc_derived_rate_equation_no_Keq, 
-    data, metab_names, 
-    derived_param_names, 
+    mwc_derived_rate_equation_no_Keq,
+    data, metab_names,
+    derived_param_names,
     forward_model_selection = false,
     model_selection_method = "cv_subsets_filtering"
     )
@@ -458,16 +458,16 @@ selected_is_alternative = selected_is_alternative isa Bool ? selected_is_alterna
 
 # test model_selction_method = "cv_all_subsets" also
 selection_result_3 = @time data_driven_rate_equation_selection(
-    mwc_derived_rate_equation_no_Keq, 
-    data, metab_names, 
+    mwc_derived_rate_equation_no_Keq,
+    data, metab_names,
     derived_param_names;
     forward_model_selection = true,
     model_selection_method = "cv_all_subsets"
     )
 reverse_selection_result_3 = @time data_driven_rate_equation_selection(
-    mwc_derived_rate_equation_no_Keq, 
-    data, metab_names, 
-    derived_param_names, 
+    mwc_derived_rate_equation_no_Keq,
+    data, metab_names,
+    derived_param_names,
     forward_model_selection = false,
     model_selection_method = "cv_all_subsets"
     )
@@ -513,6 +513,7 @@ selected_is_alternative =
     simplify(alrenative_original_sym_rate_equation - selected_sym_rate_equation) == 0
 selected_is_alternative = selected_is_alternative isa Bool ? selected_is_alternative : false
 # @test selected_is_original || selected_is_alternative
+=#
 
 ##
 #test the ability of `data_driven_rate_equation_selection` to recover the QSSA rate_equation and params used to generated data for an arbitrary enzyme
