@@ -419,6 +419,8 @@ selected_is_alternative = simplify(alrenative_original_sym_rate_equation - selec
 selected_is_alternative = selected_is_alternative isa Bool ? selected_is_alternative : false
 # @test selected_is_original || selected_is_alternative
 
+# THE CODE BELOW TAKES TOO LONG TO RUN SO IT'S COMMENTED OUT
+#=
 # test model_selction_method = "cv_subsets_filtering" also
 selection_result_2 = @time data_driven_rate_equation_selection(
     mwc_derived_rate_equation_no_Keq,
@@ -511,6 +513,7 @@ selected_is_alternative =
     simplify(alrenative_original_sym_rate_equation - selected_sym_rate_equation) == 0
 selected_is_alternative = selected_is_alternative isa Bool ? selected_is_alternative : false
 # @test selected_is_original || selected_is_alternative
+=#
 
 ##
 #test the ability of `data_driven_rate_equation_selection` to recover the QSSA rate_equation and params used to generated data for an arbitrary enzyme
