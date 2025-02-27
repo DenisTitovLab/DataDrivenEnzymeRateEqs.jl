@@ -2,6 +2,7 @@
 
 [![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://denistitovlab.github.io/DataDrivenEnzymeRateEqs.jl/dev/)
 [![Build Status](https://github.com/denistitovlab/DataDrivenEnzymeRateEqs.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/denistitovlab/DataDrivenEnzymeRateEqs.jl/actions/workflows/CI.yml?query=branch%3Amain)
+[![codecov](https://codecov.io/gh/DenisTitovLab/DataDrivenEnzymeRateEqs.jl/graph/badge.svg?token=3RBUX547CQ)](https://codecov.io/gh/DenisTitovLab/DataDrivenEnzymeRateEqs.jl)
 
 ## Package status
 
