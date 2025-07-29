@@ -207,4 +207,4 @@ metabs_nt_second_reg = NamedTuple{metab_names}((
 ))
 rate_second_reg = rand_enz_rate_equation(metabs_nt_second_reg, params_nt, Keq)
 
-@test isapprox(rate_low_reg, rate_high_reg, rtol = 1e-6)
+@test isapprox(rate_first_reg, rate_second_reg, rtol = 1e-6)
