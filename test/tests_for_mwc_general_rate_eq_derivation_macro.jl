@@ -57,7 +57,7 @@ metabs_nt = NamedTuple{metab_names}((
 @test rand_enz_rate_equation(metabs_nt, params_nt, Keq) > 0.0
 
 #test Rate = Vmax_a when [Substrates] and [Activators] -> Inf and Vmax_a_rev when [Products] and [Activators] -> Inf
-Vmax_a = 1.0
+Vmax_a = rand()
 Vmax_i = rand()
 params_vec = []
 for param_name in propertynames(params_nt)
@@ -65,6 +65,10 @@ for param_name in propertynames(params_nt)
         push!(params_vec, 1e-3)
     elseif startswith(string(param_name), "alpha_")
         push!(params_vec, rand([0.0, 1.0]))
+    elseif param_name == :Vmax_a
+        push!(params_vec, Vmax_a)
+    elseif param_name == :Vmax_i
+        push!(params_vec, Vmax_i)
     else
         push!(params_vec, 1.0)
     end
@@ -100,12 +104,14 @@ rand_enz_rate_equation(metabs_nt, params_nt, Keq)
 @test isapprox(rand_enz_rate_equation(metabs_nt, params_nt, Keq), -Vmax_a_rev, rtol = 1e-2)
 
 #test Rate = Vmax_i when [Substrates] and [Allosteric Inhibitors] -> Inf and Vmax_i_rev when [Products] and [Allosteric Inhibitors] -> Inf
-Vmax_a = 1.0
+Vmax_a = rand()
 Vmax_i = rand()
 params_vec = []
 for param_name in propertynames(params_nt)
     if startswith(string(param_name), "K_i")
         push!(params_vec, 1e-3)
+    elseif param_name == :Vmax_a
+        push!(params_vec, Vmax_a)
     elseif param_name == :Vmax_i
         push!(params_vec, Vmax_i)
     elseif startswith(string(param_name), "alpha_")
@@ -144,8 +150,6 @@ metabs_nt = NamedTuple{metab_names}((
 @test isapprox(rand_enz_rate_equation(metabs_nt, params_nt, Keq), -Vmax_i_rev, rtol = 1e-2)
 
 #test Rate = 0 when [Inhibitors] -> Inf
-Vmax_a = 1.0
-Vmax_i = 1.0
 params_nt = NamedTuple{param_names}(rand(length(param_names)))
 metabs_nt = NamedTuple{metab_names}((
     rand(length(substrates))...,
@@ -155,3 +159,52 @@ metabs_nt = NamedTuple{metab_names}((
 ))
 rand_enz_rate_equation(metabs_nt, params_nt, Keq)
 @test isapprox(1.0 - rand_enz_rate_equation(metabs_nt, params_nt, Keq), 1.0, atol = 1e-2)
+
+#test Rate is unchanged regardless of regulators levels when Vmax_a = Vmax_i and Ka = Ki for all reactants
+Vmax_val = rand()
+params_vec = []
+# First pass: set all parameters with random values or Vmax_val
+for param_name in propertynames(params_nt)
+    if param_name == :Vmax_a || param_name == :Vmax_i
+        push!(params_vec, Vmax_val)
+    else
+        push!(params_vec, rand())
+    end
+end
+# Second pass: set Ki = Ka for substrates, products, and inhibitors only
+for (i, param_name) in enumerate(param_names)
+    if startswith(string(param_name), "K_i_")
+        metab_suffix = string(param_name)[5:end]
+        if metab_suffix[1] in ['S', 'P', 'I']  # not regulators
+            corresponding_Ka = Symbol("K_a_", metab_suffix)
+            Ka_index = findfirst(x -> x == corresponding_Ka, param_names)
+            if Ka_index !== nothing
+                params_vec[i] = params_vec[Ka_index]
+            end
+        end
+    end
+end
+params_nt = NamedTuple{param_names}(params_vec)
+
+# Test with one set of regulator concentrations
+substr_conc = rand(length(substrates))
+prod_conc = rand(length(products))
+inhib_conc = rand(length(inhibitors))
+metabs_nt_first_reg = NamedTuple{metab_names}((
+    substr_conc...,
+    prod_conc...,
+    inhib_conc...,
+    rand(length(regulators))...,
+))
+rate_first_reg = rand_enz_rate_equation(metabs_nt_first_reg, params_nt, Keq)
+
+# Test with second set of regulator concentrations
+metabs_nt_second_reg = NamedTuple{metab_names}((
+    substr_conc...,
+    prod_conc...,
+    inhib_conc...,
+    rand(length(regulators))...,
+))
+rate_second_reg = rand_enz_rate_equation(metabs_nt_second_reg, params_nt, Keq)
+
+@test isapprox(rate_first_reg, rate_second_reg, rtol = 1e-6)

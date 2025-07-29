@@ -456,7 +456,6 @@ end
     Keq,
     n,
 )
-    Vmax_a = 1.0
     Vmax_a_rev = ifelse(
         !isinf(K_a_P1 * K_a_P2 * K_a_P3),
         Vmax_a * K_a_P1 * K_a_P2 * K_a_P3 / (Keq * K_a_S1 * K_a_S2 * K_a_S3),
