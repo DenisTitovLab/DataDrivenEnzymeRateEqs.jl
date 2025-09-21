@@ -126,6 +126,7 @@ function plot_fit_on_data(
                  for metab in changing_metab_concs],
                 ", "
             )
+            isempty(metab_conc_label) && (metab_conc_label = " ")
             #plot data and fit
             scatter!(ax, data_for_scatter[!, x_axis_metabolite],
                 data_for_scatter.Rate, markersize = markersize, label = metab_conc_label)
