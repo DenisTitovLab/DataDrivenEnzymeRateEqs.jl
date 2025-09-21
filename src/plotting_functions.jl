@@ -148,33 +148,24 @@ function plot_fit_on_data(
             end
             str
         end
-        # CairoMakie v0.15+ compatibility: Legend creation fails due to layout calculation issues
-        # TODO: Future improvement - investigate alternative legend positioning approaches
-        # Current solution: gracefully handle legend creation failure while preserving plot functionality
-        try
-            leg = Legend(grid_layout[1, 2],
-                ax,
-                legend_title,
-                merge = true,
-                unique = true,
-                labelsize = fontsize,
-                titlesize = fontsize,
-                patchsize = scaler .* (6.0f0, 5.0f0),
-                patchlabelgap = scaler * 2,
-                padding = scaler .* (0.5f0, 0.0f0, 0.0f0, 0.0f0),
-                framevisible = false,
-                rowgap = 0,
-                titlegap = 0,
-                titlevalign = :top,
-                titlehalign = :left,
-                valign = :top,
-                halign = :left
-            )
-        catch
-            # Skip legend creation if it fails - this maintains core plotting functionality
-            # The scientific data visualization remains fully functional without legends
-            leg = nothing
-        end
+        leg = Legend(grid_layout[1, 2],
+            ax,
+            legend_title,
+            merge = true,
+            unique = true,
+            labelsize = fontsize,
+            titlesize = fontsize,
+            patchsize = scaler .* (6.0f0, 5.0f0),
+            patchlabelgap = scaler * 2,
+            padding = scaler .* (0.5f0, 0.0f0, 0.0f0, 0.0f0),
+            framevisible = false,
+            rowgap = 0,
+            titlegap = 0,
+            titlevalign = :top,
+            titlehalign = :left,
+            valign = :top,
+            halign = :left
+        )
         colgap!(grid_layout, 1)
     end
     colgap!(fig.layout, scaler * 5)
