@@ -149,7 +149,7 @@ function plot_fit_on_data(
                 end
             end
             #TODO: remove once Makie Legend bug is fixed
-            isempty(str) && (str = " ")
+            isempty(str) && (str = "No var metabs")
         end
         leg = Legend(grid_layout[1, 2],
             ax,
