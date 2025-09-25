@@ -126,6 +126,7 @@ function plot_fit_on_data(
                  for metab in changing_metab_concs],
                 ", "
             )
+            #TODO: remove once Makie Legend bug is fixed
             isempty(metab_conc_label) && (metab_conc_label = " ")
             #plot data and fit
             scatter!(ax, data_for_scatter[!, x_axis_metabolite],
@@ -147,6 +148,8 @@ function plot_fit_on_data(
                     str = str * ", "
                 end
             end
+            #TODO: remove once Makie Legend bug is fixed
+            isempty(str) && (str = "No var metabs")
             str
         end
         leg = Legend(grid_layout[1, 2],
