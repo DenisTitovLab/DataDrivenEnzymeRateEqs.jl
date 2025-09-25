@@ -126,8 +126,7 @@ function plot_fit_on_data(
                  for metab in changing_metab_concs],
                 ", "
             )
-            #TODO: remove once Makie Legend bug is fixed
-            isempty(metab_conc_label) && (metab_conc_label = " ")
+            metab_conc_label = fallback_if_blank(metab_conc_label; fallback = "No varying metabolites")
             #plot data and fit
             scatter!(ax, data_for_scatter[!, x_axis_metabolite],
                 data_for_scatter.Rate, markersize = markersize, label = metab_conc_label)
@@ -148,8 +147,8 @@ function plot_fit_on_data(
                     str = str * ", "
                 end
             end
-            #TODO: remove once Makie Legend bug is fixed
-            isempty(str) && (str = "No var metabs")
+            str = fallback_if_blank(str; fallback = "No varying metabolites")
+            str
         end
         leg = Legend(grid_layout[1, 2],
             ax,
@@ -216,4 +215,9 @@ function unit_conc_convertion(conc::Number)
         str = "Number Out of Scale"
     end
     return str
+end
+
+@inline function fallback_if_blank(text::AbstractString; fallback::AbstractString = "No varying metabolites")
+    isempty(strip(text)) && return fallback
+    return text
 end
